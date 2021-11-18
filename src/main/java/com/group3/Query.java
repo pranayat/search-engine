@@ -111,7 +111,7 @@ public class Query {
 				++i;
 				results.add(new Result(Integer.parseInt(rs.getString("docid").trim()),
 						rs.getString("url").trim(),
-						Integer.parseInt(rs.getString("agg_score").trim()),
+						Double.parseDouble(rs.getString("agg_score").trim()),
 						i));
 			}
 			

@@ -3,10 +3,10 @@ package com.group3;
 public class Result {
 	private int docid;
 	private String url;
-	private int score;
+	private double score;
 	private int rank;
 	
-	public Result (int docid, String url, int score, int rank) {
+	public Result (int docid, String url, double score, int rank) {
 		this.docid = docid;
 		this.url = url;
 		this.score = score;
@@ -21,7 +21,7 @@ public class Result {
 		return this.url;
 	}
 	
-	public int getScore () {
+	public double getScore () {
 		return this.score;
 	}
 	
