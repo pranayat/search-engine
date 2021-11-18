@@ -1,4 +1,4 @@
-package com.group3;
+package com.search;
 
 public class Result {
 	private int docid;

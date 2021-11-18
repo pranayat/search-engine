@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
-import com.group3.Query;
-import com.group3.Result;
+import com.search.Query;
+import com.search.Result;
 
 public class QueryCLI {
 

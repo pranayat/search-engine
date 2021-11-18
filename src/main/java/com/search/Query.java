@@ -1,4 +1,4 @@
-package com.group3;
+package com.search;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.group3.Result;
+import com.search.Result;
 
 public class Query {
 

@@ -1,4 +1,4 @@
-package com.group3;
+package com.search;
 
 import java.io.PrintWriter;
 import java.util.List;
