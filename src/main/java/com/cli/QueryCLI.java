@@ -1,11 +1,13 @@
-package com.indexer;
+package com.cli;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 import com.group3.Query;
+import com.group3.Result;
 
-public class QueryDriver {
+public class QueryCLI {
 
 	public static void main(String[] args) throws ClassNotFoundException {
 		String queryMode = "conjunctive", queryText;
@@ -32,8 +34,20 @@ public class QueryDriver {
 		System.out.println("Please enter query terms separated by space\n");
 		queryText = sc.nextLine();
 		
-		Query q = new Query(queryText, k);
-		q.getResults();
+		String queryTextWithQuotes = queryText;
+		if (queryMode.equals("conjunctive")) {
+			for (String term: queryText.split("\\s+")) {
+				queryText = "\"" + term + "\"";
+			}
+		}
+		
+		Query q = new Query(queryTextWithQuotes, k);
+		List<Result> results = q.getResults();
+		System.out.println("Doc ID   URL   Score   Rank");
+		for (Result result: results) {
+			System.out.println(result.getDocid() + "   " + result.getUrl()
+				+ "   " + result.getScore() + "   " + result.getRank());
+		}
 	}
 
 }

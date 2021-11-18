@@ -1,4 +1,4 @@
-package com.indexer;
+package com.crawler;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -22,6 +22,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+
+import com.common.ConnectionManager;
+import com.indexer.Indexer;
 
 public class Crawler implements Runnable {
 	

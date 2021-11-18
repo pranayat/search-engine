@@ -1,4 +1,4 @@
-package com.indexer;
+package com.crawler;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

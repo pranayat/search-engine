@@ -1,4 +1,4 @@
-package com.indexer;
+package com.common;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

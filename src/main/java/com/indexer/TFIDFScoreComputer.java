@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.lang.Math;
 
+import com.common.ConnectionManager;
+
 public class TFIDFScoreComputer {
 	
 	private Connection conn;

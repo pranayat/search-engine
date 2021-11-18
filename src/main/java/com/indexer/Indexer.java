@@ -21,6 +21,8 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.common.ConnectionManager;
+
 public class Indexer {
 	
 	private Connection conn;
