@@ -46,7 +46,7 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS documents (docid SERIAL PRIMARY KEY, url VARCHAR UNIQUE, crawled_on_date TIMESTAMP NULL)");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (docid INT, term_frequency BIGINT, tf_idf BIGINT)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (docid INT, term VARCHAR, term_frequency BIGINT, tf_idf FLOAT)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS links (from_docid INT, to_docid INT)");

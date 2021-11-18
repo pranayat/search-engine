@@ -21,14 +21,12 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.common.ConnectionManager;
-
-public class Indexer {
+public class Indexer{
 	
 	private Connection conn;
 	
-	public Indexer() {
-		this.conn = (new ConnectionManager()).getConnection();
+	public Indexer(Connection conn) {
+		this.conn = conn;
 	}
     
     public static Set<String> read_stopwords() { 
@@ -110,48 +108,76 @@ public class Indexer {
        System.out.println(metadata);
 
        try {
-    	   String SQLdocuments = "INSERT INTO documents (docid SERIAL PRIMARY KEY, url VARCHAR UNIQUE, "
-       	   		+ "crawled_on_date TIMESTAMP NULL)" + "VALUES(?,?,?)";
-    	   String SQLfeatures = "INSERT INTO features (docid INT, term VARCHAR, "
-    	   		+ "term_frequency BIGINT, tf_idf BIGINT)" + "VALUES(?,?,?,?)";
-    	   String SQLlinks = "INSERT INTO links (from_docid INT, to_docid INT) "
+    	   String SQLinside = "SELECT docid FROM documents WHERE url = ?";
+    	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date)"
+    			   + "VALUES(?,?) RETURNING docid";
+    	   String SQLfeatures = "INSERT INTO features (docid, term, "
+    	   		+ "term_frequency, tf_idf)" + "VALUES(?,?,?,?)";
+    	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
     	   		 + "VALUES(?,?)";
     	   
     	   PreparedStatement pstmt0 = conn.prepareStatement(SQLdocuments);
     	   PreparedStatement pstmt1 = conn.prepareStatement(SQLfeatures);
     	   PreparedStatement pstmt2 = conn.prepareStatement(SQLlinks);
     	   
-    	   //Insert crawled document (Timestamp automatically?)
-    	   pstmt0.setString(1,docURL);
-    	   Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-    	   pstmt0.setTimestamp(2,timestamp);
-    	   ResultSet rs0 = pstmt0.executeQuery();
-    	   int docid0 = rs0.getInt("docid");
+    	   //test if document already in database
+    	   PreparedStatement pstmtin = conn.prepareStatement(SQLinside);
+    	   pstmtin.setString(1, docURL);
+    	   ResultSet rsin = pstmtin.executeQuery();
+    	   
+    	   int docid0;
+    	   
+    	   if (rsin.next()){
+    		   docid0 = rsin.getInt("docid");
+    	   } else {
+    		   //Insert crawled document (Timestamp automatically?)
+        	   pstmt0.setString(1,docURL);
+        	   Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        	   pstmt0.setTimestamp(2,timestamp);
+        	   ResultSet rs0 = pstmt0.executeQuery();
+        	   rs0.next();
+        	   docid0 = rs0.getInt("docid");
+    	   }
     	   
     	   //Insert documents from outgoing links
-    	   List<Integer> outgoingids = new ArrayList<Integer>();
-//    	   for (int l=0; l<links.size(); l++) {
-//    		   pstmt0.setString(1,links.get(l));
-//        	   ResultSet rs = pstmt0.executeQuery();
-//        	   outgoingids.add(rs.getInt("docid"));
-//    	   }
-//    	   
-//    	   for (Map.Entry<String,Integer> termPair : metadata.entrySet()) {
-//    		   pstmt1.setInt(1,docid0);
-//    		   pstmt1.setString(2, termPair.getKey());
-//    		   pstmt1.setInt(3,termPair.getValue());
-//    		   pstmt1.executeQuery();
-//    		   
-//    		   TFIDFScoreComputer Scorer = new TFIDFScoreComputer();
-//    		   Scorer.recomputeScores(termPair.getKey());
-//    	   }
-//    	   
-//    	   for (int l=0; l<outgoingids.size(); l++) {
-//    		   pstmt2.setInt(l, docid0);
-//    		   pstmt2.setInt(2, outgoingids.get(l));
-//    	   }
+    	   int outgoingid;
+    	   for (int l=0; l<links.size(); l++) {
+    		   
+        	   pstmtin.setString(1, links.get(l));
+        	   ResultSet rsins = pstmtin.executeQuery();
+        	   
+        	   if (rsins.next()) {
+        		   outgoingid = rsins.getInt("docid");
+        	   } else {
+        		   pstmt0.setString(1,links.get(l));
+        		   Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            	   pstmt0.setTimestamp(2,timestamp);
+            	   ResultSet rs = pstmt0.executeQuery();
+            	   rs.next();
+            	   outgoingid = rs.getInt("docid");
+        	   }
+        	   
+        	   pstmt2.setInt(1, docid0);
+        	   pstmt2.setInt(2, outgoingid);
+        	   pstmt2.executeUpdate();
+    	   }
+    	   
+    	   for (Map.Entry<String,Integer> termPair : metadata.entrySet()) {
+    		   
+    		   pstmt1.setInt(1,docid0);
+    		   pstmt1.setString(2, termPair.getKey());
+    		   pstmt1.setInt(3,termPair.getValue());
+    		   pstmt1.setInt(4, 0);
+    		   pstmt1.executeUpdate();
+    		   
+    		   TFIDFScoreComputer Scorer = new TFIDFScoreComputer(conn);
+    		   Scorer.recomputeScores(termPair.getKey());
+    	   }
+    	   
+    	   conn.commit();
     	      
        } catch (SQLException e) {
+    	   System.out.println(e);
     	   try {
     		   conn.rollback();
     	   } catch (SQLException e1) {

@@ -307,7 +307,7 @@ public class Crawler implements Runnable {
 			}
 			
 			try {
-				Indexer ind = new Indexer();
+				Indexer ind = new Indexer(conn);
 				ind.index(urlToHit, page.getPageText(), childLinks);
 			} catch (Exception e) {
 				System.out.println("Indexing isn't working");
