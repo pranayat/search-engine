@@ -1,4 +1,4 @@
-package com.search;
+package main.java.com.search;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.search.Result;
+import main.java.com.search.Result;
 
 public class Query {
 

@@ -3,7 +3,7 @@
 
 <servlet>
 	<servlet-name>search</servlet-name>
-	<servlet-class>com.search.SearchServlet</servlet-class>
+	<servlet-class>main.java.com.search.SearchServlet</servlet-class>
 </servlet>
 
 <servlet-mapping>

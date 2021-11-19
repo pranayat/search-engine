@@ -1,4 +1,4 @@
-package com.crawler;
+package main.java.com.crawler;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

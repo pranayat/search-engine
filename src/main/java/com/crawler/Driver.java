@@ -1,10 +1,10 @@
-package com.crawler;
+package main.java.com.crawler;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import com.common.ConnectionManager;
+import main.java.com.common.ConnectionManager;
 
 public class Driver {
 

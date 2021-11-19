@@ -1,11 +1,11 @@
-package com.cli;
+package main.java.com.cli;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
-import com.search.Query;
-import com.search.Result;
+import main.java.com.search.Query;
+import main.java.com.search.Result;
 
 public class QueryCLI {
 

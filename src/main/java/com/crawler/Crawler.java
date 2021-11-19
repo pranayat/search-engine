@@ -1,4 +1,4 @@
-package com.crawler;
+package main.java.com.crawler;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import com.common.ConnectionManager;
-import com.indexer.Indexer;
+import main.java.com.common.ConnectionManager;
+import main.java.com.indexer.Indexer;
 
 public class Crawler implements Runnable {
 	

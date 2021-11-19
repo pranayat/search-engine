@@ -1,4 +1,4 @@
-package com.indexer;
+package main.java.com.indexer;
 import java.io.*;
 
 public class Stemmer {
