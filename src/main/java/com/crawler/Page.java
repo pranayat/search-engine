@@ -39,10 +39,10 @@ public class Page {
 
 	public String getPageText() {
 		String text = this.pageSource;
-		// remove all inline styles
-		text = text.replaceAll("<style>(.*)</style>", "");
-		// remove all inline scripts
-		text = text.replaceAll("<script>(.*)</script>", "");
+		// remove all inline styles, lazy regex
+		text = text.replaceAll("<style>(.*?)</style>", "");
+		// remove all inline scripts, lazy regex
+		text = text.replaceAll("<script>(.*?)</script>", "");
 		// remove all html tags
 		text = text.replaceAll("<[^>]*>", "");
 		return text;
