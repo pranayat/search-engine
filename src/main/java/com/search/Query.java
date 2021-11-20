@@ -12,6 +12,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import main.java.com.indexer.StopwordRemover;
+import main.java.com.search.Result;
+import main.java.com.indexer.Stemmer;
+
 public class Query {
 
 	private String queryText;
@@ -36,7 +40,7 @@ public class Query {
 		String documentQueryString = "";
 		
 		if (site.length() > 0) {
-			documentQueryString = "	(select docid, url from documents WHERE url LIKE '%" + site +"%') as d ";
+			documentQueryString = "	(select docid, url from documents WHERE url = '" + site +"') as d ";
 		} else {
 			documentQueryString = "	(select docid, url from documents) as d ";
 		}
@@ -76,7 +80,7 @@ public class Query {
         String port="5432";
         String db_name="search_engine";
         String username="postgres";
-        String password="root";
+        String password="20p19m31s";
         List<Result> results = new ArrayList<Result>();
         
         Class.forName("org.postgresql.Driver");
@@ -89,8 +93,22 @@ public class Query {
     		Set<String> nonConjunctiveTerms = new HashSet<String>();
     		Set<String> conjunctiveTerms = new HashSet<String>();
     		String site = "";
+    		
+    		StopwordRemover sr = new StopwordRemover();
+    		Stemmer s = new Stemmer();
+    		
+    		Set<String> queryTextWithoutStopwords = sr.removeStopwords(this.queryText.split("\\s+"));
 
-    		for(String term: this.queryText.split("\\s+")) {
+    		for(String term: queryTextWithoutStopwords) {
+    			char[] word = term.toCharArray();
+	            for (int j = 0; j<word.length;j++) {
+	                char c = word[j];
+	                s.add(c);
+	            }
+	            s.stem();
+
+	            term = s.toString();
+	            
     			if (term.startsWith("site:")) {
     				site = term.substring(5, term.length());
     			} else if (term.startsWith("\"") && term.endsWith("\"")) {
@@ -98,6 +116,7 @@ public class Query {
     			} else {
     				nonConjunctiveTerms.add(term);
     			}
+    			
     		}
     		allTerms = Stream.concat(conjunctiveTerms.stream(), nonConjunctiveTerms.stream()).collect(Collectors.toSet());
 

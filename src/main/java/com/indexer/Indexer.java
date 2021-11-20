@@ -25,53 +25,24 @@ public class Indexer{
 	
 	private Connection conn;
 	Set<String> stopwords;
+	StopwordRemover sr;
 	
 	public Indexer(Connection conn) {
 		this.conn = conn;
-		this.stopwords = this.initializeStopwords();
+		this.sr = new StopwordRemover();
 	}
     
-    public Set<String> initializeStopwords() {
-    	Set<String> stopwords = new HashSet<String>();
-        try {
-             
-            URL url = new URL("http://snowball.tartarus.org/algorithms/english/stop.txt");
-            
-            // read text returned by server
-            BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-            String line;
-		    while ((line = in.readLine()) != null) {
-		      String[] parts = line.split("[|]");
-		      if (!(parts[0] == null) && !(parts[0].length() == 0)) {
-		    	  parts[0].toLowerCase();
-		    	  stopwords.add(parts[0].trim());
-		      }
-		    }
-            in.close();
-        }
-        catch (MalformedURLException e) {
-            System.out.println("Malformed URL: " + e.getMessage());
-        }
-        catch (IOException e) {
-            System.out.println("I/O Error: " + e.getMessage());
-        }
-        
-        return stopwords;
-    }
-    
-    public Map<String, Integer> getTermCounts(String[] text) {
+    public Map<String, Integer> getTermCounts(Set<String> text) {
     	Map<String, Integer> data = new HashMap<String, Integer>();
-    	for (int i=0; i<text.length; i++) {
-    		if (!this.stopwords.contains(text[i])){
-	            String stemmed_word = stem_word(text[i]);
-	            //System.out.println(stemmed_word);
-	            
-	            if (data.containsKey(stemmed_word)) {
-	            	data.put(stemmed_word, data.get(stemmed_word)+1);
-	            }else {
-	            	data.put(stemmed_word,1);
-	            }
-    		}
+    	for (String word : text) {
+            String stemmed_word = stem_word(word);
+            //System.out.println(stemmed_word);
+            
+            if (data.containsKey(stemmed_word)) {
+            	data.put(stemmed_word, data.get(stemmed_word)+1);
+            }else {
+            	data.put(stemmed_word,1);
+            }
     	}
     	return data;
     }
@@ -100,7 +71,7 @@ public class Indexer{
 	   
 	   String docTextLow = docText.toLowerCase();
        
-       String[] text = docTextLow.split("\\s+");
+       Set<String> text = this.sr.removeStopwords(docTextLow.split("\\s+"));
        
        Map <String, Integer> data = this.getTermCounts(text);
 
