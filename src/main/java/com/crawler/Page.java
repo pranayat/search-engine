@@ -38,7 +38,14 @@ public class Page {
 	}
 
 	public String getPageText() {
-		return this.pageSource.replaceAll("<[^>]*>", "");
+		String text = this.pageSource;
+		// remove all inline scripts
+		text = text.replaceAll("<style>(.*)</style>", "");
+		// remove all inline scripts
+		text = text.replaceAll("<script>(.*)</script>", "");
+		// remove all html tags
+		text = text.replaceAll("<[^>]*>", "");
+		return text;
 	}
 	
 	private Boolean isLinkCrawlable (String link) {
