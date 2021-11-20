@@ -35,16 +35,14 @@ public class Crawler implements Runnable {
 	private Connection conn;
 	private int maxDocs;
 	private int crawledDocsCount;
-	private String rootHost;
-	private String rootPath;
+	private String rootUrlString;
 	private int threadId;
 	
-	public Crawler(Boolean newRun, int threadId, int maxDepth, int fanOut, int maxDocs, String rootHost, String rootPath) {
+	public Crawler(Boolean newRun, int threadId, int maxDepth, int fanOut, int maxDocs, String rootUrlString) {
 		this.fanOut = fanOut;
 		this.maxDepth = maxDepth;
 		this.maxDocs = maxDocs;
-		this.rootHost = rootHost;
-		this.rootPath = rootPath;
+		this.rootUrlString = rootUrlString;
 		this.threadId = threadId;
 		this.conn = (new ConnectionManager()).getConnection();
 		
@@ -75,7 +73,7 @@ public class Crawler implements Runnable {
 			Boolean isFreshRun = rs.getInt("total") == 0 ? true : false;
 			
 			if (isFreshRun) {
-				this.addToQueue(new String [] {this.rootHost + "/" + this.rootPath, null}, 0);
+				this.addToQueue(new String [] {this.rootUrlString, null}, 0);
 				System.out.println("Initialzed crawler for a fresh run");
 				return;
 			}
@@ -152,46 +150,6 @@ public class Crawler implements Runnable {
 		  }
 		}	
 
-	public Map<String, String> getUrlObj(String url) {
-
-		Map<String, String> urlObj = new HashMap<>();
-
-		if (url.length() >= 2 && url.substring(0, 2).equals("//")) { // scheme relative url
-			url = url.substring(2, url.length());
-		}
-		
-		String[] urlSegments = {};
-		String host = "", path = url;
-		if (url.length() >= 4 && url.substring(0, 4).equals("www.")) {
-			urlSegments = url.split("/");
-			host = "https://" + urlSegments[0];
-			path = String.join("/", Arrays.copyOfRange(urlSegments, 1, urlSegments.length));
-		}
-		else if (url.length() >= 8 && url.substring(0, 8).equals("https://")) {
-			urlSegments = url.substring(8, url.length()).split("/");
-			host = "https://" + urlSegments[0];
-			path = String.join("/", Arrays.copyOfRange(urlSegments, 1, urlSegments.length));
-		}
-		else if(url.length() >= 7 && url.substring(0, 7).equals("http://")) {
-			urlSegments = url.substring(7, url.length()).split("/");
-			host = "http://" + urlSegments[0];
-			path = String.join("/", Arrays.copyOfRange(urlSegments, 1, urlSegments.length));
-		}
-		
-		if (host.length() > 0) {
-			host = host.substring(0, host.length() - (host.endsWith("/") ? 1 : 0));			
-		}
-		
-		if (path.length() > 0) {
-			path = path.substring(path.startsWith("/") ? 1 : 0, path.length());			
-		}
-
-	    urlObj.put("host", host);
-	    urlObj.put("path", path);
-
-	    return urlObj;
-	}
-	
 	private void addToQueue(String [] nodes, int depth) {
 		for(String node: nodes) {
 			try {
@@ -266,21 +224,13 @@ public class Crawler implements Runnable {
 		return;
 	}
 	
-	public String getNormalizedUrl (Map<String, String> urlObj, String parentHost) {
-		String host, path;
-		host = urlObj.get("host").length() > 0 ? urlObj.get("host") : parentHost; // get new host or retain parent host
-		path = urlObj.get("path");
-		
-		return host + "/" + path;
-	}
-	
 	public void crawl() {
 
-		String host, urlToHit, response = "";
+		String urlToHit, response = "";
 		Page page;
+		Url parentUrl, childUrl;
 		Indexer ind;
 		List<String> childLinks = new ArrayList<String>(), normalizedChildLinks = new ArrayList<String>();
-		Map<String, String>childUrlObj;
 		
 		while (!this.pagesAtLevel.isEmpty()) {
 			if (this.depth >= this.maxDepth || this.crawledDocsCount >= this.maxDocs) {
@@ -296,9 +246,10 @@ public class Crawler implements Runnable {
 				this.addToQueue(new String [] {null}, this.depth); // push null to end of queue
 				continue;
 			} else {
-				host = this.getUrlObj(urlToHit).get("host");
+				parentUrl = new Url(urlToHit, null);
 			}
 			
+			System.out.println("Hitting - " + urlToHit);
 			try {
 				response = this.getPageAtUrl(urlToHit, "");
 				this.crawledDocsCount++;
@@ -327,16 +278,15 @@ public class Crawler implements Runnable {
 				childLinks = childLinks.subList(0, this.fanOut);
 			}
 
-			for (String childUrl: childLinks) {
-				childUrlObj = this.getUrlObj(childUrl);
-				childUrl = this.getNormalizedUrl(childUrlObj, host);
+			for (String childUrlString: childLinks) {
+				childUrl = new Url(childUrlString, parentUrl);
 				
-				if (this.isUrlAlreadyCrawled(childUrl)) {
+				if (this.isUrlAlreadyCrawled(childUrl.getUrlString())) {
 					continue;
 				}
 				
-				normalizedChildLinks.add(childUrl);
-				this.addToQueue(new String[] { childUrl }, this.depth);
+				normalizedChildLinks.add(childUrl.getUrlString());
+				this.addToQueue(new String[] { childUrl.getUrlString() }, this.depth);
 			}
 			
 			try {
