@@ -20,6 +20,8 @@ import java.net.MalformedURLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Indexer{
 	
@@ -64,14 +66,25 @@ public class Indexer{
 
    public void index (String docURL, String docText, List<String> links) {
 	   
-	   /*String docText = "Hello, my name is distracting me";
-	   String docURL = "wikipedia.de";
-	   List<String> links = new ArrayList<String>();
-	   links.add("wikipedia.de/news");*/
-	   
 	   String docTextLow = docText.toLowerCase();
        
-       Set<String> text = this.sr.removeStopwords(docTextLow.split("\\s+"));
+	   String [] textArray = docTextLow.split("\\s+");
+	   List<String> textArrayWithoutSpecialChars = new ArrayList<String>();
+	   
+	   String regex = "([a-zA-ZäöüÄÖÜß]+)";
+	   Pattern pattern = Pattern.compile(regex);
+	   for(String text: textArray) {
+			Matcher matcher = pattern.matcher(text);
+			String iText = "";
+			while(matcher.find()) {
+				iText = iText + matcher.group(1);
+			}
+			if (iText.length() > 0) {
+				textArrayWithoutSpecialChars.add(iText);				
+			}
+	   }
+	   
+       Set<String> text = this.sr.removeStopwords(textArrayWithoutSpecialChars.toArray(new String[0]));
        
        Map <String, Integer> data = this.getTermCounts(text);
 
