@@ -12,8 +12,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import main.java.com.search.Result;
-
 public class Query {
 
 	private String queryText;

@@ -8,7 +8,7 @@ public class Url {
 	private String domain;
 	private String path;
 	
-	public Url (String inputUrlString, Url parentUrl) {
+	public Url (String inputUrlString, Url parentUrl) throws Exception {
 		String[] urlSegments = {};
 
 		// www.wikipedia.com/content
@@ -90,6 +90,8 @@ public class Url {
 			}
 			
 			this.path = String.join("/", Arrays.copyOfRange(urlSegments, 1, urlSegments.length));
+		} else {
+			throw new Exception("Invalid URL string");
 		}
 	}
 	

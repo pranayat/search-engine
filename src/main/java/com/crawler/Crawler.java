@@ -228,7 +228,7 @@ public class Crawler implements Runnable {
 
 		String urlToHit, response = "";
 		Page page;
-		Url parentUrl, childUrl;
+		Url parentUrl = null, childUrl = null;
 		Indexer ind;
 		List<String> childLinks = new ArrayList<String>(), normalizedChildLinks = new ArrayList<String>();
 		
@@ -246,7 +246,11 @@ public class Crawler implements Runnable {
 				this.addToQueue(new String [] {null}, this.depth); // push null to end of queue
 				continue;
 			} else {
-				parentUrl = new Url(urlToHit, null);
+				try {
+					parentUrl = new Url(urlToHit, null);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 			
 			System.out.println("Hitting - " + urlToHit);
@@ -279,14 +283,16 @@ public class Crawler implements Runnable {
 			}
 
 			for (String childUrlString: childLinks) {
-				childUrl = new Url(childUrlString, parentUrl);
-				
-				if (this.isUrlAlreadyCrawled(childUrl.getUrlString())) {
-					continue;
+				try {
+					childUrl = new Url(childUrlString, parentUrl);
+					if (this.isUrlAlreadyCrawled(childUrl.getUrlString())) {
+						continue;
+					}
+					
+					normalizedChildLinks.add(childUrl.getUrlString());
+					this.addToQueue(new String[] { childUrl.getUrlString() }, this.depth);
+				} catch (Exception e) {
 				}
-				
-				normalizedChildLinks.add(childUrl.getUrlString());
-				this.addToQueue(new String[] { childUrl.getUrlString() }, this.depth);
 			}
 			
 			try {
