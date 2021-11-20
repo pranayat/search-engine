@@ -53,7 +53,7 @@ public class Crawler implements Runnable {
 		this.pagesAtLevel= new LinkedList<>();
 		
 		if (newRun) {
-			this.resetState();
+			this.resetQueueState();
 		}
 
 		this.loadStateFromDB();
@@ -134,7 +134,7 @@ public class Crawler implements Runnable {
 		    //Get Response  
 		    InputStream is = connection.getInputStream();
 		    BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-		    StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
+		    StringBuilder response = new StringBuilder();
 		    String line;
 		    while ((line = rd.readLine()) != null) {
 		      response.append(line);
@@ -224,11 +224,14 @@ public class Crawler implements Runnable {
 			pstmt.executeUpdate();
 			conn.commit();
 		} catch (SQLException e) {
+			
+			e.printStackTrace();
 			try {
 				conn.rollback();
 			} catch (SQLException e1) {
+				e1.printStackTrace();
 			}
-			
+
 			return null;
 		}
 		
@@ -237,43 +240,57 @@ public class Crawler implements Runnable {
 	
 	private Boolean isUrlAlreadyCrawled(String url) {
 		try {
-		PreparedStatement pstmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM crawler_queue WHERE url = ?"); // check across threads
-		pstmt.setString(1, url);
-		ResultSet rs = pstmt.executeQuery();
-		rs.next();
-		
-		return (rs.getInt("total") > 0 ? true : false);
+			PreparedStatement pstmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM crawler_queue WHERE url = ?"); // check across threads
+			pstmt.setString(1, url);
+			ResultSet rs = pstmt.executeQuery();
+			rs.next();
+			
+			return (rs.getInt("total") > 0 ? true : false);
 		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 
-		return false;
+		return true; //consider crawled to be safe and not violate unique constraint
 	}
 	
-	public void resetState () {
+	public void resetQueueState () {
 		try {
 			PreparedStatement pstmt = conn.prepareStatement("DELETE FROM crawler_queue WHERE thread_id = ?");
 			pstmt.setInt(1, this.threadId);
 			pstmt.execute();
 			conn.commit();
 		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		
 		return;
 	}
 	
+	public String getNormalizedUrl (Map<String, String> urlObj, String parentHost) {
+		String host, path;
+		host = urlObj.get("host").length() > 0 ? urlObj.get("host") : parentHost; // get new host or retain parent host
+		path = urlObj.get("path");
+		
+		return host + "/" + path;
+	}
+	
 	public void crawl() {
 
-		String host;
-		String path;
+		String host, urlToHit, response = "";
+		Page page;
+		Indexer ind;
+		List<String> childLinks = new ArrayList<String>(), normalizedChildLinks = new ArrayList<String>();
+		Map<String, String>childUrlObj;
+		
 		while (!this.pagesAtLevel.isEmpty()) {
-			System.out.println("Checking depth - " + this.depth + " max depth - " + this.maxDepth);
 			if (this.depth >= this.maxDepth || this.crawledDocsCount >= this.maxDocs) {
-				System.out.println("Ending crawl session");
-				this.resetState();
+				System.out.println("Ending crawl session for thread = " + this.threadId
+						+ " docs crawled = " + this.crawledDocsCount + " till depth = " + this.depth);
+				this.resetQueueState();
 				return;
 			}
 			
-			String urlToHit = this.popQueueHead();
+			urlToHit = this.popQueueHead();
 			if (urlToHit == null) {
 				this.depth++;
 				this.addToQueue(new String [] {null}, this.depth); // push null to end of queue
@@ -282,35 +299,24 @@ public class Crawler implements Runnable {
 				host = this.getUrlObj(urlToHit).get("host");
 			}
 			
-			
-			System.out.println("Parent url - " + urlToHit);
-			Page page = new Page();
-			String response = "";
 			try {
 				response = this.getPageAtUrl(urlToHit, "");
 				this.crawledDocsCount++;
 							    
 			} catch (Exception e) {
 				System.out.println("Error hitting - " + urlToHit);
+				e.printStackTrace();
 				continue;
 			}
 			
+			page = new Page();
 			page.setPageSource(response);
-			
-			List<String> childLinks;
 			
 			try {
 				childLinks = page.getOutgoingLinks();
 			} catch (Exception e) {
 				System.out.println("Falling back to regex matching to extract links on this page");
 				childLinks = page.getOutgoingLinksViaRegex();
-			}
-			
-			try {
-				Indexer ind = new Indexer(conn);
-				ind.index(urlToHit, page.getPageText(), childLinks);
-			} catch (Exception e) {
-				System.out.println("Indexing isn't working");
 			}
 			
 			if (childLinks.size() == 0) {
@@ -320,18 +326,25 @@ public class Crawler implements Runnable {
 			if (childLinks.size() >= this.fanOut) {
 				childLinks = childLinks.subList(0, this.fanOut);
 			}
+
 			for (String childUrl: childLinks) {
-				Map<String, String>childUrlObj = this.getUrlObj(childUrl);
+				childUrlObj = this.getUrlObj(childUrl);
+				childUrl = this.getNormalizedUrl(childUrlObj, host);
 				
-				String childHost = childUrlObj.get("host").length() > 0 ? childUrlObj.get("host") : host; // get new host or retain parent host
-				String childPath = childUrlObj.get("path");
-				System.out.println("child path - " + childPath);
-				if (this.isUrlAlreadyCrawled(childHost + "/" + childPath)) {
-					System.out.println("Successfuly avoided cycle");
+				if (this.isUrlAlreadyCrawled(childUrl)) {
 					continue;
 				}
 				
-				this.addToQueue(new String[] { childHost + "/" + childPath}, this.depth);
+				normalizedChildLinks.add(childUrl);
+				this.addToQueue(new String[] { childUrl }, this.depth);
+			}
+			
+			try {
+				ind = new Indexer(conn);
+				ind.index(urlToHit, page.getPageText(), normalizedChildLinks);
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("Error in call to indexer");
 			}
 		}
 	}

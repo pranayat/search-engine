@@ -46,7 +46,6 @@ public class Indexer{
 		      }
 		    }
             in.close();
-            System.out.println(stopwords);
         }
         catch (MalformedURLException e) {
             System.out.println("Malformed URL: " + e.getMessage());
@@ -66,8 +65,6 @@ public class Indexer{
 	            //System.out.println(stemmed_word);
 	            
 	            if (metadata.containsKey(stemmed_word)) {
-	            	System.out.println(stemmed_word);
-	            	System.out.println(metadata.get(stemmed_word));
 	            	metadata.put(stemmed_word, metadata.get(stemmed_word)+1);
 	            }else {
 	            	metadata.put(stemmed_word,1);
@@ -105,7 +102,6 @@ public class Indexer{
        String[] text = docTextLow.split("\\s+");
        
        Map <String, Integer> metadata = extractmeta(text, stopwords);
-       System.out.println(metadata);
 
        try {
     	   String SQLinside = "SELECT docid FROM documents WHERE url = ?";
