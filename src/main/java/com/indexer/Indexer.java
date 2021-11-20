@@ -59,21 +59,21 @@ public class Indexer{
         return stopwords;
     }
     
-    public Map<String, Integer> extractmeta(String[] text) {
-    	Map<String, Integer> metadata = new HashMap<String, Integer>();
+    public Map<String, Integer> getTermCounts(String[] text) {
+    	Map<String, Integer> data = new HashMap<String, Integer>();
     	for (int i=0; i<text.length; i++) {
     		if (!this.stopwords.contains(text[i])){
 	            String stemmed_word = stem_word(text[i]);
 	            //System.out.println(stemmed_word);
 	            
-	            if (metadata.containsKey(stemmed_word)) {
-	            	metadata.put(stemmed_word, metadata.get(stemmed_word)+1);
+	            if (data.containsKey(stemmed_word)) {
+	            	data.put(stemmed_word, data.get(stemmed_word)+1);
 	            }else {
-	            	metadata.put(stemmed_word,1);
+	            	data.put(stemmed_word,1);
 	            }
     		}
     	}
-    	return metadata;
+    	return data;
     }
     
 
@@ -102,7 +102,7 @@ public class Indexer{
        
        String[] text = docTextLow.split("\\s+");
        
-       Map <String, Integer> metadata = this.extractmeta(text);
+       Map <String, Integer> data = this.getTermCounts(text);
 
        try {
     	   String SQLinside = "SELECT docid FROM documents WHERE url = ?";
@@ -159,7 +159,7 @@ public class Indexer{
         	   pstmt2.executeUpdate();
     	   }
     	   
-    	   for (Map.Entry<String,Integer> termPair : metadata.entrySet()) {
+    	   for (Map.Entry<String,Integer> termPair : data.entrySet()) {
     		   
     		   pstmt1.setInt(1,docid0);
     		   pstmt1.setString(2, termPair.getKey());
