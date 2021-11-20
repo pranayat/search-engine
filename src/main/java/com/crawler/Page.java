@@ -39,7 +39,7 @@ public class Page {
 
 	public String getPageText() {
 		String text = this.pageSource;
-		// remove all inline scripts
+		// remove all inline styles
 		text = text.replaceAll("<style>(.*)</style>", "");
 		// remove all inline scripts
 		text = text.replaceAll("<script>(.*)</script>", "");

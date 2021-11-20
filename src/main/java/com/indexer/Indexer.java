@@ -24,12 +24,14 @@ import java.util.Date;
 public class Indexer{
 	
 	private Connection conn;
+	Set<String> stopwords;
 	
 	public Indexer(Connection conn) {
 		this.conn = conn;
+		this.stopwords = this.initializeStopwords();
 	}
     
-    public static Set<String> read_stopwords() { 
+    public Set<String> initializeStopwords() {
     	Set<String> stopwords = new HashSet<String>();
         try {
              
@@ -53,14 +55,14 @@ public class Indexer{
         catch (IOException e) {
             System.out.println("I/O Error: " + e.getMessage());
         }
+        
         return stopwords;
-         
     }
     
-    public Map<String, Integer> extractmeta(String[] text, Set<String> stopwords) {
+    public Map<String, Integer> extractmeta(String[] text) {
     	Map<String, Integer> metadata = new HashMap<String, Integer>();
     	for (int i=0; i<text.length; i++) {
-    		if (!stopwords.contains(text[i])){
+    		if (!this.stopwords.contains(text[i])){
 	            String stemmed_word = stem_word(text[i]);
 	            //System.out.println(stemmed_word);
 	            
@@ -97,11 +99,10 @@ public class Indexer{
 	   links.add("wikipedia.de/news");*/
 	   
 	   String docTextLow = docText.toLowerCase();
-	   Set<String> stopwords = read_stopwords();
        
        String[] text = docTextLow.split("\\s+");
        
-       Map <String, Integer> metadata = extractmeta(text, stopwords);
+       Map <String, Integer> metadata = this.extractmeta(text);
 
        try {
     	   String SQLinside = "SELECT docid FROM documents WHERE url = ?";
