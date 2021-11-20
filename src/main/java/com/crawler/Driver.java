@@ -13,13 +13,13 @@ public class Driver {
 		PreparedStatement pstmt;
 
 		try {
-			pstmt = conn.prepareStatement("DROP TABLE crawler_queue");
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS crawler_queue");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("DROP TABLE documents");
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS documents");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("DROP TABLE features");
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS features");
 			pstmt.execute();
 			
 			conn.commit();
@@ -27,7 +27,6 @@ public class Driver {
 			try {
 				conn.rollback();
 			} catch (SQLException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
             e.printStackTrace();
@@ -43,8 +42,17 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS crawler_queue (id SERIAL PRIMARY KEY, thread_id INT, url VARCHAR, popped BOOLEAN, depth INT)");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("CREATE INDEX h_url ON crawler_queue USING hash (url)");
+			pstmt.execute();
+			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS documents (docid SERIAL PRIMARY KEY, url VARCHAR UNIQUE, crawled_on_date TIMESTAMP NULL)");
 			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("CREATE EXTENSION IF NOT EXISTS pg_trgm");
+			pstmt.execute();
+			
+			// create a trigram index on url to allow more forgiving site: filtering
+			pstmt = conn.prepareStatement("CREATE INDEX trgm_idx_url ON documents USING gin (url gin_trgm_ops)");
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (docid INT, term VARCHAR, term_frequency BIGINT, tf_idf FLOAT)");
 			pstmt.execute();
@@ -70,11 +78,11 @@ public class Driver {
 		dropTables();
 		createTables();
 		
-		Crawler c1 = new Crawler(false, 1, 10, 3, 10, "https://en.wikipedia.org", "");
+		Crawler c1 = new Crawler(false, 1, 10, 3, 100, "https://en.wikipedia.org", "");
 		Thread crawler1 = new Thread(c1);
-		Crawler c2 = new Crawler(false, 2, 10, 3, 10, "https://cs.uni-kl.de", "");
+		Crawler c2 = new Crawler(false, 2, 10, 3, 100, "https://cs.uni-kl.de", "");
 		Thread crawler2 = new Thread(c2);
-		Crawler c3 = new Crawler(false, 3, 10, 3, 10, "https://www.uni-kl.de", "");		
+		Crawler c3 = new Crawler(false, 3, 10, 3, 100, "https://www.uni-kl.de", "");		
 		Thread crawler3 = new Thread(c3);
 		
 		crawler1.start();
@@ -87,7 +95,6 @@ public class Driver {
 			crawler3.join();
 			System.out.println("END");
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

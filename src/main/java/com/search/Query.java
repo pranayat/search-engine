@@ -38,7 +38,7 @@ public class Query {
 		String documentQueryString = "";
 		
 		if (site.length() > 0) {
-			documentQueryString = "	(select docid, url from documents WHERE url = '" + site +"') as d ";
+			documentQueryString = "	(select docid, url from documents WHERE url LIKE '%" + site +"%') as d ";
 		} else {
 			documentQueryString = "	(select docid, url from documents) as d ";
 		}
