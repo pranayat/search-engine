@@ -1,7 +1,5 @@
 # IS Project 2021
 
-## Project structure
-
 ## Setup
 - Clone the repository -
 ```git clone git@git.cs.uni-kl.de:dbis/is-project-21/group-03.git```
