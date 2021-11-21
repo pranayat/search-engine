@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class SearchServlet extends HttpServlet {
 	
+	private static final long serialVersionUID = 1L;
+
 	public void doGet(HttpServletRequest req, HttpServletResponse res) {
 		
 		String queryText = req.getParameter("querytext");
@@ -40,9 +42,5 @@ public class SearchServlet extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        
-		System.out.println(queryText);
-		System.out.println(json);
 	}
 }

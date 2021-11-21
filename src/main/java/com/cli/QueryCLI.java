@@ -1,6 +1,5 @@
 package main.java.com.cli;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -48,6 +47,8 @@ public class QueryCLI {
 			System.out.println(result.getDocid() + "   " + result.getUrl()
 				+ "   " + result.getScore() + "   " + result.getRank());
 		}
+		
+		sc.close();
 	}
 
 }

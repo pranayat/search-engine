@@ -1,25 +1,13 @@
 package main.java.com.indexer;
 
-import java.io.*;
-
-import java.io.FileNotFoundException;  // Import this class to handle errors
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 // Import the Scanner class to read text files
 import java.util.*;
-//package com.javacodegeeks.snippets.core;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-
 //for timestamps
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -71,7 +59,7 @@ public class Indexer{
 	   String [] textArray = docTextLow.split("\\s+");
 	   List<String> textArrayWithoutSpecialChars = new ArrayList<String>();
 	   
-	   String regex = "([a-zA-ZäöüÄÖÜß]+)";
+	   String regex = "([a-zA-Z0-9äöüÄÖÜß]+)";
 	   Pattern pattern = Pattern.compile(regex);
 	   for(String text: textArray) {
 			Matcher matcher = pattern.matcher(text);

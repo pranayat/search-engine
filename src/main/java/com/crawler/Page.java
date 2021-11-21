@@ -16,10 +16,6 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.NodeList;
 import org.w3c.tidy.Tidy;
 import org.xml.sax.InputSource;
-import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 public class Page {
 	private String pageSource;

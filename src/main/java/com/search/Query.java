@@ -9,11 +9,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import main.java.com.indexer.StopwordRemover;
-import main.java.com.search.Result;
 import main.java.com.indexer.Stemmer;
 
 public class Query {
@@ -98,8 +99,23 @@ public class Query {
     		Stemmer s = new Stemmer();
     		
     		Set<String> queryTextWithoutStopwords = sr.removeStopwords(this.queryText.split("\\s+"));
-
+    		Set<String> queryWithoutSpecialChars = new HashSet<String>();
+    		   
+    		String regex = "([a-zA-Z0-9äöüÄÖÜß]+)";
+    		Pattern pattern = Pattern.compile(regex);
     		for(String term: queryTextWithoutStopwords) {
+    			Matcher matcher = pattern.matcher(term);
+    			String iText = "";
+    			while(matcher.find()) {
+    				iText = iText + matcher.group(1);
+    			}
+    			if (iText.length() > 0) {
+    				queryWithoutSpecialChars.add(iText);				
+    			}
+    		}
+    		   
+    				
+    		for(String term: queryWithoutSpecialChars) {
     			char[] word = term.toCharArray();
 	            for (int j = 0; j<word.length;j++) {
 	                char c = word[j];

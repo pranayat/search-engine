@@ -78,7 +78,7 @@ public class Driver {
 		dropTables();
 		createTables();
 		
-		Crawler c1 = new Crawler(false, 1, 10, 100, 100, "https://en.wikipedia.org/wiki/Led_Zeppelin");
+		Crawler c1 = new Crawler(false, 1, 10, 100, 100, "https://en.wikipedia.org/wiki/September_11_attacks");
 		Thread crawler1 = new Thread(c1);
 //		Crawler c2 = new Crawler(false, 2, 10, 100, 100, "https://cs.uni-kl.de");
 //		Thread crawler2 = new Thread(c2);
