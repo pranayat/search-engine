@@ -22,7 +22,7 @@ Search results
 	<c:forEach items="${results}" var="element">
 	  <tr> 
 	    <td>${element.rank}</td> 
-	    <td>${element.url}</td>
+	    <td><a href="${element.url}">${element.url}</a></td>
 	    <td>${element.score}</td>
 	  </tr>
 	  <br>
