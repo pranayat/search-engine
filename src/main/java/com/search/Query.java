@@ -114,6 +114,9 @@ public class Query {
     			}
     		}
     		   
+    		if (!(queryWithoutSpecialChars.size() > 0)) {
+    			return results;
+    		}
     				
     		for(String term: queryWithoutSpecialChars) {
     			char[] word = term.toCharArray();
