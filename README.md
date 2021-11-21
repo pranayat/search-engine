@@ -21,7 +21,7 @@
     - JST Server Adapters Extensions (Apache Tomcat)
   - Allow Eclipse to restart after these installations
 
-- Create new project -> Dynamic Web Project -> Set Dynamic web module version to 3.1 -> set output folder to 'build' -> Open Java EE Perspective
+- Create new project (name it as CrawlSearch) -> Dynamic Web Project -> Set Dynamic web module version to 3.1 -> set output folder to 'build' -> Open Java EE Perspective
 - Import project into this newly created project from the filesystem directory cloned earlier
 
 - Right click on the project -> New -> Other -> Server -> Apache -> Tomcat v9.0 Server -> Next -> Download and Install (install it at the same folder as your project root folder) -> Next -> Add project as configured resource -> Finish
@@ -53,3 +53,8 @@ execute a class with a main method.
 
 ## Running the Web App
 - Right click on the app -> Run on Server
+- Go to http://localhost:8080/CrawlSearch/index.html
+- For using the JSON API
+```
+curl --location --request GET 'http://localhost:8080/CrawlSearch/search?querytext=foo&json=true'
+```
