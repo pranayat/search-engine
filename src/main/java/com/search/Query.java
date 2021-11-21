@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import main.java.com.indexer.StopwordRemover;
+import main.java.com.common.ConnectionManager;
 import main.java.com.indexer.Stemmer;
 
 public class Query {
@@ -77,17 +78,12 @@ public class Query {
 	
     public List<Result> getResults() throws ClassNotFoundException {
 
-        String host="localhost";
-        String port="5432";
-        String db_name="search_engine";
-        String username="postgres";
-        String password="20p19m31s";
         List<Result> results = new ArrayList<Result>();
         
         Class.forName("org.postgresql.Driver");
 
         try {
-        	Connection conn = DriverManager.getConnection("jdbc:postgresql://"+host+":"+port+"/"+db_name+"", ""+username+"", ""+password+"");
+        	Connection conn = (new ConnectionManager()).getConnection();
     		PreparedStatement pstmt;
     		ResultSet rs;
     		Set<String> allTerms = new HashSet<String>();
