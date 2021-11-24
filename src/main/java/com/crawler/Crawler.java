@@ -104,9 +104,7 @@ public class Crawler implements Runnable {
 		    //Create connection
 		    URL url = new URL(targetURL);
 		    connection = (HttpURLConnection) url.openConnection();
-		    connection.setRequestMethod("POST");
-		    connection.setRequestProperty("Content-Type", 
-		        "application/x-www-form-urlencoded");
+		    connection.setRequestMethod("GET");
 
 		    connection.setRequestProperty("Content-Length", 
 		        Integer.toString(urlParameters.getBytes().length));
