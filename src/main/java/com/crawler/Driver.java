@@ -54,7 +54,7 @@ public class Driver {
 			// create a trigram index on url to allow more forgiving site: filtering
 			pstmt = conn.prepareStatement("CREATE INDEX trgm_idx_url ON documents USING gin (url gin_trgm_ops)");
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (docid INT, term VARCHAR, term_frequency BIGINT, tf_idf FLOAT)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS links (from_docid INT, to_docid INT)");

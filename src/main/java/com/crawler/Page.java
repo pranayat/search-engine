@@ -30,6 +30,7 @@ public class Page {
 	}
 	
 	public void setPageSource(String pageSource) {
+		// TODO don' really need to replace spaces at this point
 		this.pageSource = pageSource.replace("\n", "").replace("\r", "");
 	}
 
@@ -48,6 +49,8 @@ public class Page {
 		// remove media links
 		String[] splitLink = link.split("\\.");
 		String extensionCandidate = splitLink.length > 1 ? splitLink[splitLink.length - 1] : "";
+		
+		// TODO better to test for positive cases .html than reject negative cases
 		if (extensionCandidate.length() > 0 && Arrays.asList(new String[] {"svg", "ogg", "png", "jpg", "jpeg"}).contains(extensionCandidate)) {
 			return false;
 		}

@@ -81,7 +81,7 @@ public class Indexer{
     	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date)"
     			   + "VALUES(?,?) RETURNING docid";
     	   String SQLfeatures = "INSERT INTO features (docid, term, "
-    	   		+ "term_frequency, tf_idf)" + "VALUES(?,?,?,?)";
+    	   		+ "term_frequency, df, tf_idf)" + "VALUES(?,?,?,?,?)";
     	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
     	   		 + "VALUES(?,?)";
     	   
@@ -119,7 +119,7 @@ public class Indexer{
         		   outgoingid = rsins.getInt("docid");
         	   } else {
         		   pstmt0.setString(1,links.get(l));
-        		   Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        		   Timestamp timestamp = new Timestamp(System.currentTimeMillis()); // TODO: set to null here and update when docURL received
             	   pstmt0.setTimestamp(2,timestamp);
             	   ResultSet rs = pstmt0.executeQuery();
             	   rs.next();
@@ -136,7 +136,8 @@ public class Indexer{
     		   pstmt1.setInt(1,docid0);
     		   pstmt1.setString(2, termPair.getKey());
     		   pstmt1.setInt(3,termPair.getValue());
-    		   pstmt1.setInt(4, 0);
+    		   pstmt1.setInt(4, 1);
+    		   pstmt1.setInt(5, 0);
     		   pstmt1.executeUpdate();
     		   
     		   TFIDFScoreComputer Scorer = new TFIDFScoreComputer(conn);
