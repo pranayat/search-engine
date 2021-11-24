@@ -50,7 +50,7 @@ public class Driver {
 			
 			pstmt = conn.prepareStatement("CREATE EXTENSION IF NOT EXISTS pg_trgm");
 			pstmt.execute();
-			
+
 			// create a trigram index on url to allow more forgiving site: filtering
 			pstmt = conn.prepareStatement("CREATE INDEX trgm_idx_url ON documents USING gin (url gin_trgm_ops)");
 			
@@ -85,7 +85,7 @@ public class Driver {
 		Thread crawler2 = new Thread(c2);
 		Crawler c3 = new Crawler(false, 3, 10, 100, 100, "https://www.uni-kl.de");		
 		Thread crawler3 = new Thread(c3);
-		Crawler c4 = new Crawler(false, 3, 10, 100, 100, "https://www.kaiserslautern.de");		
+		Crawler c4 = new Crawler(false, 4, 10, 100, 100, "https://www.kaiserslautern.de");		
 		Thread crawler4 = new Thread(c4);
 		
 		crawler1.start();
