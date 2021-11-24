@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +43,7 @@ public class Query {
 		String documentQueryString = "";
 		
 		if (site.length() > 0) {
-			documentQueryString = "	(select docid, url from documents WHERE url = '" + site +"') as d ";
+			documentQueryString = "	(select docid, url from documents WHERE url LIKE '%" + site +"%') as d ";
 		} else {
 			documentQueryString = "	(select docid, url from documents) as d ";
 		}
@@ -94,7 +95,13 @@ public class Query {
     		StopwordRemover sr = new StopwordRemover();
     		Stemmer s = new Stemmer();
     		
-    		Set<String> queryTextWithoutStopwords = sr.removeStopwords(this.queryText.split("\\s+"));
+    		String[] queryTextTerms = this.queryText.split("\\s+");
+    		if (this.queryText.startsWith("site:")) {    			
+    			site = queryTextTerms[0].substring(5, queryTextTerms[0].length());
+    			queryTextTerms = Arrays.copyOfRange(queryTextTerms, 1, queryTextTerms.length); // don't consider site:abc.com as query term
+    		}
+    		
+    		Set<String> queryTextWithoutStopwords = sr.removeStopwords(queryTextTerms);
     		Set<String> queryWithoutSpecialChars = new HashSet<String>();
     		   
     		String regex = "([a-zA-Z0-9äöüÄÖÜß\"]+)";
@@ -124,9 +131,7 @@ public class Query {
 
 	            term = s.toString();
 	            
-    			if (term.startsWith("site:")) {
-    				site = term.substring(5, term.length());
-    			} else if (term.startsWith("\"") && term.endsWith("\"")) {
+	            if (term.startsWith("\"") && term.endsWith("\"")) {
     				conjunctiveTerms.add(term.split("\"")[1]);
     			} else {
     				nonConjunctiveTerms.add(term);
