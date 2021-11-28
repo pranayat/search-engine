@@ -23,18 +23,20 @@ public class TFIDFScoreComputer {
 			Statement stmt = conn.createStatement();
 		      //Query to create a function
 		    String query = "CREATE OR REPLACE FUNCTION tfidf(featureId int, N int)"
-		    		+ "RETURNS void language plpgsql"
+		    		+ "RETURNS float"
 		    		+ "AS $$"
 		    		+ "	  declare tf int;"
 		    		+ "	  declare df int;"
 		    		+ "	  declare result float;"
 		    		+ "	  declare term character varying;"
 		    		+ "	  BEGIN"
-		    		+ "	  select f.term, f.term_frequency, f.df into term, tf, df from features f where f.id = featureId;"
-		    		+ "	  result = (1+log(tf))*log(N/df);"
+		    		+ "	  select term_frequency, df into tf, docf"
+		    		+ "   from features where id = featureId;"
+		    		+ "	  result = (1+log(term_frequency))*log(N/docf);"
 		    		+ "	  UPDATE features SET tf_idf = result WHERE id=featureId;"
+		    		+ "return float;"
 		    		+ "END;"
-		    		+ "$$";
+		    		+ "$$ language plpgsql;";
 		    stmt.execute(query);
 		} catch (SQLException e) {
 	    	   System.out.println(e);
@@ -53,7 +55,7 @@ public class TFIDFScoreComputer {
 				List<Integer> featureIds = new ArrayList<Integer>();
 				
 				// get a list of all docids and loop through them
-				PreparedStatement pstmtfeatureids = conn.prepareStatement("SELECT id, from features");
+				PreparedStatement pstmtfeatureids = conn.prepareStatement("SELECT id from features");
 				ResultSet rsids = pstmtfeatureids.executeQuery();
 				while(rsids.next()) {
 					featureIds.add(rsids.getInt("id"));
@@ -61,9 +63,10 @@ public class TFIDFScoreComputer {
 				
 				PreparedStatement pstmtN = conn.prepareStatement("SELECT COUNT(*) AS count FROM documents");
 				ResultSet rsN = pstmtN.executeQuery();
+				rsN.next();
 				int N = rsN.getInt("count");
 				
-				this.tfidffunction();
+				//this.tfidffunction();
 				
 				PreparedStatement pstmtselect;
 				PreparedStatement pstmtupdate;
