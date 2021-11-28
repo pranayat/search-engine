@@ -1,4 +1,4 @@
-package main.java.com.search;
+package com.search;
 
 public class Result {
 	private int docid;

@@ -1,12 +1,14 @@
-package main.java.com.indexer;
+package com.indexer;
 
 import java.sql.Connection;
 
 import java.sql.PreparedStatement;
+import java.sql.CallableStatement;
+import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.lang.Math;
+
 
 public class TFIDFScoreComputer {
 	
@@ -16,64 +18,24 @@ public class TFIDFScoreComputer {
 		this.conn = conn;
 	}
 	
-	/*private List<String> loadFeaturesFromDB () {
-		PreparedStatement pstmt;
-		ResultSet rs;
-	}
-	
-	public void score() {
-		
-		List<String> = loadFeaturesFromDB();
-		
-		pstmt = conn.prepareStatement("SELECT term_frequency FROM features WHERE term = ?");
-		pstmt.setInt(1, this.threadId);
-		rs = pstmt.executeQuery();
-	}*/
-	
-	public void recomputeScores(String term) {
+	public void tfidffunction() {
 		try {
-			List<Integer> docidswithterm = new ArrayList<Integer>();
-			PreparedStatement pstmt;
-			PreparedStatement pstmt1;
-			PreparedStatement pstmtupdate;
-			ResultSet rs;
-			ResultSet rs1;
-			pstmt = conn.prepareStatement("SELECT docid FROM features WHERE term = ?");
-			pstmt.setString(1, term);
-			rs = pstmt.executeQuery();
-			while(rs.next()) {
-				docidswithterm.add(rs.getInt(1));
-			}
-			
-			for (int l=0; l<docidswithterm.size();l++) {
-				pstmt = conn.prepareStatement("SELECT term_frequency FROM features WHERE term =? and docid=?");
-				pstmt.setString(1,term);
-				pstmt.setInt(2, docidswithterm.get(l));
-				rs = pstmt.executeQuery();
-				rs.next();
-				int termf = rs.getInt("term_frequency");
-				float tf = 1 + (float)Math.log(termf);
-				
-				pstmt = conn.prepareStatement("SELECT COUNT(*) AS df FROM features WHERE term =?");
-				pstmt.setString(1,term);
-				rs = pstmt.executeQuery();
-				rs.next();
-				int df = rs.getInt("df");
-				pstmt1 = conn.prepareStatement("SELECT COUNT(*) AS number FROM features");
-				rs1 = pstmt1.executeQuery();
-				rs1.next();
-				int N = rs1.getInt("number");
-				float idf = (float)Math.log(N/df);
-				
-				float tf_idf = (float)(tf/idf);
-				
-				pstmtupdate = conn.prepareStatement("UPDATE features SET tf_idf =? WHERE term =? and docid=?");
-				pstmtupdate.setDouble(1,tf_idf);
-				pstmtupdate.setString(2,term);
-				pstmtupdate.setInt(3,docidswithterm.get(l));
-				pstmtupdate.executeUpdate();
-			}
-			conn.commit();
+			Statement stmt = conn.createStatement();
+		      //Query to create a function
+		    String query = "CREATE OR REPLACE FUNCTION tfidf(featureId int, N int)"
+		    		+ "RETURNS void language plpgsql"
+		    		+ "AS $$"
+		    		+ "	  declare tf int;"
+		    		+ "	  declare df int;"
+		    		+ "	  declare result float;"
+		    		+ "	  declare term character varying;"
+		    		+ "	  BEGIN"
+		    		+ "	  select f.term, f.term_frequency, f.df into term, tf, df from features f where f.id = featureId;"
+		    		+ "	  result = (1+log(tf))*log(N/df);"
+		    		+ "	  UPDATE features SET tf_idf = result WHERE id=featureId;"
+		    		+ "END;"
+		    		+ "$$";
+		    stmt.execute(query);
 		} catch (SQLException e) {
 	    	   System.out.println(e);
 	    	   try {
@@ -82,6 +44,70 @@ public class TFIDFScoreComputer {
 	    		   e1.printStackTrace();
 	    	   }
 	       }
+		
 	}
+	
+	
+	public void computeScores() {
+			try {
+				List<Integer> featureIds = new ArrayList<Integer>();
+				
+				// get a list of all docids and loop through them
+				PreparedStatement pstmtfeatureids = conn.prepareStatement("SELECT id, from features");
+				ResultSet rsids = pstmtfeatureids.executeQuery();
+				while(rsids.next()) {
+					featureIds.add(rsids.getInt("id"));
+				}
+				
+				PreparedStatement pstmtN = conn.prepareStatement("SELECT COUNT(*) AS count FROM documents");
+				ResultSet rsN = pstmtN.executeQuery();
+				int N = rsN.getInt("count");
+				
+				this.tfidffunction();
+				
+				PreparedStatement pstmtselect;
+				PreparedStatement pstmtupdate;
+				CallableStatement cstmt;
+				ResultSet rs;
+				String term;
+				int df;
+				
+				for (int featureId: featureIds) {
+					pstmtselect = conn.prepareStatement("SELECT term FROM features WHERE id = ?");
+					pstmtselect.setInt(1, featureId);
+					rs = pstmtselect.executeQuery();
+					rs.next();
+					term = rs.getString("term");
+					
+					pstmtselect = conn.prepareStatement("SELECT COUNT(*) AS df FROM features WHERE term =?");
+					pstmtselect.setString(1,term);
+					rs = pstmtselect.executeQuery();
+					rs.next();
+					df = rs.getInt("df");
+					
+					pstmtupdate = conn.prepareStatement("UPDATE features SET df = ? WHERE term =? and docid=?");
+					pstmtupdate.setInt(1, df);
+					pstmtupdate.setString(2,term);
+					pstmtupdate.setInt(3,featureId);
+					pstmtupdate.executeUpdate();
+				
+				    cstmt = conn.prepareCall("{call tfidf(?,?)}");
+				    cstmt.setInt(1, featureId);
+				    cstmt.setInt(2, N);
+				    cstmt.execute();
+				}
+				conn.commit();
 
+			} catch (SQLException e) {
+		    	   System.out.println(e);
+		    	   try {
+		    		   conn.rollback();
+		    	   } catch (SQLException e1) {
+		    		   e1.printStackTrace();
+		    	   }
+		       }
+	}
+		
 }
+				
+					   

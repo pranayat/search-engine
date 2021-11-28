@@ -1,4 +1,4 @@
-package main.java.com.indexer;
+package com.indexer;
 
 import java.io.BufferedReader;
 import java.io.IOException;

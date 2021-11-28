@@ -1,4 +1,4 @@
-package main.java.com.indexer;
+package com.indexer;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -59,7 +59,7 @@ public class Indexer{
 	   String [] textArray = docTextLow.split("\\s+");
 	   List<String> textArrayWithoutSpecialChars = new ArrayList<String>();
 	   
-	   String regex = "([a-zA-Z0-9√§√∂√º√Ñ√ñ√ú√ü]+)";
+	   String regex = "([a-zA-Z0-9‰ˆ¸ƒ÷‹ﬂ]+)";
 	   Pattern pattern = Pattern.compile(regex);
 	   for(String text: textArray) {
 			Matcher matcher = pattern.matcher(text);
@@ -77,33 +77,40 @@ public class Indexer{
        Map <String, Integer> data = this.getTermCounts(text);
 
        try {
-    	   String SQLinside = "SELECT docid FROM documents WHERE url = ?";
+  
     	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date)"
     			   + "VALUES(?,?) RETURNING docid";
     	   String SQLfeatures = "INSERT INTO features (docid, term, "
-    	   		+ "term_frequency, tf_idf)" + "VALUES(?,?,?,?)";
+    	   		+ "term_frequency, df, tf_idf)" + "VALUES(?,?,?,?,?)";
     	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
     	   		 + "VALUES(?,?)";
     	   
-    	   PreparedStatement pstmt0 = conn.prepareStatement(SQLdocuments);
-    	   PreparedStatement pstmt1 = conn.prepareStatement(SQLfeatures);
-    	   PreparedStatement pstmt2 = conn.prepareStatement(SQLlinks);
+    	   PreparedStatement pstmtdocuments = conn.prepareStatement(SQLdocuments);
+    	   PreparedStatement pstmtfeatures = conn.prepareStatement(SQLfeatures);
+    	   PreparedStatement pstmtlinks = conn.prepareStatement(SQLlinks);
     	   
     	   //test if document already in database
-    	   PreparedStatement pstmtin = conn.prepareStatement(SQLinside);
+    	   PreparedStatement pstmtin = conn.prepareStatement("SELECT docid FROM documents WHERE url = ?");
     	   pstmtin.setString(1, docURL);
     	   ResultSet rsin = pstmtin.executeQuery();
     	   
     	   int docid0;
+    	   Timestamp timestamp;
     	   
     	   if (rsin.next()){
     		   docid0 = rsin.getInt("docid");
+    		   //set real crawled timestamp
+    		   PreparedStatement pstmtupdate = conn.prepareStatement("UPDATE documents SET crawled_on_date = ? WHERE docid=?");
+    		   timestamp = new Timestamp(System.currentTimeMillis());
+        	   pstmtupdate.setTimestamp(1,timestamp);
+        	   pstmtupdate.setInt(2, docid0);
+        	   pstmtupdate.executeUpdate();
     	   } else {
-    		   //Insert crawled document (Timestamp automatically?)
-        	   pstmt0.setString(1,docURL);
-        	   Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        	   pstmt0.setTimestamp(2,timestamp);
-        	   ResultSet rs0 = pstmt0.executeQuery();
+    		   //Insert crawled document
+        	   pstmtdocuments.setString(1,docURL);
+        	   timestamp = new Timestamp(System.currentTimeMillis());
+        	   pstmtdocuments.setTimestamp(2,timestamp);
+        	   ResultSet rs0 = pstmtdocuments.executeQuery();
         	   rs0.next();
         	   docid0 = rs0.getInt("docid");
     	   }
@@ -118,29 +125,31 @@ public class Indexer{
         	   if (rsins.next()) {
         		   outgoingid = rsins.getInt("docid");
         	   } else {
-        		   pstmt0.setString(1,links.get(l));
-        		   Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-            	   pstmt0.setTimestamp(2,timestamp);
-            	   ResultSet rs = pstmt0.executeQuery();
+        		   pstmtdocuments.setString(1,links.get(l));
+        		   //Timestamp timestamp = new Timestamp(System.currentTimeMillis()); // TODO: set to null here and update when docURL received
+        		   timestamp = null;
+        		   pstmtdocuments.setTimestamp(2,timestamp);
+            	   ResultSet rs = pstmtdocuments.executeQuery();
             	   rs.next();
             	   outgoingid = rs.getInt("docid");
         	   }
         	   
-        	   pstmt2.setInt(1, docid0);
-        	   pstmt2.setInt(2, outgoingid);
-        	   pstmt2.executeUpdate();
+        	   pstmtlinks.setInt(1, docid0);
+        	   pstmtlinks.setInt(2, outgoingid);
+        	   pstmtlinks.executeUpdate();
     	   }
     	   
     	   for (Map.Entry<String,Integer> termPair : data.entrySet()) {
     		   
-    		   pstmt1.setInt(1,docid0);
-    		   pstmt1.setString(2, termPair.getKey());
-    		   pstmt1.setInt(3,termPair.getValue());
-    		   pstmt1.setInt(4, 0);
-    		   pstmt1.executeUpdate();
+    		   pstmtfeatures.setInt(1,docid0);
+    		   pstmtfeatures.setString(2, termPair.getKey());
+    		   pstmtfeatures.setInt(3,termPair.getValue());
+    		   pstmtfeatures.setInt(4, 1);
+    		   pstmtfeatures.setInt(5, 0);
+    		   pstmtfeatures.executeUpdate();
     		   
-    		   TFIDFScoreComputer Scorer = new TFIDFScoreComputer(conn);
-    		   Scorer.recomputeScores(termPair.getKey());
+    		   //TFIDFScoreComputer Scorer = new TFIDFScoreComputer(conn);
+    		   //Scorer.recomputeScores(termPair.getKey());
     	   }
     	   
     	   conn.commit();

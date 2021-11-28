@@ -1,4 +1,4 @@
-package main.java.com.search;
+package com.search;
 
 import java.io.PrintWriter;
 import java.util.List;

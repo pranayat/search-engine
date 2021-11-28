@@ -1,4 +1,4 @@
-package main.java.com.crawler;
+package com.crawler;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -15,8 +15,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import main.java.com.common.ConnectionManager;
-import main.java.com.indexer.Indexer;
+import com.common.ConnectionManager;
+import com.indexer.Indexer;
+import com.indexer.TFIDFScoreComputer;
 
 public class Crawler implements Runnable {
 	
@@ -49,9 +50,11 @@ public class Crawler implements Runnable {
 		this.loadStateFromDB();
 	}
 	
+	
 	@Override
 	public void run() {
 		this.crawl();
+		this.scoring();
 	}
 	
 	private void loadStateFromDB () {
@@ -104,9 +107,7 @@ public class Crawler implements Runnable {
 		    //Create connection
 		    URL url = new URL(targetURL);
 		    connection = (HttpURLConnection) url.openConnection();
-		    connection.setRequestMethod("POST");
-		    connection.setRequestProperty("Content-Type", 
-		        "application/x-www-form-urlencoded");
+		    connection.setRequestMethod("GET");
 
 		    connection.setRequestProperty("Content-Length", 
 		        Integer.toString(urlParameters.getBytes().length));
@@ -295,5 +296,11 @@ public class Crawler implements Runnable {
 				System.out.println("Error in call to indexer");
 			}
 		}
+	}
+	
+	public void scoring() {
+		TFIDFScoreComputer Scorer = new TFIDFScoreComputer(conn);
+		Scorer.computeScores();
+		System.out.println("calling scorer");
 	}
 }
