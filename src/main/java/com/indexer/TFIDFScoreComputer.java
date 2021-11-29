@@ -23,8 +23,8 @@ public class TFIDFScoreComputer {
 			Statement stmt = conn.createStatement();
 		      //Query to create a function
 		    String query = "CREATE OR REPLACE FUNCTION tfidf(featureId int, N int)"
-		    		+ "RETURNS float"
-		    		+ "AS $$"
+		    		+ " RETURNS float"
+		    		+ " AS $$"
 		    		+ "	  declare tf int;"
 		    		+ "	  declare df int;"
 		    		+ "	  declare result float;"
@@ -34,9 +34,9 @@ public class TFIDFScoreComputer {
 		    		+ "   from features where id = featureId;"
 		    		+ "	  result = (1+log(term_frequency))*log(N/docf);"
 		    		+ "	  UPDATE features SET tf_idf = result WHERE id=featureId;"
-		    		+ "return float;"
-		    		+ "END;"
-		    		+ "$$ language plpgsql;";
+		    		+ " return float;"
+		    		+ " END;"
+		    		+ " $$ language plpgsql;";
 		    stmt.execute(query);
 		} catch (SQLException e) {
 	    	   System.out.println(e);
@@ -66,7 +66,7 @@ public class TFIDFScoreComputer {
 				rsN.next();
 				int N = rsN.getInt("count");
 				
-				//this.tfidffunction();
+				this.tfidffunction();
 				
 				PreparedStatement pstmtselect;
 				PreparedStatement pstmtupdate;
