@@ -20,6 +20,7 @@ public class TFIDFScoreComputer {
 	
 	public void tfidffunction() {
 		try {
+
 			Statement stmt = conn.createStatement();
 		      //Query to create a function
 		    String query = "CREATE OR REPLACE FUNCTION tfidf(featureId int, N int)"
@@ -38,6 +39,7 @@ public class TFIDFScoreComputer {
 		    		+ " END;"
 		    		+ " $$ language plpgsql;";
 		    stmt.execute(query);
+
 		} catch (SQLException e) {
 	    	   System.out.println(e);
 	    	   try {

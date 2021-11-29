@@ -125,11 +125,13 @@ public class Indexer{
         	   if (rsins.next()) {
         		   outgoingid = rsins.getInt("docid");
         	   } else {
+
         		   pstmtdocuments.setString(1,links.get(l));
         		   //Timestamp timestamp = new Timestamp(System.currentTimeMillis()); // TODO: set to null here and update when docURL received
         		   timestamp = null;
         		   pstmtdocuments.setTimestamp(2,timestamp);
             	   ResultSet rs = pstmtdocuments.executeQuery();
+
             	   rs.next();
             	   outgoingid = rs.getInt("docid");
         	   }
@@ -147,6 +149,7 @@ public class Indexer{
     		   pstmtfeatures.setInt(4, 1);
     		   pstmtfeatures.setInt(5, 0);
     		   pstmtfeatures.executeUpdate();
+
     		   
     		   //TFIDFScoreComputer Scorer = new TFIDFScoreComputer(conn);
     		   //Scorer.recomputeScores(termPair.getKey());

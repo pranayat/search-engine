@@ -88,6 +88,7 @@ public class Driver {
 //		Thread crawler3 = new Thread(c3);
 //		Crawler c4 = new Crawler(false, 4, 10, 100, 100, "https://www.kaiserslautern.de");		
 //		Thread crawler4 = new Thread(c4);
+
 		
 		crawler1.start();
 //		crawler2.start();
@@ -99,7 +100,7 @@ public class Driver {
 //			crawler2.join();
 //			crawler3.join();
 //			crawler4.join();
-			//call scorer
+
 			System.out.println("END");
 		} catch (InterruptedException e) {
 			e.printStackTrace();

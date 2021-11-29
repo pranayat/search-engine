@@ -15,9 +15,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
 import com.indexer.StopwordRemover;
 import com.common.ConnectionManager;
 import com.indexer.Stemmer;
+
 
 public class Query {
 
