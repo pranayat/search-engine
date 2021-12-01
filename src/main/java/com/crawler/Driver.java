@@ -23,6 +23,9 @@ public class Driver {
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS features");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS links");
+			pstmt.execute();
+			
 			conn.commit();
 		} catch (Exception e) {
 			try {
@@ -46,7 +49,7 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE INDEX h_url ON crawler_queue USING hash (url)");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS documents (docid SERIAL PRIMARY KEY, url VARCHAR UNIQUE, crawled_on_date TIMESTAMP NULL)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS documents (docid SERIAL PRIMARY KEY, url VARCHAR UNIQUE, crawled_on_date TIMESTAMP NULL, pagerank FLOAT)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE EXTENSION IF NOT EXISTS pg_trgm");
@@ -55,12 +58,18 @@ public class Driver {
 			// create a trigram index on url to allow more forgiving site: filtering
 			pstmt = conn.prepareStatement("CREATE INDEX trgm_idx_url ON documents USING gin (url gin_trgm_ops)");
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT, num_elem BIGINT)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS links (from_docid INT, to_docid INT)");
-
 			pstmt.execute();
+			
+			//indices for making it faster
+			pstmt = conn.prepareStatement("CREATE INDEX feat_id ON features USING hash (id)");
+			pstmt.execute();
+			pstmt = conn.prepareStatement("CREATE INDEX feat_term ON features USING hash (term)");
+			pstmt.execute();
+			
 			
 			conn.commit();
 		} catch (Exception e) {
@@ -80,26 +89,26 @@ public class Driver {
 		dropTables();
 		createTables();
 		
-		Crawler c1 = new Crawler(false, 1, 10, 100, 10, "https://en.wikipedia.org/wiki/Led_Zeppelin");
+		Crawler c1 = new Crawler(false, 1, 10, 10, 10, "https://en.wikipedia.org/wiki/Led_Zeppelin");
 		Thread crawler1 = new Thread(c1);
-//		Crawler c2 = new Crawler(false, 2, 10, 100, 100, "https://cs.uni-kl.de");
-//		Thread crawler2 = new Thread(c2);
-//		Crawler c3 = new Crawler(false, 3, 10, 100, 100, "https://www.uni-kl.de");		
-//		Thread crawler3 = new Thread(c3);
-//		Crawler c4 = new Crawler(false, 4, 10, 100, 100, "https://www.kaiserslautern.de");		
-//		Thread crawler4 = new Thread(c4);
+		Crawler c2 = new Crawler(false, 2, 10, 100, 100, "https://cs.uni-kl.de");
+		Thread crawler2 = new Thread(c2);
+		Crawler c3 = new Crawler(false, 3, 10, 100, 100, "https://www.uni-kl.de");		
+		Thread crawler3 = new Thread(c3);
+		Crawler c4 = new Crawler(false, 4, 10, 100, 100, "https://www.kaiserslautern.de");		
+		Thread crawler4 = new Thread(c4);
 
 		
 		crawler1.start();
-//		crawler2.start();
-//		crawler3.start();
-//		crawler4.start();
+		crawler2.start();
+		crawler3.start();
+		crawler4.start();
 		
 		try {
 			crawler1.join();
-//			crawler2.join();
-//			crawler3.join();
-//			crawler4.join();
+			crawler2.join();
+			crawler3.join();
+			crawler4.join();
 
 			System.out.println("END");
 		} catch (InterruptedException e) {

@@ -53,7 +53,7 @@ public class Indexer{
     }
 
    public void index (String docURL, String docText, List<String> links) {
-	   
+	   System.out.println(links);
 	   String docTextLow = docText.toLowerCase();
        
 	   String [] textArray = docTextLow.split("\\s+");
@@ -78,10 +78,10 @@ public class Indexer{
 
        try {
   
-    	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date)"
-    			   + "VALUES(?,?) RETURNING docid";
+    	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date, pagerank)"
+    			   + "VALUES(?,?,?) RETURNING docid";
     	   String SQLfeatures = "INSERT INTO features (docid, term, "
-    	   		+ "term_frequency, df, tf_idf)" + "VALUES(?,?,?,?,?)";
+    	   		+ "term_frequency, df, tf_idf, num_elem)" + "VALUES(?,?,?,?,?,?)";
     	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
     	   		 + "VALUES(?,?)";
     	   
@@ -110,6 +110,7 @@ public class Indexer{
         	   pstmtdocuments.setString(1,docURL);
         	   timestamp = new Timestamp(System.currentTimeMillis());
         	   pstmtdocuments.setTimestamp(2,timestamp);
+        	   pstmtdocuments.setFloat(3, 0);
         	   ResultSet rs0 = pstmtdocuments.executeQuery();
         	   rs0.next();
         	   docid0 = rs0.getInt("docid");
@@ -130,6 +131,7 @@ public class Indexer{
         		   //Timestamp timestamp = new Timestamp(System.currentTimeMillis()); // TODO: set to null here and update when docURL received
         		   timestamp = null;
         		   pstmtdocuments.setTimestamp(2,timestamp);
+        		   pstmtdocuments.setFloat(3, 0);
             	   ResultSet rs = pstmtdocuments.executeQuery();
 
             	   rs.next();
@@ -148,6 +150,7 @@ public class Indexer{
     		   pstmtfeatures.setInt(3,termPair.getValue());
     		   pstmtfeatures.setInt(4, 1);
     		   pstmtfeatures.setInt(5, 0);
+    		   pstmtfeatures.setInt(6, data.size());
     		   pstmtfeatures.executeUpdate();
 
     		   

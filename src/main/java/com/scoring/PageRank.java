@@ -12,6 +12,9 @@ import org.la4j.matrix.SparseMatrix;
 import org.la4j.Matrix;
 import org.la4j.iterator.VectorIterator;
 import org.la4j.Vector;
+import org.la4j.vector.functor.VectorProcedure;
+
+import org.la4j.matrix.functor.MatrixFunction;
 
 import java.lang.Object;
 
@@ -25,11 +28,12 @@ public class PageRank {
 	
 	public Matrix getP() {
 		Matrix P;
+		Integer N;
 		try {
 			PreparedStatement pstmtN = conn.prepareStatement("SELECT COUNT(*) AS count FROM documents");
 			ResultSet rsN = pstmtN.executeQuery();
 			rsN.next();
-			int N = rsN.getInt("count");
+			N = rsN.getInt("count");
 			
 			SparseMatrix T = SparseMatrix.zero(N,N); 
 			
@@ -44,28 +48,32 @@ public class PageRank {
 	 	    	from = rslinks.getInt("from_docid") -1;
 	 	    	to = rslinks.getInt("to_docid") -1;
 	 	    	T.set(from, to, T.get(from,to)+1);
-	 	    	nonzeros[to] += 1;
+	 	    	nonzeros[from] += 1;
 			}
 			
-	 	    VectorIterator I;
 	 	    //calculate T
 	 	    for (int i=0; i<N; i++) {
-	 	    	//T.eachNonZeroInColumn(i, 1/nonzeros[i]); don't understand vectorfunction
+//	 	    	VectorProcedure V = new VectorProc(nonzeros[i]);
+//	 	    	T.eachNonZeroInColumn(i, V); //here V
+	 	    	
 	 	    	if (nonzeros[i]==0) {
 	 	    		for (int j =0; j<N;j++) {
-	 	    			T.set(i, j, 1/N);
+	 	    			MatrixFunction f = new updateMatrix(N);
+	 	    			T.updateAt(i, j, f);
 	 	    		}
 	 	    	} else {
-	 	    		I =  T.nonZeroIteratorOfColumn(i);
-		 	    	I.set(1/nonzeros[i]);
+	 	    		for (int j=0; j<N;j++) {
+	 	    			if (T.get(i, j) != 0) {
+	 	    				MatrixFunction f = new updateMatrix(nonzeros[i]);
+	 	    				T.updateAt(i,j,f);
+	 	    			}
+	 	    		}
 	 	    	}
 	 	    }
-	 	    
 	 	    //calculate P=T with random jumps
 	 	    Matrix Rand = Matrix.zero(N,N);
 	 	    Rand.add(1/N);
 	 	    P = T.multiply(0.9).add(Rand.multiply(0.1));
-	 	    
 	 	    conn.commit();    
 		} catch (SQLException e) {
 	    	   System.out.println(e);
@@ -80,17 +88,17 @@ public class PageRank {
 	}
 	
 	public Vector powerIteration(Matrix P, double stop_crit) {
-		Vector pi_alt = Vector.constant(P.columns(),1/P.columns());
-		Vector pi_neu = pi_alt.multiply(P);
+		double N = (double) 1/P.columns();
+		Vector pi_old= Vector.constant(P.columns(),N);
+		Vector pi_new = pi_old.multiply(P);
 		Vector pi_save;
 		
-		while (pi_neu.subtract(pi_alt).norm() > stop_crit) {
-			pi_save = pi_neu;
-			pi_neu = pi_save.multiply(P);
-			pi_alt = pi_save;
+		while (pi_new.subtract(pi_old).norm() > stop_crit) {
+			pi_save = pi_new;
+			pi_new = pi_save.multiply(P);
+			pi_old = pi_save;
 		}
-		
-		return pi_neu;
+		return pi_new;
 	}
 	
 	public void pageRanking() {

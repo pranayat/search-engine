@@ -27,15 +27,15 @@ public class TFIDFScoreComputer {
 		    		+ " RETURNS float"
 		    		+ " AS $$"
 		    		+ "	  declare tf int;"
-		    		+ "	  declare df int;"
+		    		+ "	  declare docf int;"
 		    		+ "	  declare result float;"
-		    		+ "	  declare term character varying;"
+		    		+ "	  declare actterm character varying;"
 		    		+ "	  BEGIN"
 		    		+ "	  select term_frequency, df into tf, docf"
 		    		+ "   from features where id = featureId;"
-		    		+ "	  result = (1+log(term_frequency))*log(N/docf);"
+		    		+ "	  result = (1+log(tf))*log(N/docf);"
 		    		+ "	  UPDATE features SET tf_idf = result WHERE id=featureId;"
-		    		+ " return float;"
+		    		+ " return result;"
 		    		+ " END;"
 		    		+ " $$ language plpgsql;";
 		    stmt.execute(query);
@@ -52,6 +52,7 @@ public class TFIDFScoreComputer {
 	}
 	
 	
+	
 	public void computeScores() {
 			try {
 				List<Integer> featureIds = new ArrayList<Integer>();
@@ -62,6 +63,7 @@ public class TFIDFScoreComputer {
 				while(rsids.next()) {
 					featureIds.add(rsids.getInt("id"));
 				}
+				
 				
 				PreparedStatement pstmtN = conn.prepareStatement("SELECT COUNT(*) AS count FROM documents");
 				ResultSet rsN = pstmtN.executeQuery();
@@ -78,6 +80,7 @@ public class TFIDFScoreComputer {
 				int df;
 				
 				for (int featureId: featureIds) {
+	
 					pstmtselect = conn.prepareStatement("SELECT term FROM features WHERE id = ?");
 					pstmtselect.setInt(1, featureId);
 					rs = pstmtselect.executeQuery();
@@ -96,12 +99,14 @@ public class TFIDFScoreComputer {
 					pstmtupdate.setInt(3,featureId);
 					pstmtupdate.executeUpdate();
 				
-				    cstmt = conn.prepareCall("{call tfidf(?,?)}");
+				    cstmt = conn.prepareCall("select tfidf(?,?)");
 				    cstmt.setInt(1, featureId);
 				    cstmt.setInt(2, N);
 				    cstmt.execute();
+				    
+				    conn.commit();
 				}
-				conn.commit();
+				
 
 			} catch (SQLException e) {
 		    	   System.out.println(e);
