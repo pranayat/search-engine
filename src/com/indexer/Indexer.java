@@ -59,7 +59,7 @@ public class Indexer{
 	   String [] textArray = docTextLow.split("\\s+");
 	   List<String> textArrayWithoutSpecialChars = new ArrayList<String>();
 	   
-	   String regex = "([a-zA-Z0-9äöüÄÖÜß]+)";
+	   String regex = "([a-zA-Z0-9ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½]+)";
 	   Pattern pattern = Pattern.compile(regex);
 	   for(String text: textArray) {
 			Matcher matcher = pattern.matcher(text);

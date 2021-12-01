@@ -106,7 +106,7 @@ public class Query {
     		Set<String> queryTextWithoutStopwords = sr.removeStopwords(queryTextTerms);
     		Set<String> queryWithoutSpecialChars = new HashSet<String>();
     		   
-    		String regex = "([a-zA-Z0-9äöüÄÖÜß\"]+)";
+    		String regex = "([a-zA-Z0-9ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\"]+)";
     		Pattern pattern = Pattern.compile(regex);
     		for(String term: queryTextWithoutStopwords) {
     			Matcher matcher = pattern.matcher(term);

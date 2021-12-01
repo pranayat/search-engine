@@ -29,7 +29,7 @@ buildNumber.properties
 *.pydevproject
 .project
 .metadata
-bin/**
+bin/*
 tmp/**
 tmp/**/*
 *.tmp
@@ -46,5 +46,3 @@ local.properties
 
 # Locally stored "Eclipse launch configurations"
 *.launch
-/bin/
-/build/
