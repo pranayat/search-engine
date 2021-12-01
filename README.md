@@ -1,5 +1,20 @@
 # IS Project 2021
 
+## Deployment to VM
+Run script /home/project/deploy.sh
+
+Script contents
+
+```
+cd /home/project/group-03
+eval "$(ssh-agent -s)"
+ssh-add -k /home/project/.ssh/y
+git pull origin main
+sudo service tomcat9 stop
+sudo cp /home/project/group-03/build/CrawlSearch.war /var/lib/tomcat9/webapps/
+sudo service tomcat9 start
+```
+
 ## Setup
 - Clone the repository -
 ```git clone git@git.cs.uni-kl.de:dbis/is-project-21/group-03.git```
