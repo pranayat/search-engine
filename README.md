@@ -3,6 +3,8 @@
 ## Deployment to VM
 Run script /home/project/deploy.sh
 
+Script contents
+
 ```
 cd /home/project/group-03
 eval "$(ssh-agent -s)"
