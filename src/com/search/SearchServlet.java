@@ -15,7 +15,9 @@ public class SearchServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	public void doGet(HttpServletRequest req, HttpServletResponse res) {
-		System.out.println("shaktiman");
+		System.err.println("joeroganerror");
+		System.out.println("joeroganout");
+		
 		String queryText = req.getParameter("querytext");
 		String json = req.getParameter("json");
 		
@@ -40,6 +42,7 @@ public class SearchServlet extends HttpServlet {
         			rd.forward(req, res);        			
         		}
         } catch (Exception e) {
+        	System.out.println("spiderman");
             e.printStackTrace();
         }
 	}
