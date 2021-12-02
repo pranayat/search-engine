@@ -31,7 +31,7 @@ Set application context path in `/var/lib/tomcat9/conf/server.xml`
 Checking request logs
 Access logs are available in `/var/lib/tomcat9/logs/localhost_access_log_<date>.txt`
 
-
+cd into project root
 Building crawler
 ```
 javac -d bin -cp lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar src/com/cli/QueryCLI.java src/com/common/ConnectionManager.java src/com/crawler/Crawler.java src/com/crawler/Driver.java src/com/crawler/Page.java src/com/crawler/Url.java src/com/indexer/Indexer.java src/com/indexer/Stemmer.java src/com/indexer/StopwordRemover.java src/com/indexer/TFIDFScoreComputer.java src/com/scoring/PageRank.java src/com/search/Query.java src/com/search/Result.java 
