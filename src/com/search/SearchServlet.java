@@ -24,7 +24,7 @@ public class SearchServlet extends HttpServlet {
         try {
         		Query q = new Query(queryText, k);
         		List<Result> results = q.getResults();
-        		
+        		System.out.println("foo");
         		if (json != null && json.equals("true")) {
         			PrintWriter out = res.getWriter();
         			ObjectMapper objectMapper= new ObjectMapper();
