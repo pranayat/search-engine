@@ -42,6 +42,11 @@ Executing crawler
 java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar com.crawler.Driver
 ```
 
+Check DB
+```
+sudo -u postgres psql search_engine
+```
+
 ## Setup
 - Clone the repository -
 ```git clone git@git.cs.uni-kl.de:dbis/is-project-21/group-03.git```
