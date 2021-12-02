@@ -1,7 +1,8 @@
 # IS Project 2021
 
 ## Deployment to VM
-Run script /home/project/deploy.sh
+Run script `/home/project/deploy.sh`
+This just pulls latest code from the repo along with the `.war` file, copies the `.war` file to the Tomcat `webapps` folder and restarts the server.
 
 Script contents
 
@@ -14,6 +15,14 @@ sudo service tomcat9 stop
 sudo cp /home/project/group-03/build/CrawlSearch.war /var/lib/tomcat9/webapps/
 sudo service tomcat9 start
 ```
+
+
+Since Sheet-02 requires that the server URL be `/is-project`
+Set application context path in `/var/lib/tomcat9/conf/server.xml`
+```
+<Context path="/is-project" docBase="CrawlSearch.war" />
+```
+
 
 ## Setup
 - Clone the repository -
