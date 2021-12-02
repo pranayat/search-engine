@@ -28,6 +28,9 @@ Set application context path in `/var/lib/tomcat9/conf/server.xml`
 <Context path="/is-project" docBase="CrawlSearch.war" />
 ```
 
+Checking request logs
+Access logs are available in `/var/lib/tomcat9/logs/localhost_access_log_<date>.txt`
+
 
 ## Setup
 - Clone the repository -
