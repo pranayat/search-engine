@@ -15,7 +15,7 @@ public class SearchServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	public void doGet(HttpServletRequest req, HttpServletResponse res) {
-		
+		System.out.println("shaktiman");
 		String queryText = req.getParameter("querytext");
 		String json = req.getParameter("json");
 		
