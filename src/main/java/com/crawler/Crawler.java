@@ -19,6 +19,7 @@ import com.common.ConnectionManager;
 import com.indexer.Indexer;
 import com.indexer.TFIDFScoreComputer;
 import com.scoring.PageRank;
+import com.scoring.Okapi;
 
 public class Crawler implements Runnable {
 	
@@ -57,6 +58,7 @@ public class Crawler implements Runnable {
 		this.crawl();
 		this.TFIDFscoring();
 		this.PageRankScoring();
+		this.OkapiScoring();
 	}
 	
 	private void loadStateFromDB () {
@@ -310,5 +312,11 @@ public class Crawler implements Runnable {
 		System.out.println("calling PageRank scorer");
 		PageRank pr = new PageRank(conn);
 		pr.pageRanking();
+	}
+	
+	public void OkapiScoring() {
+		System.out.println("calling Okapi scorer");
+		Okapi ok = new Okapi(conn);
+		ok.okapiScoring();
 	}
 }

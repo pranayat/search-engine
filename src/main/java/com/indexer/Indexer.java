@@ -81,7 +81,7 @@ public class Indexer{
     	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date, pagerank)"
     			   + "VALUES(?,?,?) RETURNING docid";
     	   String SQLfeatures = "INSERT INTO features (docid, term, "
-    	   		+ "term_frequency, df, tf_idf, num_elem)" + "VALUES(?,?,?,?,?,?)";
+    	   		+ "term_frequency, df, tf_idf, num_elem, bm25)" + "VALUES(?,?,?,?,?,?,?)";
     	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
     	   		 + "VALUES(?,?)";
     	   
@@ -149,13 +149,11 @@ public class Indexer{
     		   pstmtfeatures.setString(2, termPair.getKey());
     		   pstmtfeatures.setInt(3,termPair.getValue());
     		   pstmtfeatures.setInt(4, 1);
-    		   pstmtfeatures.setInt(5, 0);
+    		   pstmtfeatures.setDouble(5, 0);
     		   pstmtfeatures.setInt(6, data.size());
+    		   pstmtfeatures.setDouble(7,0);
     		   pstmtfeatures.executeUpdate();
-
     		   
-    		   //TFIDFScoreComputer Scorer = new TFIDFScoreComputer(conn);
-    		   //Scorer.recomputeScores(termPair.getKey());
     	   }
     	   
     	   conn.commit();
