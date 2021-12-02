@@ -94,7 +94,7 @@ public class Okapi {
 			int N = rsN.getInt("count");
 				
 			float avgdl = this.getAvgDocLen();	
-//			this.okapifunction();
+			this.okapifunction();
 			
 			CallableStatement cstmt;
 			PreparedStatement pstmt;
@@ -108,30 +108,30 @@ public class Okapi {
 			int D;
 			
 			for (int featureId: featureIds) {
-				//-----------------------------------------------------------------------------------
-				pstmt = conn.prepareStatement("SELECT term_frequency AS fqD, df AS nq, num_elem AS D FROM features WHERE id=?");
-				pstmt.setInt(1, featureId);
-				ResultSet rs = pstmt.executeQuery();
-				rs.next();
-				fqD = rs.getInt("fqD");
-				nq = rs.getInt("nq");
-				D = rs.getInt("D");
-				idf = (float) Math.log((N-nq+0.5)/(nq+0.5));
-				result = idf * ((fqD * (k1 + 1))/(fqD + k1 * 1 - b + b * (D/avgdl)));
-				
-				pstmtupdate = conn.prepareStatement("UPDATE features SET bm25 = ? WHERE id=?");
-        	    pstmtupdate.setFloat(1,result);
-        	    pstmtupdate.setInt(2, featureId);
-        	    pstmtupdate.executeUpdate();
+				// version 1: calculation in java-----------------------------------------------------------------------------------
+//				pstmt = conn.prepareStatement("SELECT term_frequency AS fqD, df AS nq, num_elem AS D FROM features WHERE id=?");
+//				pstmt.setInt(1, featureId);
+//				ResultSet rs = pstmt.executeQuery();
+//				rs.next();
+//				fqD = rs.getInt("fqD");
+//				nq = rs.getInt("nq");
+//				D = rs.getInt("D");
+//				idf = (float) Math.log((N-nq+0.5)/(nq+0.5));
+//				result = idf * ((fqD * (k1 + 1))/(fqD + k1 * 1 - b + b * (D/avgdl)));
+//				
+//				pstmtupdate = conn.prepareStatement("UPDATE features SET bm25 = ? WHERE id=?");
+//        	    pstmtupdate.setFloat(1,result);
+//        	    pstmtupdate.setInt(2, featureId);
+//        	    pstmtupdate.executeUpdate();
 			
-				//---------------------------------------------------------------------------------
-//			    cstmt = conn.prepareCall("select okapibm25(?,?,?,?,?)");
-//			    cstmt.setInt(1, featureId);
-//			    cstmt.setInt(2, N);
-//			    cstmt.setFloat(3,avgdl);
-//			    cstmt.setFloat(4, (float) 1.7);
-//			    cstmt.setFloat(5, (float) 0.75);
-//			    cstmt.execute();
+				// version 2: calculation in postgres---------------------------------------------------------------------------------
+			    cstmt = conn.prepareCall("select okapibm25(?,?,?,?,?)");
+			    cstmt.setInt(1, featureId);
+			    cstmt.setInt(2, N);
+			    cstmt.setFloat(3,avgdl);
+			    cstmt.setFloat(4, (float) 1.7);
+			    cstmt.setFloat(5, (float) 0.75);
+			    cstmt.execute();
 			    
 			    conn.commit();
 			}
