@@ -80,14 +80,16 @@ public class Driver {
 		dropTables();
 		createTables();
 		
-		Crawler c1 = new Crawler(false, 1, 10, 100, 10, "https://en.wikipedia.org/wiki/Led_Zeppelin");
+		Crawler c1 = new Crawler(false, 1, 10, 100, 10, "https://www.cs.uni-kl.de");
 		Thread crawler1 = new Thread(c1);
-//		Crawler c2 = new Crawler(false, 2, 10, 100, 100, "https://cs.uni-kl.de");
+//		Crawler c2 = new Crawler(false, 2, 10, 100, 100, "https://www.asta.uni-kl.de/");
 //		Thread crawler2 = new Thread(c2);
-//		Crawler c3 = new Crawler(false, 3, 10, 100, 100, "https://www.uni-kl.de");		
+//		Crawler c3 = new Crawler(false, 3, 10, 100, 100, "https://www.mathematik.uni-kl.de/en/");		
 //		Thread crawler3 = new Thread(c3);
-//		Crawler c4 = new Crawler(false, 4, 10, 100, 100, "https://www.kaiserslautern.de");		
+//		Crawler c4 = new Crawler(false, 4, 10, 100, 100, "https://www.mv.uni-kl.de/en/");		
 //		Thread crawler4 = new Thread(c4);
+//		Crawler c5 = new Crawler(false, 4, 10, 100, 100, "https://www.architektur.uni-kl.de/en/home/seite");		
+//		Thread crawler5 = new Thread(c5);
 
 		
 		crawler1.start();

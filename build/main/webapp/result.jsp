@@ -9,7 +9,7 @@
 <meta charset="UTF-8">
 <title>Search Results</title>
 </head>
-<body style="background:black;color:green;font-family: 'Courier New', monospace;">
+<body style="color:green;font-family: 'Courier New', monospace;">
 	<c:if test="${fn:length(results) > 0}"><div style="display:flex;justify-content:center">Showing results for - ${param.querytext}</div></c:if>
 	<c:if test="${fn:length(results) == 0}"><div style="display:flex;justify-content:center">No results found for - ${param.querytext}</div></c:if>
 	<c:if test="${fn:length(results) > 0}">
