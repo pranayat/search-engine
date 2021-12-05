@@ -30,6 +30,12 @@ public class ViewCreator {
 		    Statement statement2 = conn.createStatement();
 		    statement2.execute(viewbm25);
 		    
+		    String viewcombined = "create or replace view  features_combined as"
+		    		+ " select docid, term, combined as score"
+		    		+ " from features";
+		    Statement statement3 = conn.createStatement();
+		    statement3.execute(viewcombined);
+		    
 		    conn.commit();
 			
 		} catch (SQLException e) {

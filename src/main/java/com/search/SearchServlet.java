@@ -30,7 +30,7 @@ public class SearchServlet extends HttpServlet {
         			ObjectMapper objectMapper= new ObjectMapper();
         			String jsonString = objectMapper.writeValueAsString(results);
         			res.setContentType("application/json");
-        			res.setCharacterEncoding("UTF-8");
+        			res.setCharacterEncoding("UTF-8");//set to unicode so that we can use fuzzystrmatch?
         			out.print(jsonString);
         			out.flush();
         			return;

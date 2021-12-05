@@ -81,7 +81,7 @@ public class Indexer{
     	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date, pagerank)"
     			   + "VALUES(?,?,?) RETURNING docid";
     	   String SQLfeatures = "INSERT INTO features (docid, term, "
-    	   		+ "term_frequency, df, tf_idf, num_elem, bm25)" + "VALUES(?,?,?,?,?,?,?)";
+    	   		+ "term_frequency, df, tf_idf, num_elem, bm25, combined)" + "VALUES(?,?,?,?,?,?,?,?)";
     	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
     	   		 + "VALUES(?,?)";
     	   
@@ -152,6 +152,7 @@ public class Indexer{
     		   pstmtfeatures.setDouble(5, 0);
     		   pstmtfeatures.setInt(6, data.size());
     		   pstmtfeatures.setDouble(7,0);
+    		   pstmtfeatures.setDouble(8,0);
     		   pstmtfeatures.executeUpdate();
     		   
     	   }
