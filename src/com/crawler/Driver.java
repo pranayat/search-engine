@@ -3,6 +3,7 @@ package com.crawler;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Scanner;
 
 import com.common.ConnectionManager;
 import com.indexer.TFIDFScoreComputer;
@@ -100,33 +101,39 @@ public class Driver {
 	public static void main(String[] args) {
 		
 		if (args.length > 0 && args[0].equals("reset")) {
-			System.out.println("Recreating tables");
-			dropTables();
-			createTables();			
+			Scanner sc = new Scanner(System.in);
+			
+			System.out.println("This will delete existing index data. Continue? (y/n)");
+			String ch = sc.nextLine();
+			if (ch.equals("y")) {
+				System.out.println("Rebuilding index from scratch...");
+				dropTables();
+				createTables();
+			}
 		}
 		
 		Crawler c1 = new Crawler(false, 1, 10, 100, 10, "https://www.cs.uni-kl.de");
 		Thread crawler1 = new Thread(c1);
-//		Crawler c2 = new Crawler(false, 2, 10, 100, 100, "https://www.asta.uni-kl.de/");
-//		Thread crawler2 = new Thread(c2);
-//		Crawler c3 = new Crawler(false, 3, 10, 100, 100, "https://www.mathematik.uni-kl.de/en/");		
-//		Thread crawler3 = new Thread(c3);
-//		Crawler c4 = new Crawler(false, 4, 10, 100, 100, "https://www.mv.uni-kl.de/en/");		
-//		Thread crawler4 = new Thread(c4);
-//		Crawler c5 = new Crawler(false, 4, 10, 100, 100, "https://www.architektur.uni-kl.de/en/home/seite");		
-//		Thread crawler5 = new Thread(c5);
+		Crawler c2 = new Crawler(false, 2, 10, 100, 100, "https://www.asta.uni-kl.de/");
+		Thread crawler2 = new Thread(c2);
+		Crawler c3 = new Crawler(false, 3, 10, 100, 100, "https://www.mathematik.uni-kl.de/en/");		
+		Thread crawler3 = new Thread(c3);
+		Crawler c4 = new Crawler(false, 4, 10, 100, 100, "https://www.mv.uni-kl.de/en/");		
+		Thread crawler4 = new Thread(c4);
+		Crawler c5 = new Crawler(false, 4, 10, 100, 100, "https://www.architektur.uni-kl.de/en/home/seite");		
+		Thread crawler5 = new Thread(c5);
 
 		
 		crawler1.start();
-//		crawler2.start();
-//		crawler3.start();
-//		crawler4.start();
+		crawler2.start();
+		crawler3.start();
+		crawler4.start();
 		
 		try {
 			crawler1.join();
-//			crawler2.join();
-//			crawler3.join();
-//			crawler4.join();
+			crawler2.join();
+			crawler3.join();
+			crawler4.join();
 
 			System.out.println("END");
 		} catch (InterruptedException e) {
