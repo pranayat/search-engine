@@ -23,6 +23,9 @@ public class Driver {
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS features");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS links");
+			pstmt.execute();			
+			
 			conn.commit();
 		} catch (Exception e) {
 			try {
@@ -76,9 +79,11 @@ public class Driver {
 	
 	public static void main(String[] args) {
 		
-		// Comment these out if this is not the first time runningthis project
-		dropTables();
-		createTables();
+		if (args.length > 0 && args[0].equals("reset")) {
+			System.out.println("Recreating tables");
+			dropTables();
+			createTables();			
+		}
 		
 		Crawler c1 = new Crawler(false, 1, 10, 100, 10, "https://www.cs.uni-kl.de");
 		Thread crawler1 = new Thread(c1);
