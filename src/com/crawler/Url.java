@@ -17,7 +17,7 @@ public class Url {
 			if (parentUrl != null && parentUrl.getProtocol().length() > 0) {
 				this.protocol = parentUrl.getProtocol();
 			} else {
-			 	this.protocol = "http://"; // set http as default as most servers redirect to https at the rev proxy
+			 	this.protocol = "https://";
 			}
 			this.domain = urlSegments[0];
 			this.path = String.join("/", Arrays.copyOfRange(urlSegments, 1, urlSegments.length));
@@ -34,7 +34,7 @@ public class Url {
 		// http://wikipedia.com/content
 		else if(inputUrlString.length() >= 7 && inputUrlString.substring(0, 7).equals("http://")) {
 			urlSegments = inputUrlString.substring(7, inputUrlString.length()).split("/");
-			this.protocol = "http://";
+			this.protocol = "https://"; // normalize all to https
 			this.domain = urlSegments[0];
 			this.path = String.join("/", Arrays.copyOfRange(urlSegments, 1, urlSegments.length));
 		}
@@ -48,7 +48,7 @@ public class Url {
 				// should ideally not land here for implicit protocol urls
 				this.protocol = parentUrl.getProtocol();
 			} else {
-			 	this.protocol = "http://"; // set http as fallback as most servers redirect to https at the rev proxy
+			 	this.protocol = "https://";
 			}
 			
 			this.domain = urlSegments[0];
@@ -60,7 +60,7 @@ public class Url {
 				// should ideally not land here for implicit protocol urls
 				this.protocol = parentUrl.getProtocol();
 			} else {
-			 	this.protocol = "http://"; // set http as fallback as most servers redirect to https at the rev proxy
+			 	this.protocol = "https://";
 			}
 			
 			if (parentUrl.getDomain().length() > 0) {
@@ -80,7 +80,7 @@ public class Url {
 				// should ideally not land here for implicit protocol urls
 				this.protocol = parentUrl.getProtocol();
 			} else {
-			 	this.protocol = "http://"; // set http as fallback as most servers redirect to https at the rev proxy
+			 	this.protocol = "https://";
 			}
 			
 			if (parentUrl.getDomain().length() > 0) {
@@ -96,6 +96,10 @@ public class Url {
 	}
 	
 	public String getUrlString() {
+		if (!(this.path.length() > 0)) {
+			return this.protocol + this.domain;
+		}
+
 		return this.protocol + this.domain + "/" + this.path;
 	}
 	
