@@ -14,13 +14,23 @@ public class Driver {
 		PreparedStatement pstmt;
 
 		try {
+			
+//			pstmt = conn.prepareStatement("DROP VIEW IF EXISTS features_tfifd");
+//			pstmt.execute();
+//			
+//			pstmt = conn.prepareStatement("DROP VIEW IF EXISTS features_bm25");
+//			pstmt.execute();
+			
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS crawler_queue");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS documents");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS features");
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS features CASCADE");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS links");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS links");
@@ -49,7 +59,7 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE INDEX h_url ON crawler_queue USING hash (url)");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS documents (docid SERIAL PRIMARY KEY, url VARCHAR UNIQUE, crawled_on_date TIMESTAMP NULL)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS documents (docid SERIAL PRIMARY KEY, url VARCHAR UNIQUE, crawled_on_date TIMESTAMP NULL, pagerank FLOAT)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE EXTENSION IF NOT EXISTS pg_trgm");
@@ -58,12 +68,22 @@ public class Driver {
 			// create a trigram index on url to allow more forgiving site: filtering
 			pstmt = conn.prepareStatement("CREATE INDEX trgm_idx_url ON documents USING gin (url gin_trgm_ops)");
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT, num_elem BIGINT, bm25 FLOAT, combined FLOAT)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS links (from_docid INT, to_docid INT)");
-
 			pstmt.execute();
+			
+			//indices for making it faster
+			pstmt = conn.prepareStatement("CREATE INDEX feat_id ON features USING hash (id)");
+			pstmt.execute();
+			pstmt = conn.prepareStatement("CREATE INDEX feat_docid ON features USING hash (docid)");
+			pstmt.execute();
+			pstmt = conn.prepareStatement("CREATE INDEX feat_term ON features USING hash (term)");
+			pstmt.execute();
+			pstmt = conn.prepareStatement("CREATE INDEX doc_id ON documents USING hash (docid)");
+			pstmt.execute();
+			
 			
 			conn.commit();
 		} catch (Exception e) {

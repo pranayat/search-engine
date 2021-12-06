@@ -18,6 +18,10 @@ import java.util.Queue;
 import com.common.ConnectionManager;
 import com.indexer.Indexer;
 import com.indexer.TFIDFScoreComputer;
+import com.scoring.PageRank;
+import com.scoring.Okapi;
+import com.scoring.ViewCreator;
+import com.scoring.CombinedScore;
 
 public class Crawler implements Runnable {
 	
@@ -54,7 +58,11 @@ public class Crawler implements Runnable {
 	@Override
 	public void run() {
 		this.crawl();
-		this.scoring();
+		this.TFIDFscoring();
+		this.PageRankScoring();
+		this.OkapiScoring();
+		this.combinedScoring();
+		this.creatingViews();
 	}
 	
 	private void loadStateFromDB () {
@@ -298,9 +306,33 @@ public class Crawler implements Runnable {
 		}
 	}
 	
-	public void scoring() {
+	public void TFIDFscoring() {
+		System.out.println("calling TFIDF scorer");
 		TFIDFScoreComputer Scorer = new TFIDFScoreComputer(conn);
 		Scorer.computeScores();
-		System.out.println("calling scorer");
+	}
+	
+	public void PageRankScoring() {
+		System.out.println("calling PageRank scorer");
+		PageRank pr = new PageRank(conn);
+		pr.pageRanking();
+	}
+	
+	public void OkapiScoring() {
+		System.out.println("calling Okapi scorer");
+		Okapi ok = new Okapi(conn);
+		ok.okapiScoring();
+	}
+	
+	public void combinedScoring() {
+		System.out.println("calling Combined scorer");
+		CombinedScore cs = new CombinedScore(conn);
+		cs.combinedScoring();
+	}
+	
+	public void creatingViews() {
+		System.out.println("views created");
+		ViewCreator vc = new ViewCreator(conn);
+		vc.createViews();
 	}
 }
