@@ -1,36 +1,74 @@
 package com.search;
 
 import java.io.PrintWriter;
+import java.time.Duration;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Bucket4j;
+import io.github.bucket4j.Refill;
+
 public class SearchApiServlet extends HttpServlet {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;	
+	private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+	
+	public Bucket getBucketByIp(String ip) {
+        return cache.computeIfAbsent(ip, this::newBucket);
+    }	
 
+    private Bucket newBucket(String ip) {
+        return Bucket4j.builder()
+                .addLimit(Bandwidth.classic(1, Refill.intervally(1, Duration.ofSeconds(1))))
+                .build();
+    }
+    
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
-		String queryText = req.getParameter("querytext");
-        int k = req.getParameter("k").length() > 0 ? Integer.parseInt(req.getParameter("k")) : 20;
-        // TODO: score param
         
-        try {
-			Query q = new Query(queryText, k);
-			List<Result> results = q.getResults();
+		try {
 			PrintWriter out = res.getWriter();
 			ObjectMapper objectMapper= new ObjectMapper();
-			String jsonString = objectMapper.writeValueAsString(results);
-			res.setContentType("application/json");
-			res.setCharacterEncoding("UTF-8");
-			out.print(jsonString);
-			out.flush();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+			String jsonString;
+			
+			Bucket ipBucket = this.getBucketByIp(req.getRemoteAddr());
+			Bucket globalBucket = Bucket4j.builder()
+	                .addLimit(Bandwidth.classic(10, Refill.intervally(10, Duration.ofSeconds(1))))
+	                .build();
+			
+			if (!globalBucket.tryConsume(1)) {
+				res.setStatus(429);
+				out.print("Rate limit exceeded, please try after sometime.");
+				out.flush();	
+			}
+			else if (!ipBucket.tryConsume(1)) {
+				res.setStatus(429);
+				out.print("Rate limit exceeded for your IP, please try after sometime.");
+				out.flush();
+		    } else {
+		    	String queryText = req.getParameter("querytext");
+		    	int k = req.getParameter("k").length() > 0 ? Integer.parseInt(req.getParameter("k")) : 20;
+		    	// TODO: score param
+		    	
+		    	
+		    		Query q = new Query(queryText, k);
+		    		List<Result> results = q.getResults();
+		    		jsonString = objectMapper.writeValueAsString(results);
+		    		res.setContentType("application/json");
+		    		res.setCharacterEncoding("UTF-8");
+		    		out.print(jsonString);
+		    		out.flush();
+		    }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}	    	
 	}
 }
