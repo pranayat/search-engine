@@ -4,7 +4,7 @@
 Run script `/home/project/deploy.sh`
 This just pulls latest code from the repo along with the `.war` file, copies the `.war` file to the Tomcat `webapps` folder and restarts the server.
 
-Script contents
+Script contents:
 
 ```
 #!/bin/bash
@@ -21,6 +21,30 @@ sudo cp /home/project/group-03/build/CrawlSearch.war /var/lib/tomcat9/webapps/
 sudo service tomcat9 start
 ```
 
+## Buildig and running crawler
+Run script `/home/project/crawl.sh`
+This builds the crawler classes and starts a crawl run. Output of the crawl run is appended to a log file `/home/project/crawl_log.sh`
+
+Script contents:
+```
+#!/bin/bash
+
+cd /home/project/group-03
+
+javac -d bin -cp lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/la4j-0.6.0.jar src/com/cli/QueryCLI.java src/com/common/ConnectionManager.java src/com/crawler/Crawler.java src/com/crawler/Driver.java src/com/crawler/Page.java src/com/crawler/Url.java src/com/indexer/Indexer.java src/com/indexer/Stemmer.java src/com/indexer/StopwordRemover.java src/com/indexer/TFIDFScoreComputer.java src/com/scoring/PageRank.java src/com/search/Query.java src/com/search/Result.java src/com/scoring/CombinedScore.java src/com/scoring/Okapi.java src/com/scoring/PageRank.java src/com/scoring/updateMatrix.java src/com/scoring/VectorProc.java src/com/scoring/ViewCreator.java
+
+echo "CRAWL LOG" >> /home/project/crawl_log.txt
+
+echo `date` >> /home/project/crawl_log.txt
+
+java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar com.crawler.Driver 5 5 5 reset >> /home/project/crawl_log.txt
+```
+
+## Cron job
+The cron job executes the above `/home/project/crawl.sh` file every night.
+
+
+## Miscellaneous
 
 Since Sheet-02 requires that the server URL be `/is-project`
 Set application context path in `/var/lib/tomcat9/conf/server.xml`
@@ -35,26 +59,15 @@ Checking system.out logs
 ```
 journalctl -u tomcat9.service --reverse
 ```
-
-
-cd into project root at /home/project/group-03
-
-Building crawler
-```
-javac -d bin -cp lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/la4j-0.6.0.jar src/com/cli/QueryCLI.java src/com/common/ConnectionManager.java src/com/crawler/Crawler.java src/com/crawler/Driver.java src/com/crawler/Page.java src/com/crawler/Url.java src/com/indexer/Indexer.java src/com/indexer/Stemmer.java src/com/indexer/StopwordRemover.java src/com/indexer/TFIDFScoreComputer.java src/com/scoring/PageRank.java src/com/search/Query.java src/com/search/Result.java src/com/scoring/CombinedScore.java src/com/scoring/Okapi.java src/com/scoring/PageRank.java src/com/scoring/updateMatrix.java src/com/scoring/VectorProc.java src/com/scoring/ViewCreator.java
-```
-
-Executing crawler
-```
-java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar com.crawler.Driver
-```
-
 Check DB
 ```
 sudo -u postgres psql search_engine
 ```
 
-## Setup
+## API Definition
+TODO
+
+## Eclipse setup
 - Clone the repository -
 ```git clone git@git.cs.uni-kl.de:dbis/is-project-21/group-03.git```
 
@@ -91,22 +104,3 @@ sudo -u postgres psql search_engine
     - Add External JARS -> Navigate to the 'lib' folder -> Select the 2 JARS 'jtidy-r938.jar' and 'postgresql-42.3.1jar'
 
 - Update DB user and password in comm.common.ConnectionManager.java
-
-## Executable classes
-- main.java.crawler.Driver
-
-This contains the main method to run the crawler + indexer. Execute this how you would normally
-execute a class with a main method. Once this has been executed, you will have populated the DB with crawled data.
-
-- main.java.com.cli.QueryCLI
-
-This contains the main method to run the search engine CLI. Execute this how you would normally
-execute a class with a main method.
-
-## Running the Web App
-- Right click on the app -> Run on Server
-- Go to http://localhost:8080/CrawlSearch/index.html
-- For using the JSON API
-```
-curl --location --request GET 'http://localhost:8080/CrawlSearch/search?querytext=foo&json=true'
-```
