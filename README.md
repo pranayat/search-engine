@@ -37,11 +37,18 @@ echo "CRAWL LOG" >> /home/project/crawl_log.txt
 
 echo `date` >> /home/project/crawl_log.txt
 
-java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar com.crawler.Driver 5 5 5 reset >> /home/project/crawl_log.txt
+java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar com.crawler.Driver 5 5 5 >> /home/project/crawl_log.txt
 ```
 
 ## Cron job
-The cron job executes the above `/home/project/crawl.sh` file every night.
+Modify cron config with `crontab -e`
+View cron config with `crontab -l`
+
+Cron config:
+```
+0 23 * * * /bin/sh /home/project/crawl.sh
+```
+The cron job executes the above `/home/project/crawl.sh` file every night at 2300 hrs UTC.
 
 
 ## Miscellaneous
