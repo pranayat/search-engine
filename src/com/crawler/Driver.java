@@ -128,28 +128,28 @@ public class Driver {
 
 		Crawler c1 = new Crawler(isFreshRun, 1, maxDepth, maxDocs, fanOut, "https://www.cs.uni-kl.de");
 		Thread crawler1 = new Thread(c1);
-		Crawler c2 = new Crawler(isFreshRun, 2, maxDepth, maxDocs, fanOut, "https://www.asta.uni-kl.de/");
-		Thread crawler2 = new Thread(c2);
-		Crawler c3 = new Crawler(isFreshRun, 3, maxDepth, maxDocs, fanOut, "https://www.mathematik.uni-kl.de/en/");		
-		Thread crawler3 = new Thread(c3);
-		Crawler c4 = new Crawler(isFreshRun, 4, maxDepth, maxDocs, fanOut, "https://www.mv.uni-kl.de/en/");		
-		Thread crawler4 = new Thread(c4);
-		Crawler c5 = new Crawler(isFreshRun, 5, maxDepth, maxDocs, fanOut, "https://www.architektur.uni-kl.de/en/home/seite");		
-		Thread crawler5 = new Thread(c5);
+//		Crawler c2 = new Crawler(isFreshRun, 2, maxDepth, maxDocs, fanOut, "https://www.asta.uni-kl.de");
+//		Thread crawler2 = new Thread(c2);
+//		Crawler c3 = new Crawler(isFreshRun, 3, maxDepth, maxDocs, fanOut, "https://www.mathematik.uni-kl.de/en");		
+//		Thread crawler3 = new Thread(c3);
+//		Crawler c4 = new Crawler(isFreshRun, 4, maxDepth, maxDocs, fanOut, "https://www.mv.uni-kl.de/en");		
+//		Thread crawler4 = new Thread(c4);
+//		Crawler c5 = new Crawler(isFreshRun, 5, maxDepth, maxDocs, fanOut, "https://www.architektur.uni-kl.de/en/home/seite");		
+//		Thread crawler5 = new Thread(c5);
 
 		
 		crawler1.start();
-		crawler2.start();
-		crawler3.start();
-		crawler4.start();
-		crawler5.start();
+//		crawler2.start();
+//		crawler3.start();
+//		crawler4.start();
+//		crawler5.start();
 		
 		try {
 			crawler1.join();
-			crawler2.join();
-			crawler3.join();
-			crawler4.join();
-			crawler5.join();
+//			crawler2.join();
+//			crawler3.join();
+//			crawler4.join();
+//			crawler5.join();
 
 			System.out.println("END");
 		} catch (InterruptedException e) {
