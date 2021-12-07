@@ -101,16 +101,17 @@ public class Driver {
 	public static void main(String[] args) {
 		
 		int maxDepth = 10, maxDocs = 1000, fanOut = 100;
+		Boolean isFreshRun = false;
 
-		if (args[0].length() > 0) {
+		if (args.length > 0 && args[0].length() > 0) {
 			maxDepth = Integer.parseInt(args[0]);
 		}
 		
-		if (args[1].length() > 0) {
+		if (args.length > 0 && args[1].length() > 0) {
 			maxDocs = Integer.parseInt(args[1]);
 		}
 		
-		if (args[2].length() > 0) {
+		if (args.length > 0 && args[2].length() > 0) {
 			fanOut = Integer.parseInt(args[2]);
 		}
 		
@@ -118,21 +119,22 @@ public class Driver {
 		
 		if (args.length > 0 && args[3].equals("reset")) {
 			System.out.println("Rebuilding index from scratch...");
+			isFreshRun = true;
 			dropTables();
 			createTables();
 		}		
 		
 		System.out.println("Starting crawl");
 
-		Crawler c1 = new Crawler(false, 1, maxDepth, maxDocs, fanOut, "https://www.cs.uni-kl.de");
+		Crawler c1 = new Crawler(isFreshRun, 1, maxDepth, maxDocs, fanOut, "https://www.cs.uni-kl.de");
 		Thread crawler1 = new Thread(c1);
-		Crawler c2 = new Crawler(false, 2, maxDepth, maxDocs, fanOut, "https://www.asta.uni-kl.de/");
+		Crawler c2 = new Crawler(isFreshRun, 2, maxDepth, maxDocs, fanOut, "https://www.asta.uni-kl.de/");
 		Thread crawler2 = new Thread(c2);
-		Crawler c3 = new Crawler(false, 3, maxDepth, maxDocs, fanOut, "https://www.mathematik.uni-kl.de/en/");		
+		Crawler c3 = new Crawler(isFreshRun, 3, maxDepth, maxDocs, fanOut, "https://www.mathematik.uni-kl.de/en/");		
 		Thread crawler3 = new Thread(c3);
-		Crawler c4 = new Crawler(false, 4, maxDepth, maxDocs, fanOut, "https://www.mv.uni-kl.de/en/");		
+		Crawler c4 = new Crawler(isFreshRun, 4, maxDepth, maxDocs, fanOut, "https://www.mv.uni-kl.de/en/");		
 		Thread crawler4 = new Thread(c4);
-		Crawler c5 = new Crawler(false, 5, maxDepth, maxDocs, fanOut, "https://www.architektur.uni-kl.de/en/home/seite");		
+		Crawler c5 = new Crawler(isFreshRun, 5, maxDepth, maxDocs, fanOut, "https://www.architektur.uni-kl.de/en/home/seite");		
 		Thread crawler5 = new Thread(c5);
 
 		
