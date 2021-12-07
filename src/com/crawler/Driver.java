@@ -100,27 +100,39 @@ public class Driver {
 	
 	public static void main(String[] args) {
 		
-		if (args.length > 0 && args[0].equals("reset")) {
-			Scanner sc = new Scanner(System.in);
-			
-			System.out.println("This will delete existing index data. Continue? (y/n)");
-			String ch = sc.nextLine();
-			if (ch.equals("y")) {
-				System.out.println("Rebuilding index from scratch...");
-				dropTables();
-				createTables();
-			}
+		int maxDepth = 10, maxDocs = 1000, fanOut = 100;
+
+		if (args[0].length() > 0) {
+			maxDepth = Integer.parseInt(args[0]);
 		}
 		
-		Crawler c1 = new Crawler(false, 1, 10, 100, 10, "https://www.cs.uni-kl.de");
+		if (args[1].length() > 0) {
+			maxDocs = Integer.parseInt(args[1]);
+		}
+		
+		if (args[2].length() > 0) {
+			fanOut = Integer.parseInt(args[2]);
+		}
+		
+		System.out.println("maxDepth = " + maxDepth + ", maxDocs = " + maxDocs + ", fanOut = " + fanOut);
+		
+		if (args.length > 0 && args[3].equals("reset")) {
+			System.out.println("Rebuilding index from scratch...");
+			dropTables();
+			createTables();
+		}		
+		
+		System.out.println("Starting crawl");
+
+		Crawler c1 = new Crawler(false, 1, maxDepth, maxDocs, fanOut, "https://www.cs.uni-kl.de");
 		Thread crawler1 = new Thread(c1);
-		Crawler c2 = new Crawler(false, 2, 10, 100, 100, "https://www.asta.uni-kl.de/");
+		Crawler c2 = new Crawler(false, 2, maxDepth, maxDocs, fanOut, "https://www.asta.uni-kl.de/");
 		Thread crawler2 = new Thread(c2);
-		Crawler c3 = new Crawler(false, 3, 10, 100, 100, "https://www.mathematik.uni-kl.de/en/");		
+		Crawler c3 = new Crawler(false, 3, maxDepth, maxDocs, fanOut, "https://www.mathematik.uni-kl.de/en/");		
 		Thread crawler3 = new Thread(c3);
-		Crawler c4 = new Crawler(false, 4, 10, 100, 100, "https://www.mv.uni-kl.de/en/");		
+		Crawler c4 = new Crawler(false, 4, maxDepth, maxDocs, fanOut, "https://www.mv.uni-kl.de/en/");		
 		Thread crawler4 = new Thread(c4);
-		Crawler c5 = new Crawler(false, 4, 10, 100, 100, "https://www.architektur.uni-kl.de/en/home/seite");		
+		Crawler c5 = new Crawler(false, 5, maxDepth, maxDocs, fanOut, "https://www.architektur.uni-kl.de/en/home/seite");		
 		Thread crawler5 = new Thread(c5);
 
 		
@@ -128,12 +140,14 @@ public class Driver {
 		crawler2.start();
 		crawler3.start();
 		crawler4.start();
+		crawler5.start();
 		
 		try {
 			crawler1.join();
 			crawler2.join();
 			crawler3.join();
 			crawler4.join();
+			crawler5.join();
 
 			System.out.println("END");
 		} catch (InterruptedException e) {

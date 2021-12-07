@@ -35,7 +35,7 @@ public class Crawler implements Runnable {
 	private String rootUrlString;
 	private int threadId;
 	
-	public Crawler(Boolean newRun, int threadId, int maxDepth, int fanOut, int maxDocs, String rootUrlString) {
+	public Crawler(Boolean newRun, int threadId, int maxDepth, int maxDocs, int fanOut, String rootUrlString) {
 		this.fanOut = fanOut;
 		this.maxDepth = maxDepth;
 		this.maxDocs = maxDocs;
