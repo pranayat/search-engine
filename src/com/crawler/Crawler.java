@@ -35,7 +35,7 @@ public class Crawler implements Runnable {
 	private String rootUrlString;
 	private int threadId;
 	
-	public Crawler(Boolean newRun, int threadId, int maxDepth, int maxDocs, int fanOut, String rootUrlString) {
+	public Crawler(int threadId, int maxDepth, int maxDocs, int fanOut, String rootUrlString) {
 		this.fanOut = fanOut;
 		this.maxDepth = maxDepth;
 		this.maxDocs = maxDocs;
@@ -47,11 +47,8 @@ public class Crawler implements Runnable {
 		this.crawledDocsCount = 0;
 		this.pagesAtLevel= new LinkedList<>();
 		
-		if (newRun) {
-			this.resetQueueState();
-		}
-
-		this.loadStateFromDB();
+		this.resetQueueState();
+		this.addToQueue(new String [] {this.rootUrlString, null}, 0);
 	}
 	
 	
@@ -63,49 +60,6 @@ public class Crawler implements Runnable {
 		this.OkapiScoring();
 		this.combinedScoring();
 		this.creatingViews();
-	}
-	
-	private void loadStateFromDB () {
-		PreparedStatement pstmt;
-		ResultSet rs;
-		try {
-			pstmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM crawler_queue WHERE thread_id = ?");
-			pstmt.setInt(1, this.threadId);
-			rs = pstmt.executeQuery();
-			rs.next();
-			Boolean isFreshRun = rs.getInt("total") == 0 ? true : false;
-			
-			if (isFreshRun) {
-				this.addToQueue(new String [] {this.rootUrlString, null}, 0);
-				System.out.println("Initialzed crawler for a fresh run");
-				return;
-			}
-			
-			pstmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM crawler_queue WHERE popped = 'true' AND thread_id = ?");
-			pstmt.setInt(1, this.threadId);
-			rs = pstmt.executeQuery();
-			rs.next();
-			this.crawledDocsCount = rs.getInt("total");
-			
-			pstmt = conn.prepareStatement("SELECT url FROM crawler_queue WHERE popped != 'true' AND thread_id = ?");
-			pstmt.setInt(1, this.threadId);
-			rs = pstmt.executeQuery();
-			while(rs.next()) {
-				this.pagesAtLevel.add(rs.getString(1));
-			}
-			
-			pstmt = conn.prepareStatement("SELECT MAX(depth) AS depth FROM crawler_queue WHERE thread_id = ?");
-			pstmt.setInt(1, this.threadId);
-			rs = pstmt.executeQuery();
-			rs.next();
-			this.depth = rs.getInt("depth");
-			
-			System.out.println("Initialized crawler to resume last run");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		return;
 	}
 
 	public String getPageAtUrl(String targetURL, String urlParameters) throws Exception {
@@ -154,7 +108,7 @@ public class Crawler implements Runnable {
 	private void addToQueue(String [] nodes, int depth) {
 		for(String node: nodes) {
 			try {
-				PreparedStatement pstmt = conn.prepareStatement("INSERT INTO crawler_queue (url, popped, depth, thread_id) VALUES (?, 'false', ?, ?)");
+				PreparedStatement pstmt = conn.prepareStatement("INSERT INTO crawler_queue (url, depth, thread_id) VALUES (?, ?, ?)");
 				pstmt.setString(1, node);
 				pstmt.setInt(2, depth);
 				pstmt.setInt(3, this.threadId);
@@ -178,7 +132,7 @@ public class Crawler implements Runnable {
 	
 	private String popQueueHead() {
 		try {
-			PreparedStatement pstmt = conn.prepareStatement("UPDATE crawler_queue SET popped = 'true' WHERE id = (SELECT MIN(id) FROM crawler_queue WHERE popped != 'true' AND thread_id = ?);");
+			PreparedStatement pstmt = conn.prepareStatement("DELETE FROM crawler_queue WHERE id = (SELECT MIN(id) FROM crawler_queue WHERE thread_id = ?);");
 			pstmt.setInt(1,  this.threadId);
 			pstmt.executeUpdate();
 			conn.commit();
@@ -198,6 +152,8 @@ public class Crawler implements Runnable {
 	}
 	
 	private Boolean isUrlAlreadyCrawled(String url) {
+		
+		// avoid cycles within a run, duplicate urls across runs are checked in indexer
 		try {
 			PreparedStatement pstmt = conn.prepareStatement("SELECT COUNT(*) AS total FROM crawler_queue WHERE url = ?"); // check across threads
 			pstmt.setString(1, url);

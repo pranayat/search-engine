@@ -2,13 +2,36 @@ package com.crawler;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import com.common.ConnectionManager;
 import com.indexer.TFIDFScoreComputer;
 
 public class Driver {
+
+	private static ArrayList<String> getSeedUrlsFromDB() {
+		PreparedStatement pstmt;
+		ResultSet rs;
+		ArrayList<String> seedUrls = new ArrayList<String>();
+		Connection conn = (new ConnectionManager()).getConnection();
+
+		try {
+			pstmt = conn.prepareStatement("SELECT url FROM documents ORDER BY docid DESC LIMIT 5");
+			rs = pstmt.executeQuery();
+
+			while(rs.next()) {
+				seedUrls.add(rs.getString("url"));
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return seedUrls;
+	}
 
 	private static void dropTables() {
 		Connection conn = (new ConnectionManager()).getConnection();
@@ -54,7 +77,7 @@ public class Driver {
 		PreparedStatement pstmt;
 
 		try {
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS crawler_queue (id SERIAL PRIMARY KEY, thread_id INT, url VARCHAR, popped BOOLEAN, depth INT)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS crawler_queue (id SERIAL PRIMARY KEY, thread_id INT, url VARCHAR, depth INT)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE INDEX h_url ON crawler_queue USING hash (url)");
@@ -101,55 +124,62 @@ public class Driver {
 	public static void main(String[] args) {
 		
 		int maxDepth = 10, maxDocs = 1000, fanOut = 100;
-		Boolean isFreshRun = false;
+		ArrayList<String> seedUrls = new ArrayList<String>();
 
-		if (args.length > 0 && args[0].length() > 0) {
+		if (args.length > 1 && args[0].length() > 0) {
 			maxDepth = Integer.parseInt(args[0]);
 		}
 		
-		if (args.length > 0 && args[1].length() > 0) {
+		if (args.length > 2 && args[1].length() > 0) {
 			maxDocs = Integer.parseInt(args[1]);
 		}
 		
-		if (args.length > 0 && args[2].length() > 0) {
+		if (args.length == 3  && args[2].length() > 0) {
 			fanOut = Integer.parseInt(args[2]);
 		}
 		
 		System.out.println("maxDepth = " + maxDepth + ", maxDocs = " + maxDocs + ", fanOut = " + fanOut);
 		
-		if (args.length > 0 && args[3].equals("reset")) {
+		if (args.length == 4 && args[3].equals("reset")) {
 			System.out.println("Rebuilding index from scratch...");
-			isFreshRun = true;
+			seedUrls.add("https://www.cs.uni-kl.de");
+			seedUrls.add("https://www.asta.uni-kl.de");
+			seedUrls.add("https://www.mathematik.uni-kl.de/en");
+			seedUrls.add("https://www.mv.uni-kl.de/en");
+			seedUrls.add("https://www.architektur.uni-kl.de/en/home/seite");
+
 			dropTables();
 			createTables();
-		}		
+		}	else {
+			seedUrls = getSeedUrlsFromDB();
+		}
 		
 		System.out.println("Starting crawl");
 
-		Crawler c1 = new Crawler(isFreshRun, 1, maxDepth, maxDocs, fanOut, "https://www.cs.uni-kl.de");
+		Crawler c1 = new Crawler(1, maxDepth, maxDocs, fanOut, seedUrls.get(0));
 		Thread crawler1 = new Thread(c1);
-//		Crawler c2 = new Crawler(isFreshRun, 2, maxDepth, maxDocs, fanOut, "https://www.asta.uni-kl.de");
-//		Thread crawler2 = new Thread(c2);
-//		Crawler c3 = new Crawler(isFreshRun, 3, maxDepth, maxDocs, fanOut, "https://www.mathematik.uni-kl.de/en");		
-//		Thread crawler3 = new Thread(c3);
-//		Crawler c4 = new Crawler(isFreshRun, 4, maxDepth, maxDocs, fanOut, "https://www.mv.uni-kl.de/en");		
-//		Thread crawler4 = new Thread(c4);
-//		Crawler c5 = new Crawler(isFreshRun, 5, maxDepth, maxDocs, fanOut, "https://www.architektur.uni-kl.de/en/home/seite");		
-//		Thread crawler5 = new Thread(c5);
+		Crawler c2 = new Crawler(2, maxDepth, maxDocs, fanOut, seedUrls.get(1));
+		Thread crawler2 = new Thread(c2);
+		Crawler c3 = new Crawler(3, maxDepth, maxDocs, fanOut, seedUrls.get(2));		
+		Thread crawler3 = new Thread(c3);
+		Crawler c4 = new Crawler(4, maxDepth, maxDocs, fanOut, seedUrls.get(3));		
+		Thread crawler4 = new Thread(c4);
+		Crawler c5 = new Crawler(5, maxDepth, maxDocs, fanOut, seedUrls.get(4));		
+		Thread crawler5 = new Thread(c5);
 
 		
 		crawler1.start();
-//		crawler2.start();
-//		crawler3.start();
-//		crawler4.start();
-//		crawler5.start();
+		crawler2.start();
+		crawler3.start();
+		crawler4.start();
+		crawler5.start();
 		
 		try {
 			crawler1.join();
-//			crawler2.join();
-//			crawler3.join();
-//			crawler4.join();
-//			crawler5.join();
+			crawler2.join();
+			crawler3.join();
+			crawler4.join();
+			crawler5.join();
 
 			System.out.println("END");
 		} catch (InterruptedException e) {
