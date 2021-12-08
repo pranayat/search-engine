@@ -8,6 +8,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import com.common.ConnectionManager;
 import com.indexer.TFIDFScoreComputer;
 import com.languageclassifier.LanguageClassifier;
@@ -126,23 +134,50 @@ public class Driver {
 	public static void main(String[] args) throws NumberFormatException, SQLException, IOException {
 		
 		int maxDepth = 10, maxDocs = 1000, fanOut = 100;
+		String resetIndex = "false", resetDict = "false";
 		ArrayList<String> seedUrls = new ArrayList<String>();
+		
+		Options options = new Options();
 
-		if (args.length > 1 && args[0].length() > 0) {
-			maxDepth = Integer.parseInt(args[0]);
-		}
+		Option maxDocsOpt = new Option("n", "maxDocs", true, "maximum docs");
+		maxDocsOpt.setRequired(true);
+		options.addOption(maxDocsOpt);
+
+		Option maxDepthOpt = new Option("d", "maxDepth", true, "maximum depth");
+		maxDepthOpt.setRequired(true);
+		options.addOption(maxDepthOpt);
 		
-		if (args.length > 2 && args[1].length() > 0) {
-			maxDocs = Integer.parseInt(args[1]);
-		}
+		Option fanoutOpt = new Option("f", "fanOut", true, "fanout");
+		fanoutOpt.setRequired(true);
+		options.addOption(fanoutOpt);
 		
-		if (args.length == 3  && args[2].length() > 0) {
-			fanOut = Integer.parseInt(args[2]);
-		}
+		Option resetIndexOpt = new Option("ri", "resetIndex", true, "reset indexed data");
+		resetIndexOpt.setRequired(true);
+		options.addOption(resetIndexOpt);
 		
+		Option resetDictOpt = new Option("rd", "resetDict", true, "reset language dictionary");
+		resetDictOpt.setRequired(true);
+		options.addOption(resetDictOpt);
+
+		CommandLineParser parser = new DefaultParser();
+		HelpFormatter formatter = new HelpFormatter();
+		CommandLine cmd = null; 
+
+		try {
+				cmd = parser.parse(options, args);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		maxDocs = Integer.parseInt(cmd.getOptionValue("maxDocs"));
+		maxDepth = Integer.parseInt(cmd.getOptionValue("maxDepth"));
+		fanOut = Integer.parseInt(cmd.getOptionValue("fanOut"));
+		resetIndex = cmd.getOptionValue("resetIndex");
+		resetDict = cmd.getOptionValue("resetDict");
+    		
 		System.out.println("maxDepth = " + maxDepth + ", maxDocs = " + maxDocs + ", fanOut = " + fanOut);
 		
-		if (args.length == 4 && args[3].equals("reset")) {
+		if(resetIndex.equals("true")) {
 			System.out.println("Rebuilding index from scratch...");
 			seedUrls.add("https://www.cs.uni-kl.de");
 			seedUrls.add("https://www.asta.uni-kl.de");
@@ -152,37 +187,41 @@ public class Driver {
 
 			dropTables();
 			createTables();
-			LanguageClassifier.bootstrap();
 		}	else {
 			seedUrls = getSeedUrlsFromDB();
 		}
+
+		if (resetDict.equals("true")) {
+			System.out.println("Bootstrapping language dictionaries...");
+			LanguageClassifier.bootstrap();
+		}
 		
-		System.out.println("Starting crawl");
+		System.out.println("Starting crawl session...");
 
 		Crawler c1 = new Crawler(1, maxDepth, maxDocs, fanOut, seedUrls.get(0));
 		Thread crawler1 = new Thread(c1);
-//		Crawler c2 = new Crawler(2, maxDepth, maxDocs, fanOut, seedUrls.get(1));
-//		Thread crawler2 = new Thread(c2);
-//		Crawler c3 = new Crawler(3, maxDepth, maxDocs, fanOut, seedUrls.get(2));		
-//		Thread crawler3 = new Thread(c3);
-//		Crawler c4 = new Crawler(4, maxDepth, maxDocs, fanOut, seedUrls.get(3));		
-//		Thread crawler4 = new Thread(c4);
-//		Crawler c5 = new Crawler(5, maxDepth, maxDocs, fanOut, seedUrls.get(4));		
-//		Thread crawler5 = new Thread(c5);
+		Crawler c2 = new Crawler(2, maxDepth, maxDocs, fanOut, seedUrls.get(1));
+		Thread crawler2 = new Thread(c2);
+		Crawler c3 = new Crawler(3, maxDepth, maxDocs, fanOut, seedUrls.get(2));		
+		Thread crawler3 = new Thread(c3);
+		Crawler c4 = new Crawler(4, maxDepth, maxDocs, fanOut, seedUrls.get(3));		
+		Thread crawler4 = new Thread(c4);
+		Crawler c5 = new Crawler(5, maxDepth, maxDocs, fanOut, seedUrls.get(4));		
+		Thread crawler5 = new Thread(c5);
 
 		
 		crawler1.start();
-//		crawler2.start();
-//		crawler3.start();
-//		crawler4.start();
-//		crawler5.start();
+		crawler2.start();
+		crawler3.start();
+		crawler4.start();
+		crawler5.start();
 		
 		try {
 			crawler1.join();
-//			crawler2.join();
-//			crawler3.join();
-//			crawler4.join();
-//			crawler5.join();
+			crawler2.join();
+			crawler3.join();
+			crawler4.join();
+			crawler5.join();
 
 			System.out.println("END");
 		} catch (InterruptedException e) {

@@ -21,7 +21,6 @@ public class ConnectionManager {
             Class.forName("org.postgresql.Driver");
             this.connection = DriverManager.getConnection("jdbc:postgresql://"+host+":"+port+"/"+db_name+"", ""+username+"", ""+password+"");
             if (connection != null) {
-            	System.out.println("Connection OK");
             	connection.setAutoCommit(false);
             } else {
                 System.out.println("Connection Failed");

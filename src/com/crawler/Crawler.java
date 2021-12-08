@@ -210,7 +210,6 @@ public class Crawler implements Runnable {
 				}
 			}
 			
-			System.out.println("Hitting - " + urlToHit);
 			try {
 				response = this.getPageAtUrl(urlToHit, "");
 				this.crawledDocsCount++;
@@ -225,10 +224,10 @@ public class Crawler implements Runnable {
 			page.setPageSource(response);
 			
 			try {
-				childLinks = page.getOutgoingLinks();
-			} catch (Exception e) {
-				System.out.println("Falling back to regex matching to extract links on this page");
+				// childLinks = page.getOutgoingLinks();
 				childLinks = page.getOutgoingLinksViaRegex();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 			
 			if (childLinks.size() == 0) {

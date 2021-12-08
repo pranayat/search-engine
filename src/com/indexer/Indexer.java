@@ -57,7 +57,6 @@ public class Indexer{
     }
 
    public void index (String docURL, String docText, List<String> links) throws SQLException {
-	   System.out.println(links);
 	   String docTextLow = docText.toLowerCase();
        
 	   String [] textArray = docTextLow.split("\\s+");
@@ -93,7 +92,7 @@ public class Indexer{
     	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date, pagerank, language)"
     			   + "VALUES(?,?,?,?) RETURNING docid";
     	   String SQLfeatures = "INSERT INTO features (docid, term, "
-    	   		+ "term_frequency, df, tf_idf, num_elem, bm25, combined, language)" + "VALUES(?,?,?,?,?,?,?,?,?,?)"; // TODO: check if really needed here
+    	   		+ "term_frequency, df, tf_idf, num_elem, bm25, combined, language)" + "VALUES(?,?,?,?,?,?,?,?,?)"; // TODO: check if really needed here
     	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
     	   		 + "VALUES(?,?)";
     	   
@@ -145,6 +144,7 @@ public class Indexer{
         		   timestamp = null;
         		   pstmtdocuments.setTimestamp(2,timestamp);
         		   pstmtdocuments.setFloat(3, 0);
+        		   pstmtdocuments.setString(4, textLanguage);
             	   ResultSet rs = pstmtdocuments.executeQuery();
 
             	   rs.next();

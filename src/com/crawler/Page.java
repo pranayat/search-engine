@@ -30,8 +30,8 @@ public class Page {
 	}
 	
 	public void setPageSource(String pageSource) {
-		// TODO don' really need to replace spaces at this point
-		this.pageSource = pageSource.replace("\n", "").replace("\r", "");
+		// remove comments
+		this.pageSource = pageSource.replaceAll("<!--(.*?)-->", "");;
 	}
 
 	public String getPageText() {
@@ -42,6 +42,7 @@ public class Page {
 		text = text.replaceAll("<script>(.*?)</script>", "");
 		// remove all html tags
 		text = text.replaceAll("<[^>]*>", "");
+
 		return text;
 	}
 	
