@@ -41,7 +41,7 @@ echo "CRAWL LOG" >> /home/project/crawl_log.txt
 
 echo `date` >> /home/project/crawl_log.txt
 
-java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar com.crawler.Driver --maxDocs 100 --maxDepth 10 --fanOut 10 --resetIndex true --resetDict true >> /home/project/crawl_log.txt
+java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/commons-cli-1.3.1.jar com.crawler.Driver --maxDocs 100 --maxDepth 10 --fanOut 10 --resetIndex true --resetDict true >> /home/project/crawl_log.txt
 ```
 
 Subsequent runs
@@ -62,7 +62,7 @@ echo "CRAWL LOG" >> /home/project/crawl_log.txt
 
 echo `date` >> /home/project/crawl_log.txt
 
-java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar com.crawler.Driver --maxDocs 100 --maxDepth 10 --fanOut 10 --resetIndex false --resetDict false >> /home/project/crawl_log.txt
+java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/commons-cli-1.3.1.jar com.crawler.Driver --maxDocs 100 --maxDepth 10 --fanOut 10 --resetIndex false --resetDict false >> /home/project/crawl_log.txt
 ```
 
 ## Cron job
