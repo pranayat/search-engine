@@ -11,15 +11,19 @@ import java.sql.Timestamp;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.languageclassifier.LanguageClassifier;
+
 public class Indexer{
 	
 	private Connection conn;
 	Set<String> stopwords;
 	StopwordRemover sr;
+	LanguageClassifier languageClassifier;
 	
 	public Indexer(Connection conn) {
 		this.conn = conn;
 		this.sr = new StopwordRemover();
+		this.languageClassifier = new LanguageClassifier();
 	}
     
     public Map<String, Integer> getTermCounts(Set<String> text) {
@@ -52,11 +56,12 @@ public class Indexer{
         return re;
     }
 
-   public void index (String docURL, String docText, List<String> links) {
+   public void index (String docURL, String docText, List<String> links) throws SQLException {
 	   System.out.println(links);
 	   String docTextLow = docText.toLowerCase();
        
 	   String [] textArray = docTextLow.split("\\s+");
+	   
 	   List<String> textArrayWithoutSpecialChars = new ArrayList<String>();
 	   
 	   String regex = "([a-zA-Z0-9�������]+)";
@@ -72,16 +77,23 @@ public class Indexer{
 			}
 	   }
 	   
-       Set<String> text = this.sr.removeStopwords(textArrayWithoutSpecialChars.toArray(new String[0]));
+	   String textLanguage = this.languageClassifier.classify(textArrayWithoutSpecialChars.toArray(new String[0]));
+	   
+	   Set<String> text;
+	   if (textLanguage.equals("eng")) {		   
+		   text = this.sr.removeStopwords(textArrayWithoutSpecialChars.toArray(new String[0]));
+	   } else {
+		   text = new HashSet<>(Arrays.asList(textArrayWithoutSpecialChars.toArray(new String[0])));
+	   }
        
        Map <String, Integer> data = this.getTermCounts(text);
 
        try {
   
-    	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date, pagerank)"
-    			   + "VALUES(?,?,?) RETURNING docid";
+    	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date, pagerank, language)"
+    			   + "VALUES(?,?,?,?) RETURNING docid";
     	   String SQLfeatures = "INSERT INTO features (docid, term, "
-    	   		+ "term_frequency, df, tf_idf, num_elem, bm25, combined)" + "VALUES(?,?,?,?,?,?,?,?)";
+    	   		+ "term_frequency, df, tf_idf, num_elem, bm25, combined, language)" + "VALUES(?,?,?,?,?,?,?,?,?,?)"; // TODO: check if really needed here
     	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
     	   		 + "VALUES(?,?)";
     	   
@@ -111,6 +123,7 @@ public class Indexer{
         	   timestamp = new Timestamp(System.currentTimeMillis());
         	   pstmtdocuments.setTimestamp(2,timestamp);
         	   pstmtdocuments.setFloat(3, 0);
+        	   pstmtdocuments.setString(4, textLanguage);
         	   ResultSet rs0 = pstmtdocuments.executeQuery();
         	   rs0.next();
         	   docid0 = rs0.getInt("docid");
@@ -153,6 +166,7 @@ public class Indexer{
     		   pstmtfeatures.setInt(6, data.size());
     		   pstmtfeatures.setDouble(7,0);
     		   pstmtfeatures.setDouble(8,0);
+    		   pstmtfeatures.setString(9, textLanguage);
     		   pstmtfeatures.executeUpdate();
     		   
     	   }

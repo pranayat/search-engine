@@ -1,5 +1,6 @@
 package com.crawler;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,6 +10,7 @@ import java.util.Scanner;
 
 import com.common.ConnectionManager;
 import com.indexer.TFIDFScoreComputer;
+import com.languageclassifier.LanguageClassifier;
 
 public class Driver {
 
@@ -83,7 +85,7 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE INDEX h_url ON crawler_queue USING hash (url)");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS documents (docid SERIAL PRIMARY KEY, url VARCHAR UNIQUE, crawled_on_date TIMESTAMP NULL, pagerank FLOAT)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS documents (docid SERIAL PRIMARY KEY, url VARCHAR UNIQUE, crawled_on_date TIMESTAMP NULL, pagerank FLOAT, language VARCHAR)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE EXTENSION IF NOT EXISTS pg_trgm");
@@ -92,7 +94,7 @@ public class Driver {
 			// create a trigram index on url to allow more forgiving site: filtering
 			pstmt = conn.prepareStatement("CREATE INDEX trgm_idx_url ON documents USING gin (url gin_trgm_ops)");
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT, num_elem BIGINT, bm25 FLOAT, combined FLOAT)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT, num_elem BIGINT, bm25 FLOAT, combined FLOAT, language VARCHAR)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS links (from_docid INT, to_docid INT)");
@@ -121,7 +123,7 @@ public class Driver {
         }
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws NumberFormatException, SQLException, IOException {
 		
 		int maxDepth = 10, maxDocs = 1000, fanOut = 100;
 		ArrayList<String> seedUrls = new ArrayList<String>();
@@ -150,6 +152,7 @@ public class Driver {
 
 			dropTables();
 			createTables();
+			LanguageClassifier.bootstrap();
 		}	else {
 			seedUrls = getSeedUrlsFromDB();
 		}
@@ -158,28 +161,28 @@ public class Driver {
 
 		Crawler c1 = new Crawler(1, maxDepth, maxDocs, fanOut, seedUrls.get(0));
 		Thread crawler1 = new Thread(c1);
-		Crawler c2 = new Crawler(2, maxDepth, maxDocs, fanOut, seedUrls.get(1));
-		Thread crawler2 = new Thread(c2);
-		Crawler c3 = new Crawler(3, maxDepth, maxDocs, fanOut, seedUrls.get(2));		
-		Thread crawler3 = new Thread(c3);
-		Crawler c4 = new Crawler(4, maxDepth, maxDocs, fanOut, seedUrls.get(3));		
-		Thread crawler4 = new Thread(c4);
-		Crawler c5 = new Crawler(5, maxDepth, maxDocs, fanOut, seedUrls.get(4));		
-		Thread crawler5 = new Thread(c5);
+//		Crawler c2 = new Crawler(2, maxDepth, maxDocs, fanOut, seedUrls.get(1));
+//		Thread crawler2 = new Thread(c2);
+//		Crawler c3 = new Crawler(3, maxDepth, maxDocs, fanOut, seedUrls.get(2));		
+//		Thread crawler3 = new Thread(c3);
+//		Crawler c4 = new Crawler(4, maxDepth, maxDocs, fanOut, seedUrls.get(3));		
+//		Thread crawler4 = new Thread(c4);
+//		Crawler c5 = new Crawler(5, maxDepth, maxDocs, fanOut, seedUrls.get(4));		
+//		Thread crawler5 = new Thread(c5);
 
 		
 		crawler1.start();
-		crawler2.start();
-		crawler3.start();
-		crawler4.start();
-		crawler5.start();
+//		crawler2.start();
+//		crawler3.start();
+//		crawler4.start();
+//		crawler5.start();
 		
 		try {
 			crawler1.join();
-			crawler2.join();
-			crawler3.join();
-			crawler4.join();
-			crawler5.join();
+//			crawler2.join();
+//			crawler3.join();
+//			crawler4.join();
+//			crawler5.join();
 
 			System.out.println("END");
 		} catch (InterruptedException e) {
