@@ -215,8 +215,8 @@ public class Crawler implements Runnable {
 				this.crawledDocsCount++;
 							    
 			} catch (Exception e) {
-				System.out.println("Error hitting - " + urlToHit);
-				e.printStackTrace();
+//				System.out.println("Error hitting - " + urlToHit);
+//				e.printStackTrace();
 				continue;
 			}
 			
