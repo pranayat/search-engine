@@ -1,5 +1,7 @@
 # IS Project 2021
 
+http://131.246.118.243:8080/is-project/index.html
+
 ## Deploying Web Server
 Run script `/home/project/deploy.sh`
 This just pulls latest code from the repo along with the `.war` file, copies the `.war` file to the Tomcat `webapps` folder and restarts the server.
@@ -35,7 +37,7 @@ first_crawl.sh
 
 cd /home/project/group-03
 
-javac -d bin -cp lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/la4j-0.6.0.jar:lib/commons-cli-1.3.1.jar src/com/cli/QueryCLI.java src/com/common/ConnectionManager.java src/com/crawler/Crawler.java src/com/crawler/Driver.java src/com/crawler/Page.java src/com/crawler/Url.java src/com/indexer/Indexer.java src/com/indexer/Stemmer.java src/com/indexer/StopwordRemover.java src/com/indexer/TFIDFScoreComputer.java src/com/scoring/PageRank.java src/com/search/Query.java src/com/search/Result.java src/com/scoring/CombinedScore.java src/com/scoring/Okapi.java src/com/scoring/PageRank.java src/com/scoring/updateMatrix.java src/com/scoring/VectorProc.java src/com/scoring/ViewCreator.java src/com/languageclassifier/LanguageClassifier.java
+javac -d bin -cp lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/la4j-0.6.0.jar:lib/commons-cli-1.3.1.jar src/com/cli/QueryCLI.java src/com/common/ConnectionManager.java src/com/crawler/Crawler.java src/com/crawler/Driver.java src/com/crawler/Page.java src/com/crawler/Url.java src/com/indexer/Indexer.java src/com/indexer/Stemmer.java src/com/indexer/StopwordRemover.java src/com/indexer/TFIDFScoreComputer.java src/com/scoring/PageRank.java src/com/search/Query.java src/com/search/Result.java src/com/search/ApiResult.java src/com/search/Stat.java src/com/scoring/CombinedScore.java src/com/scoring/Okapi.java src/com/scoring/PageRank.java src/com/scoring/updateMatrix.java src/com/scoring/VectorProc.java src/com/scoring/ViewCreator.java src/com/languageclassifier/LanguageClassifier.java src/com/languageclassifier/DictionaryBootstrapper.java
 
 echo "CRAWL LOG" >> /home/project/crawl_log.txt
 
@@ -56,7 +58,7 @@ crawl.sh
 
 cd /home/project/group-03
 
-javac -d bin -cp lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/la4j-0.6.0.jar:lib/commons-cli-1.3.1.jar src/com/cli/QueryCLI.java src/com/common/ConnectionManager.java src/com/crawler/Crawler.java src/com/crawler/Driver.java src/com/crawler/Page.java src/com/crawler/Url.java src/com/indexer/Indexer.java src/com/indexer/Stemmer.java src/com/indexer/StopwordRemover.java src/com/indexer/TFIDFScoreComputer.java src/com/scoring/PageRank.java src/com/search/Query.java src/com/search/Result.java src/com/scoring/CombinedScore.java src/com/scoring/Okapi.java src/com/scoring/PageRank.java src/com/scoring/updateMatrix.java src/com/scoring/VectorProc.java src/com/scoring/ViewCreator.java src/com/languageclassifier/LanguageClassifier.java
+javac -d bin -cp lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/la4j-0.6.0.jar:lib/commons-cli-1.3.1.jar src/com/cli/QueryCLI.java src/com/common/ConnectionManager.java src/com/crawler/Crawler.java src/com/crawler/Driver.java src/com/crawler/Page.java src/com/crawler/Url.java src/com/indexer/Indexer.java src/com/indexer/Stemmer.java src/com/indexer/StopwordRemover.java src/com/indexer/TFIDFScoreComputer.java src/com/scoring/PageRank.java src/com/search/Query.java src/com/search/Result.java src/com/search/ApiResult.java src/com/search/Stat.java src/com/scoring/CombinedScore.java src/com/scoring/Okapi.java src/com/scoring/PageRank.java src/com/scoring/updateMatrix.java src/com/scoring/VectorProc.java src/com/scoring/ViewCreator.java src/com/languageclassifier/LanguageClassifier.java src/com/languageclassifier/DictionaryBootstrapper.java
 
 echo "CRAWL LOG" >> /home/project/crawl_log.txt
 
@@ -97,7 +99,8 @@ sudo -u postgres psql search_engine
 ```
 
 ## API Definition
-TODO
+https://www.postman.com/interstellar-astronaut-887900/workspace/is-project/collection/3190072-d89ed8ac-1330-4d3a-9227-0ae33e8b0258?ctx=documentation
+
 
 ## Eclipse setup
 - Clone the repository -
