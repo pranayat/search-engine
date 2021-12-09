@@ -8,7 +8,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,7 +21,6 @@ import java.util.stream.Stream;
 import com.indexer.StopwordRemover;
 import com.common.ConnectionManager;
 import com.indexer.Stemmer;
-
 
 public class Query {
 
@@ -79,9 +80,10 @@ public class Query {
 		return queryString;
 	}
 	
-    public List<Result> getResults() throws ClassNotFoundException {
-
-        List<Result> results = new ArrayList<Result>();
+    public ApiResult getResults() throws ClassNotFoundException {
+        String[] queryTextTerms = null;
+        ApiResult apiResult = null;
+        List<Result> resultList = new ArrayList<Result>();
         
         Class.forName("org.postgresql.Driver");
 
@@ -97,7 +99,7 @@ public class Query {
     		StopwordRemover sr = new StopwordRemover();
     		Stemmer s = new Stemmer();
     		
-    		String[] queryTextTerms = this.queryText.split("\\s+");
+    		queryTextTerms = this.queryText.split("\\s+");
     		if (this.queryText.startsWith("site:")) {    			
     			site = queryTextTerms[0].substring(5, queryTextTerms[0].length());
     			queryTextTerms = Arrays.copyOfRange(queryTextTerms, 1, queryTextTerms.length); // don't consider site:abc.com as query term
@@ -120,7 +122,7 @@ public class Query {
     		}
     		   
     		if (!(queryWithoutSpecialChars.size() > 0)) {
-    			return results;
+//    			return results;
     		}
     				
     		for(String term: queryWithoutSpecialChars) {
@@ -148,16 +150,48 @@ public class Query {
 			int i = 0;
 			while(rs.next()) {
 				++i;
-				results.add(new Result(Integer.parseInt(rs.getString("docid").trim()),
-						rs.getString("url").trim(),
+				resultList.add(new Result(rs.getString("url").trim(),
 						Double.parseDouble(rs.getString("agg_score").trim()),
 						i));
 			}
 			
+			String[] allTermsArray = allTerms.toArray(new String[allTerms.size()]);
+			String[] termListClauseArray = new String[allTerms.size()];
+			String termListClause = "";
+			for (int j = 0; j < allTermsArray.length; j++) {
+				termListClauseArray[j] = "?";
+			}
+			termListClause = String.join(",", termListClauseArray);
+			
+			pstmt = conn.prepareStatement("SELECT DISTINCT ON(term) term, df FROM features WHERE term IN (" + termListClause + ")");
+			for (int j = 0; j < allTermsArray.length; j++) {
+				pstmt.setString(j+1, allTermsArray[j]);
+			}
+			rs = pstmt.executeQuery();
+			
+			List<Stat> stats = new ArrayList<Stat>();
+			Stat stat;
+			
+			while(rs.next()) {
+				stat = new Stat(rs.getString("term"), rs.getInt("df"));
+				stats.add(stat);
+			}						
+			
+			Map<String, String> query = new LinkedHashMap<String, String>();
+			query.put("k", String.valueOf(this.k));
+			query.put("query", queryText);
+			
+			pstmt = conn.prepareStatement("SELECT SUM(term_frequency) AS cw FROM features");
+			rs = pstmt.executeQuery();
+			rs.next();
+			
+			apiResult = new ApiResult(resultList, query, stats, rs.getInt("cw"));
+						
         } catch (SQLException e) {
         	e.printStackTrace();
         }
         
-        return results;
+
+        return apiResult ;
     }
 }

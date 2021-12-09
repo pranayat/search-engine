@@ -57,15 +57,14 @@ public class SearchApiServlet extends HttpServlet {
 		    	String queryText = req.getParameter("querytext");
 		    	int k = req.getParameter("k").length() > 0 ? Integer.parseInt(req.getParameter("k")) : 20;
 		    	// TODO: score param
-		    	
-		    	
-		    		Query q = new Query(queryText, k);
-		    		List<Result> results = q.getResults();
-		    		jsonString = objectMapper.writeValueAsString(results);
-		    		res.setContentType("application/json");
-		    		res.setCharacterEncoding("UTF-8");
-		    		out.print(jsonString);
-		    		out.flush();
+		    			    	
+	    		Query q = new Query(queryText, k);
+				
+	    		jsonString = objectMapper.writeValueAsString(q.getResults());
+	    		res.setContentType("application/json");
+	    		res.setCharacterEncoding("UTF-8");
+	    		out.print(jsonString);
+	    		out.flush();
 		    }
 		} catch (Exception e) {
 			e.printStackTrace();
