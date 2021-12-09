@@ -58,6 +58,11 @@ public class SearchApiServlet extends HttpServlet {
 		    	int k = req.getParameter("k").length() > 0 ? Integer.parseInt(req.getParameter("k")) : 20;		    	
 		    	String scoreTypeOption = req.getParameter("score");
 		    	String scoreType = "tf_idf";
+		    	String queryLanguage = "eng";
+		    	
+		    	if (req.getParameter("lang").length() > 0) {
+		    		queryLanguage = req.getParameter("lang");
+		    	}
 		    	
 		    	if (scoreTypeOption == "1") {
 		    		scoreType = "tf_idf";
@@ -68,7 +73,7 @@ public class SearchApiServlet extends HttpServlet {
 		    	}
 		    	
 		    			    	
-	    		Query q = new Query(queryText, k, scoreType);
+	    		Query q = new Query(queryText, k, scoreType, queryLanguage);
 				
 	    		jsonString = objectMapper.writeValueAsString(q.getResults());
 	    		res.setContentType("application/json");

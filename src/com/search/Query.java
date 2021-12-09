@@ -27,11 +27,13 @@ public class Query {
 	private String queryText;
 	private int k;
 	private String scoreType;
+	private String language;
 
-	public Query(String queryText, int k, String scoreType) {
+	public Query(String queryText, int k, String scoreType, String language) {
 		this.queryText = queryText;
 		this.k = k;
 		this.scoreType = scoreType;
+		this.language = language;
 	}
 
 	private String buildDisjunctiveClause(Set<String> terms) {
@@ -48,9 +50,9 @@ public class Query {
 		String documentQueryString = "";
 		
 		if (site.length() > 0) {
-			documentQueryString = "	(select docid, url from documents WHERE url LIKE '%" + site +"%') as d ";
+			documentQueryString = "	(select docid, url from documents WHERE url LIKE '%" + site +"%' AND language = '" + this.language + "') as d ";
 		} else {
-			documentQueryString = "	(select docid, url from documents) as d ";
+			documentQueryString = "	(select docid, url from documents WHERE language = '" + this.language + "') as d ";
 		}
 		
 		if (conjunctiveTerms.size() > 0) {			
@@ -60,11 +62,13 @@ public class Query {
 					+ "	("
 					+ "		select a.docid, b.agg_score from"
 					+ "		(select * from ("
-					+ "		select docid, count(*) as count from features where " + this.buildDisjunctiveClause(conjunctiveTerms) + " group by docid"
+					+ "		select docid, count(*) as count from features where " + this.buildDisjunctiveClause(conjunctiveTerms)
+					+ " 	AND language = '" + this.language + "' group by docid"
 					+ "		) as t2 WHERE t2.count = " + conjunctiveTerms.size() + ") as a"
 					+ "		INNER JOIN"
 					+ "		("
-					+ "		select docid, sum(" + this.scoreType + ") as agg_score from features where " + this.buildDisjunctiveClause(allTerms) + " group by docid"
+					+ "		select docid, sum(" + this.scoreType + ") as agg_score from features where " + this.buildDisjunctiveClause(allTerms)
+					+ " 	AND language = '" + this.language + "' group by docid"
 					+ "		) as b on a.docid = b.docid"
 					+ "	) as e "
 					+ "on d.docid = e.docid ORDER BY e.agg_score DESC LIMIT " + k + ";";
@@ -72,7 +76,8 @@ public class Query {
 		} else {
 			queryString = "select a.docid, d.url, a.agg_score from "
 					+ "	("
-					+ "	select docid, sum(" + this.scoreType + ") as agg_score from features where " + this.buildDisjunctiveClause(allTerms) + " group by docid order by agg_score DESC"
+					+ "	select docid, sum(" + this.scoreType + ") as agg_score from features where " + this.buildDisjunctiveClause(allTerms)
+					+ " AND language = '" + this.language + "' group by docid order by agg_score DESC"
 					+ "	) as a"
 					+ "	INNER JOIN"
 					+ documentQueryString

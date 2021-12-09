@@ -55,6 +55,11 @@ public class SearchServlet extends HttpServlet {
 		    } else {		    	
 		    	String scoreTypeOption = req.getParameter("score");
 		    	String scoreType = "tf_idf";
+		    	String queryLanguage = "eng";
+		    	
+		    	if (req.getParameter("lang").length() > 0) {
+		    		queryLanguage = req.getParameter("lang");
+		    	}
 		    	
 		    	if (scoreTypeOption == "1") {
 		    		scoreType = "tf_idf";
@@ -64,7 +69,7 @@ public class SearchServlet extends HttpServlet {
 		    		scoreType = "combined";
 		    	}
 		    	
-				Query q = new Query(queryText, k, scoreType);
+				Query q = new Query(queryText, k, scoreType, queryLanguage);
 				apiResult = q.getResults();
 				req.setAttribute("results", apiResult.resultList);
 				RequestDispatcher rd = req.getRequestDispatcher("result.jsp");
