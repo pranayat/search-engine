@@ -37,7 +37,7 @@ public class Indexer{
     		}
             
 				if (countMap.containsKey(token)) {
-					countMap.put(token, data.get(token)+1);
+					countMap.put(token, countMap.get(token)+1);
 				} else {
 					countMap.put(token,1);
 				}
