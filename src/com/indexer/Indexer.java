@@ -26,19 +26,31 @@ public class Indexer{
 		this.languageClassifier = new LanguageClassifier();
 	}
     
-    public Map<String, Integer> getTermCounts(Set<String> text) {
-    	Map<String, Integer> data = new HashMap<String, Integer>();
+    private Map<String, Integer> getCounts(Set<String> text, Boolean stem) {
+    	Map<String, Integer> countMap = new HashMap<String, Integer>();
+    	String token = null;
     	for (String word : text) {
-            String stemmed_word = stem_word(word);
-            //System.out.println(stemmed_word);
+    		if (stem) {
+    			token = stem_word(word); 
+    		} else {
+    			token = word;
+    		}
             
-            if (data.containsKey(stemmed_word)) {
-            	data.put(stemmed_word, data.get(stemmed_word)+1);
-            }else {
-            	data.put(stemmed_word,1);
-            }
+				if (countMap.containsKey(token)) {
+					countMap.put(token, data.get(token)+1);
+				} else {
+					countMap.put(token,1);
+				}
     	}
-    	return data;
+    	return countMap;
+    }
+    
+    public Map<String, Integer> getTermCounts(Set<String> text) {
+    	return this.getCounts(text, false);
+    }
+    
+    public Map<String, Integer> getStemCounts(Set<String> text) {
+    	return this.getCounts(text, true);
     }
     
 
@@ -85,7 +97,13 @@ public class Indexer{
 		   text = new HashSet<>(Arrays.asList(textArrayWithoutSpecialChars.toArray(new String[0])));
 	   }
        
-       Map <String, Integer> data = this.getTermCounts(text);
+       Map <String, Integer> data = null;
+       
+       if (textLanguage.equals("eng")) {
+    	   data = this.getStemCounts(text);
+       } else {
+    	   data = this.getTermCounts(text);
+       }
 
        try {
   
