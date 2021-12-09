@@ -29,12 +29,7 @@ public class LanguageClassifier {
 		this.conn = (new ConnectionManager()).getConnection();
 	}
 	
-	public static void bootstrap() throws NumberFormatException, SQLException, IOException {
-		bootstrapClassifierForLanguage("eng");
-		bootstrapClassifierForLanguage("ger");
-	}
-	
-	private static void bootstrapClassifierForLanguage(String language) throws SQLException, NumberFormatException, IOException {
+	public static void bootstrapClassifierForLanguage(String language) throws SQLException, NumberFormatException, IOException {
 		HashMap<String, String> languageFiles = new HashMap<String, String>();
 
 		languageFiles.put("eng", "english_counts2.txt");
@@ -75,9 +70,9 @@ public class LanguageClassifier {
 		double engProb, gerProb;
 		String[] termListClauseArray;
 		String termListClause;
-		int testTermCount = 10, foundEngTermCount = 1, foundGerTermCount = 1;
+		int testTermCount = 50, foundEngTermCount = 1, foundGerTermCount = 1;
 		
-		if (docTerms.length < 10) {
+		if (docTerms.length < testTermCount) {
 			testTermCount = docTerms.length;
 		}
 
