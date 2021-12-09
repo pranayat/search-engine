@@ -54,13 +54,13 @@ public class SearchApiServlet extends HttpServlet {
 				out.print("Rate limit exceeded for your IP, please try after sometime.");
 				out.flush();
 		    } else {
-		    	String queryText = req.getParameter("querytext");
+		    	String queryText = req.getParameter("query");
 		    	int k = req.getParameter("k").length() > 0 ? Integer.parseInt(req.getParameter("k")) : 20;		    	
 		    	String scoreTypeOption = req.getParameter("score");
 		    	String scoreType = "tf_idf";
 		    	String queryLanguage = "eng";
 		    	
-		    	if (req.getParameter("lang").length() > 0) {
+		    	if (req.getParameter("lang") != null && req.getParameter("lang").length() > 0) {
 		    		queryLanguage = req.getParameter("lang");
 		    	}
 		    	

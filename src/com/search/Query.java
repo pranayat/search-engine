@@ -129,7 +129,7 @@ public class Query {
     		}
     		   
     		if (!(queryWithoutSpecialChars.size() > 0)) {
-//    			return results;
+    			return new ApiResult();
     		}
     				
     		for(String term: queryWithoutSpecialChars) {

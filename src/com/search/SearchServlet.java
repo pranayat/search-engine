@@ -33,7 +33,7 @@ public class SearchServlet extends HttpServlet {
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 		try {
-			String queryText = req.getParameter("querytext");		
+			String queryText = req.getParameter("query");		
 			int k = 20;
 			PrintWriter out = res.getWriter();
 			ApiResult apiResult = null;
@@ -57,7 +57,7 @@ public class SearchServlet extends HttpServlet {
 		    	String scoreType = "tf_idf";
 		    	String queryLanguage = "eng";
 		    	
-		    	if (req.getParameter("lang").length() > 0) {
+		    	if (req.getParameter("lang") != null && req.getParameter("lang").length() > 0) {
 		    		queryLanguage = req.getParameter("lang");
 		    	}
 		    	
