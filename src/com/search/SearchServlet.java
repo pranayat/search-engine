@@ -52,8 +52,19 @@ public class SearchServlet extends HttpServlet {
 				res.setStatus(429);
 				out.print("Rate limit exceeded for your IP, please try after sometime.");
 				out.flush();
-		    } else {	    
-				Query q = new Query(queryText, k);
+		    } else {		    	
+		    	String scoreTypeOption = req.getParameter("score");
+		    	String scoreType = "tf_idf";
+		    	
+		    	if (scoreTypeOption == "1") {
+		    		scoreType = "tf_idf";
+		    	} else if (scoreTypeOption == "2") {
+		    		scoreType = "bm25";
+		    	} else if (scoreTypeOption == "3") {
+		    		scoreType = "combined";
+		    	}
+		    	
+				Query q = new Query(queryText, k, scoreType);
 				apiResult = q.getResults();
 				req.setAttribute("results", apiResult.resultList);
 				RequestDispatcher rd = req.getRequestDispatcher("result.jsp");

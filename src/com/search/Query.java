@@ -26,10 +26,12 @@ public class Query {
 
 	private String queryText;
 	private int k;
+	private String scoreType;
 
-	public Query(String queryText, int k) {
+	public Query(String queryText, int k, String scoreType) {
 		this.queryText = queryText;
 		this.k = k;
+		this.scoreType = scoreType;
 	}
 
 	private String buildDisjunctiveClause(Set<String> terms) {
@@ -62,7 +64,7 @@ public class Query {
 					+ "		) as t2 WHERE t2.count = " + conjunctiveTerms.size() + ") as a"
 					+ "		INNER JOIN"
 					+ "		("
-					+ "		select docid, sum(tf_idf) as agg_score from features where " + this.buildDisjunctiveClause(allTerms) + " group by docid"
+					+ "		select docid, sum(" + this.scoreType + ") as agg_score from features where " + this.buildDisjunctiveClause(allTerms) + " group by docid"
 					+ "		) as b on a.docid = b.docid"
 					+ "	) as e "
 					+ "on d.docid = e.docid ORDER BY e.agg_score DESC LIMIT " + k + ";";
@@ -70,7 +72,7 @@ public class Query {
 		} else {
 			queryString = "select a.docid, d.url, a.agg_score from "
 					+ "	("
-					+ "	select docid, sum(tf_idf) as agg_score from features where " + this.buildDisjunctiveClause(allTerms) + " group by docid order by agg_score DESC"
+					+ "	select docid, sum(" + this.scoreType + ") as agg_score from features where " + this.buildDisjunctiveClause(allTerms) + " group by docid order by agg_score DESC"
 					+ "	) as a"
 					+ "	INNER JOIN"
 					+ documentQueryString

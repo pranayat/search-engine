@@ -42,7 +42,7 @@ public class QueryCLI {
 			}
 		}
 		
-		Query q = new Query(queryTextWithQuotes, k);
+		Query q = new Query(queryTextWithQuotes, k, "tf_idf");
 		apiResult = q.getResults();
 		System.out.println("URL   Score   Rank");
 		for (Result result: apiResult.resultList) {

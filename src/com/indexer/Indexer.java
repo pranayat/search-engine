@@ -36,11 +36,11 @@ public class Indexer{
     			token = word;
     		}
             
-				if (countMap.containsKey(token)) {
-					countMap.put(token, countMap.get(token)+1);
-				} else {
-					countMap.put(token,1);
-				}
+			if (countMap.containsKey(token)) {
+				countMap.put(token, countMap.get(token)+1);
+			} else {
+				countMap.put(token,1);
+			}
     	}
     	return countMap;
     }

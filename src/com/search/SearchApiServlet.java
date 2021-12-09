@@ -55,10 +55,20 @@ public class SearchApiServlet extends HttpServlet {
 				out.flush();
 		    } else {
 		    	String queryText = req.getParameter("querytext");
-		    	int k = req.getParameter("k").length() > 0 ? Integer.parseInt(req.getParameter("k")) : 20;
-		    	// TODO: score param
+		    	int k = req.getParameter("k").length() > 0 ? Integer.parseInt(req.getParameter("k")) : 20;		    	
+		    	String scoreTypeOption = req.getParameter("score");
+		    	String scoreType = "tf_idf";
+		    	
+		    	if (scoreTypeOption == "1") {
+		    		scoreType = "tf_idf";
+		    	} else if (scoreTypeOption == "2") {
+		    		scoreType = "bm25";
+		    	} else if (scoreTypeOption == "3") {
+		    		scoreType = "combined";
+		    	}
+		    	
 		    			    	
-	    		Query q = new Query(queryText, k);
+	    		Query q = new Query(queryText, k, scoreType);
 				
 	    		jsonString = objectMapper.writeValueAsString(q.getResults());
 	    		res.setContentType("application/json");
