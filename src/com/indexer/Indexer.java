@@ -186,13 +186,12 @@ public class Indexer{
     		   pstmtfeatures.setDouble(8,0);
     		   pstmtfeatures.setString(9, textLanguage);
     		   pstmtfeatures.executeUpdate();
-    		   
+
     	   }
     	   
     	   conn.commit();
     	      
        } catch (SQLException e) {
-    	   System.out.println(e);
     	   try {
     		   conn.rollback();
     	   } catch (SQLException e1) {
