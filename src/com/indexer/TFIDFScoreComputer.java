@@ -93,10 +93,9 @@ public class TFIDFScoreComputer {
 					rs.next();
 					df = rs.getInt("df");
 					
-					pstmtupdate = conn.prepareStatement("UPDATE features SET df = ? WHERE term =? and docid=?");
+					pstmtupdate = conn.prepareStatement("UPDATE features SET df = ? WHERE id=?");
 					pstmtupdate.setInt(1, df);
-					pstmtupdate.setString(2,term);
-					pstmtupdate.setInt(3,featureId);
+					pstmtupdate.setInt(2,featureId);
 					pstmtupdate.executeUpdate();
 				
 				    cstmt = conn.prepareCall("select tfidf(?,?)");

@@ -31,9 +31,11 @@ public class Okapi {
 		    		+ "   declare nq int;"
 		    		+ "   declare idf float;"
 		    		+ "	  declare result float;"
+		    		+ "   declare did int;"
 		    		+ "	  BEGIN"
-		    		+ "	  select term_frequency, df, num_elem into fqD, nq, D"
+		    		+ "	  select docid, term_frequency, df into did, fqD, nq"
 		    		+ "   from features where id = featureId;"
+		    		+ "   select sum(term_frequency) into D from features where docid = did;" 
 		    		+ "   idf = log((N-nq+0.5)/(nq+0.5));"
 		    		+ "	  result = idf * ((fqD * (k1 + 1))/(fqD + k1 * 1 - b + b * (D/avgdl)));"
 		    		+ "	  UPDATE features SET bm25 = result WHERE id=featureId;"
@@ -59,8 +61,8 @@ public class Okapi {
 		float avgdl;
 		try {
 			
-			PreparedStatement pstmtAVG = conn.prepareStatement("SELECT avg(x.num_elem) as avgdl from (SELECT num_elem FROM"
-					+ " features GROUP BY docid, num_elem) x");
+			PreparedStatement pstmtAVG = conn.prepareStatement("SELECT avg(x.dl) as avgdl from (SELECT sum(term_frequency) as dl FROM"
+					+ " features GROUP BY docid) x");
 			ResultSet rsAVG = pstmtAVG.executeQuery();
 			rsAVG.next();
 			avgdl = rsAVG.getFloat("avgdl");

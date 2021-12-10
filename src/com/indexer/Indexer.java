@@ -26,20 +26,33 @@ public class Indexer{
 		this.languageClassifier = new LanguageClassifier();
 	}
     
-    public Map<String, Integer> getTermCounts(Set<String> text) {
-    	Map<String, Integer> data = new HashMap<String, Integer>();
+	private Map<String, Integer> getCounts(Set<String> text, Boolean stem) {
+    	Map<String, Integer> countMap = new HashMap<String, Integer>();
+    	String token = null;
     	for (String word : text) {
-            String stemmed_word = stem_word(word);
-            //System.out.println(stemmed_word);
+    		if (stem) {
+    			token = stem_word(word); 
+    		} else {
+    			token = word;
+    		}
             
-            if (data.containsKey(stemmed_word)) {
-            	data.put(stemmed_word, data.get(stemmed_word)+1);
-            }else {
-            	data.put(stemmed_word,1);
-            }
+			if (countMap.containsKey(token)) {
+				countMap.put(token, countMap.get(token)+1);
+			} else {
+				countMap.put(token,1);
+			}
     	}
-    	return data;
+    	return countMap;
     }
+    
+    public Map<String, Integer> getTermCounts(Set<String> text) {
+    	return this.getCounts(text, false);
+    }
+    
+    public Map<String, Integer> getStemCounts(Set<String> text) {
+    	return this.getCounts(text, true);
+    }
+
     
 
     public static String stem_word(String word){
@@ -85,14 +98,22 @@ public class Indexer{
 		   text = new HashSet<>(Arrays.asList(textArrayWithoutSpecialChars.toArray(new String[0])));
 	   }
        
-       Map <String, Integer> data = this.getTermCounts(text);
+	   Map <String, Integer> data = null;
+	   Map <String, Integer> nonstemmeddata = null;
+       
+       if (textLanguage.equals("eng")) {
+    	   data = this.getStemCounts(text);
+       } else {
+    	   data = this.getTermCounts(text);
+       }
+
 
        try {
   
     	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date, pagerank, language)"
     			   + "VALUES(?,?,?,?) RETURNING docid";
     	   String SQLfeatures = "INSERT INTO features (docid, term, "
-    	   		+ "term_frequency, df, tf_idf, num_elem, bm25, combined, language)" + "VALUES(?,?,?,?,?,?,?,?,?)"; // TODO: check if really needed here
+    	   		+ "term_frequency, df, tf_idf, bm25, combined, language)" + "VALUES(?,?,?,?,?,?,?,?)"; // TODO: check if really needed here
     	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
     	   		 + "VALUES(?,?)";
     	   
@@ -163,10 +184,9 @@ public class Indexer{
     		   pstmtfeatures.setInt(3,termPair.getValue());
     		   pstmtfeatures.setInt(4, 1);
     		   pstmtfeatures.setDouble(5, 0);
-    		   pstmtfeatures.setInt(6, data.size());
+    		   pstmtfeatures.setDouble(6,0);
     		   pstmtfeatures.setDouble(7,0);
-    		   pstmtfeatures.setDouble(8,0);
-    		   pstmtfeatures.setString(9, textLanguage);
+    		   pstmtfeatures.setString(8, textLanguage);
     		   pstmtfeatures.executeUpdate();
     		   
     	   }

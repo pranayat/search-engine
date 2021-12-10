@@ -17,8 +17,13 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import com.common.ConnectionManager;
-import com.indexer.TFIDFScoreComputer;
 import com.languageclassifier.LanguageClassifier;
+
+import com.indexer.TFIDFScoreComputer;
+import com.scoring.PageRank;
+import com.scoring.Okapi;
+import com.scoring.ViewCreator;
+import com.scoring.CombinedScore;
 
 public class Driver {
 
@@ -68,7 +73,13 @@ public class Driver {
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS links");
-			pstmt.execute();			
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS engterms");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS gerterms");
+			pstmt.execute();
 			
 			conn.commit();
 		} catch (Exception e) {
@@ -102,7 +113,7 @@ public class Driver {
 			// create a trigram index on url to allow more forgiving site: filtering
 			pstmt = conn.prepareStatement("CREATE INDEX trgm_idx_url ON documents USING gin (url gin_trgm_ops)");
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT, num_elem BIGINT, bm25 FLOAT, combined FLOAT, language VARCHAR)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT, bm25 FLOAT, combined FLOAT, language VARCHAR)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS links (from_docid INT, to_docid INT)");
@@ -129,6 +140,36 @@ public class Driver {
 			}
             e.printStackTrace();
         }
+	}
+	
+	public static void TFIDFscoring(Connection conn) {
+		System.out.println("calling TFIDF scorer");
+		TFIDFScoreComputer Scorer = new TFIDFScoreComputer(conn);
+		Scorer.computeScores();
+	}
+	
+	public static void PageRankScoring(Connection conn) {
+		System.out.println("calling PageRank scorer");
+		PageRank pr = new PageRank(conn);
+		pr.pageRanking();
+	}
+	
+	public static void OkapiScoring(Connection conn) {
+		System.out.println("calling Okapi scorer");
+		Okapi ok = new Okapi(conn);
+		ok.okapiScoring();
+	}
+	
+	public static void combinedScoring(Connection conn) {
+		System.out.println("calling Combined scorer");
+		CombinedScore cs = new CombinedScore(conn);
+		cs.combinedScoring();
+	}
+	
+	public static void creatingViews(Connection conn) {
+		System.out.println("views created");
+		ViewCreator vc = new ViewCreator(conn);
+		vc.createViews();
 	}
 	
 	public static void main(String[] args) throws NumberFormatException, SQLException, IOException {
@@ -227,6 +268,14 @@ public class Driver {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		
+		Connection conn = (new ConnectionManager()).getConnection();
+		TFIDFscoring(conn);
+		PageRankScoring(conn);
+		OkapiScoring(conn);
+		combinedScoring(conn);
+		creatingViews(conn);
+		
 	}
 }
 

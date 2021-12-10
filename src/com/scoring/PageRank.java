@@ -26,7 +26,7 @@ public class PageRank {
 		this.conn = conn;
 	}
 	
-	public Matrix getP() {
+	public Matrix getP(Map<Integer,Integer> indices) {
 		Matrix P;
 		Integer N;
 		try {
@@ -43,10 +43,9 @@ public class PageRank {
 	 	    int to;
 	 	    int[] nonzeros = new int[N];
 	 	    Arrays.fill(nonzeros, 0);
-	 	    //adjacenz matrix, no docid with 0!!!
 	 	    while(rslinks.next()) {
-	 	    	from = rslinks.getInt("from_docid") -1;
-	 	    	to = rslinks.getInt("to_docid") -1;
+	 	    	from = indices.get(rslinks.getInt("from_docid"));
+	 	    	to = indices.get(rslinks.getInt("to_docid"));
 	 	    	T.set(from, to, T.get(from,to)+1);
 	 	    	nonzeros[from] += 1;
 			}
@@ -102,15 +101,31 @@ public class PageRank {
 	}
 	
 	public void pageRanking() {
-		Matrix P = getP();
-		Vector rank = powerIteration(P,0.0001);//try good stoping criteria
 		
 		try {
+			Map<Integer, Integer> indices = new HashMap<Integer, Integer>();
+			PreparedStatement pstmt = conn.prepareStatement("SELECT docid FROM documents");
+			ResultSet rsids = pstmt.executeQuery();
+			int count = 0;
+			while(rsids.next()) {
+				indices.put(rsids.getInt("docid"),count);
+				count++;
+			}
+			
+			Matrix P = getP(indices);
+			Vector rank = powerIteration(P,0.0001);//try good stoping criteria
+			
 			//or a new ranking table
 			PreparedStatement pstmtupdate = conn.prepareStatement("UPDATE documents SET pagerank = ? WHERE docid=?");
+			int act_docid = -1;
 			for (int i=0; i<rank.length(); i++) {
+				for ( Integer docid : indices.keySet() ) {
+				    if (indices.get(docid) == i) {
+				    	act_docid = docid;
+				    }
+				}
 				pstmtupdate.setDouble(1, rank.get(i));
-				pstmtupdate.setInt(2,i+1); //attention no zero docid
+				pstmtupdate.setInt(2,act_docid); 
 				pstmtupdate.executeUpdate();
 			}
 			

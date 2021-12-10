@@ -103,6 +103,11 @@ public class Query {
     			queryTextTerms = Arrays.copyOfRange(queryTextTerms, 1, queryTextTerms.length); // don't consider site:abc.com as query term
     		}
     		
+    		//this would be a place to put the alternative spell suggestions and the spell checking
+    		SpellChecker spellcheck = new SpellChecker(conn);
+    		String[] suggestedQuery = spellcheck.suggest(queryTextTerms);
+    		System.out.println(suggestedQuery);
+    		
     		Set<String> queryTextWithoutStopwords = sr.removeStopwords(queryTextTerms);
     		Set<String> queryWithoutSpecialChars = new HashSet<String>();
     		   
