@@ -21,6 +21,8 @@ public class SpellChecker {
 	
 	public void bestfitfunctioneng() {
 		try {
+			Statement stmtstart = conn.createStatement();
+			stmtstart.execute("CREATE EXTENSION fuzzystrmatch");
 			Statement stmt = conn.createStatement();
 		      //Query to create a function
 		    String query = "CREATE OR REPLACE FUNCTION bestFiteng(word VARCHAR)"
@@ -47,6 +49,8 @@ public class SpellChecker {
 	
 	public void bestfitfunctionger() {
 		try {
+			Statement stmtstart = conn.createStatement();
+			stmtstart.execute("CREATE EXTENSION fuzzystrmatch");
 			Statement stmt = conn.createStatement();
 		      //Query to create a function
 		    String query = "CREATE OR REPLACE FUNCTION bestFitger(word VARCHAR)"
