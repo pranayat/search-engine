@@ -26,7 +26,8 @@ public class Indexer{
 		this.languageClassifier = new LanguageClassifier();
 	}
     
-	private Map<String, Integer> getCounts(Set<String> text, Boolean stem) {
+    private Map<String, Integer> getCounts(Set<String> text, Boolean stem) {
+
     	Map<String, Integer> countMap = new HashMap<String, Integer>();
     	String token = null;
     	for (String word : text) {
@@ -52,7 +53,6 @@ public class Indexer{
     public Map<String, Integer> getStemCounts(Set<String> text) {
     	return this.getCounts(text, true);
     }
-
     
 
     public static String stem_word(String word){
@@ -98,15 +98,14 @@ public class Indexer{
 		   text = new HashSet<>(Arrays.asList(textArrayWithoutSpecialChars.toArray(new String[0])));
 	   }
        
-	   Map <String, Integer> data = null;
-	   Map <String, Integer> nonstemmeddata = null;
+
+       Map <String, Integer> data = null;
        
        if (textLanguage.equals("eng")) {
     	   data = this.getStemCounts(text);
        } else {
     	   data = this.getTermCounts(text);
        }
-
 
        try {
   
@@ -188,13 +187,12 @@ public class Indexer{
     		   pstmtfeatures.setDouble(7,0);
     		   pstmtfeatures.setString(8, textLanguage);
     		   pstmtfeatures.executeUpdate();
-    		   
+
     	   }
     	   
     	   conn.commit();
     	      
        } catch (SQLException e) {
-    	   System.out.println(e);
     	   try {
     		   conn.rollback();
     	   } catch (SQLException e1) {

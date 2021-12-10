@@ -17,6 +17,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import com.common.ConnectionManager;
+import com.indexer.TFIDFScoreComputer;
+import com.languageclassifier.DictionaryBootstrapper;
 import com.languageclassifier.LanguageClassifier;
 
 import com.indexer.TFIDFScoreComputer;
@@ -219,7 +221,7 @@ public class Driver {
 		System.out.println("maxDepth = " + maxDepth + ", maxDocs = " + maxDocs + ", fanOut = " + fanOut);
 		
 		if(resetIndex.equals("true")) {
-			System.out.println("Rebuilding index from scratch...");
+			System.out.println("Deleting old index...");
 			seedUrls.add("https://www.cs.uni-kl.de");
 			seedUrls.add("https://www.asta.uni-kl.de");
 			seedUrls.add("https://www.mathematik.uni-kl.de/en");
@@ -228,13 +230,28 @@ public class Driver {
 
 			dropTables();
 			createTables();
+			System.out.println("Old index deleted");
 		}	else {
 			seedUrls = getSeedUrlsFromDB();
 		}
 
 		if (resetDict.equals("true")) {
 			System.out.println("Bootstrapping language dictionaries...");
-			LanguageClassifier.bootstrap();
+			DictionaryBootstrapper db1 = new DictionaryBootstrapper("eng");
+			Thread db1Thread = new Thread(db1);
+			DictionaryBootstrapper db2 = new DictionaryBootstrapper("ger");
+			Thread db2Thread = new Thread(db2);
+			
+			db1Thread.start();
+			db2Thread.start();
+			
+			try {
+				db1Thread.join();
+				db2Thread.join();
+				System.out.println("Dictionaries created");
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		System.out.println("Starting crawl session...");
@@ -264,7 +281,7 @@ public class Driver {
 			crawler4.join();
 			crawler5.join();
 
-			System.out.println("END");
+			System.out.println("Crawl session ended");
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

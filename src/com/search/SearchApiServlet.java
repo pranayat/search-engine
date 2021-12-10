@@ -54,18 +54,32 @@ public class SearchApiServlet extends HttpServlet {
 				out.print("Rate limit exceeded for your IP, please try after sometime.");
 				out.flush();
 		    } else {
-		    	String queryText = req.getParameter("querytext");
-		    	int k = req.getParameter("k").length() > 0 ? Integer.parseInt(req.getParameter("k")) : 20;
-		    	// TODO: score param
+		    	String queryText = req.getParameter("query");
+		    	int k = req.getParameter("k").length() > 0 ? Integer.parseInt(req.getParameter("k")) : 20;		    	
+		    	String scoreTypeOption = req.getParameter("score");
+		    	String scoreType = "tf_idf";
+		    	String queryLanguage = "eng";
 		    	
+		    	if (req.getParameter("lang") != null && req.getParameter("lang").length() > 0) {
+		    		queryLanguage = req.getParameter("lang");
+		    	}
 		    	
-		    		Query q = new Query(queryText, k);
-		    		List<Result> results = q.getResults();
-		    		jsonString = objectMapper.writeValueAsString(results);
-		    		res.setContentType("application/json");
-		    		res.setCharacterEncoding("UTF-8");
-		    		out.print(jsonString);
-		    		out.flush();
+		    	if (scoreTypeOption == "1") {
+		    		scoreType = "tf_idf";
+		    	} else if (scoreTypeOption == "2") {
+		    		scoreType = "bm25";
+		    	} else if (scoreTypeOption == "3") {
+		    		scoreType = "combined";
+		    	}
+		    	
+		    			    	
+	    		Query q = new Query(queryText, k, scoreType, queryLanguage);
+				
+	    		jsonString = objectMapper.writeValueAsString(q.getResults());
+	    		res.setContentType("application/json");
+	    		res.setCharacterEncoding("UTF-8");
+	    		out.print(jsonString);
+	    		out.flush();
 		    }
 		} catch (Exception e) {
 			e.printStackTrace();

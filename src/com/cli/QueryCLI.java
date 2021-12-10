@@ -3,6 +3,7 @@ package com.cli;
 import java.util.List;
 import java.util.Scanner;
 
+import com.search.ApiResult;
 import com.search.Query;
 import com.search.Result;
 
@@ -12,6 +13,7 @@ public class QueryCLI {
 		String queryMode = "conjunctive", queryText;
 		int choice, k;
 		Scanner sc = new Scanner(System.in);
+		ApiResult apiResult = null;
 
 		System.out.println("Please select a search mode\n");
 		System.out.println("1. Conjunctive\n");
@@ -40,11 +42,11 @@ public class QueryCLI {
 			}
 		}
 		
-		Query q = new Query(queryTextWithQuotes, k);
-		List<Result> results = q.getResults();
-		System.out.println("Doc ID   URL   Score   Rank");
-		for (Result result: results) {
-			System.out.println(result.getDocid() + "   " + result.getUrl()
+		Query q = new Query(queryTextWithQuotes, k, "tf_idf", "eng");
+		apiResult = q.getResults();
+		System.out.println("URL   Score   Rank");
+		for (Result result: apiResult.resultList) {
+			System.out.println(result.getUrl()
 				+ "   " + result.getScore() + "   " + result.getRank());
 		}
 		

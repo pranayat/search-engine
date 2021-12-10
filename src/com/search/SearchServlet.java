@@ -33,11 +33,12 @@ public class SearchServlet extends HttpServlet {
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 		try {
-			String queryText = req.getParameter("querytext");		
-	        int k = 20;
-	        PrintWriter out = res.getWriter();
+			String queryText = req.getParameter("query");		
+			int k = 20;
+			PrintWriter out = res.getWriter();
+			ApiResult apiResult = null;
 	        
-	        Bucket ipBucket = this.getBucketByIp(req.getRemoteAddr());
+			Bucket ipBucket = this.getBucketByIp(req.getRemoteAddr());
 			Bucket globalBucket = Bucket4j.builder()
 	                .addLimit(Bandwidth.classic(10, Refill.intervally(10, Duration.ofSeconds(1))))
 	                .build();
@@ -51,15 +52,30 @@ public class SearchServlet extends HttpServlet {
 				res.setStatus(429);
 				out.print("Rate limit exceeded for your IP, please try after sometime.");
 				out.flush();
-		    } else {	    
-				Query q = new Query(queryText, k);
-				List<Result> results = q.getResults();
-				req.setAttribute("results", results);
+		    } else {		    	
+		    	String scoreTypeOption = req.getParameter("score");
+		    	String scoreType = "tf_idf";
+		    	String queryLanguage = "eng";
+		    	
+		    	if (req.getParameter("lang") != null && req.getParameter("lang").length() > 0) {
+		    		queryLanguage = req.getParameter("lang");
+		    	}
+		    	
+		    	if (scoreTypeOption == "1") {
+		    		scoreType = "tf_idf";
+		    	} else if (scoreTypeOption == "2") {
+		    		scoreType = "bm25";
+		    	} else if (scoreTypeOption == "3") {
+		    		scoreType = "combined";
+		    	}
+		    	
+				Query q = new Query(queryText, k, scoreType, queryLanguage);
+				apiResult = q.getResults();
+				req.setAttribute("results", apiResult.resultList);
 				RequestDispatcher rd = req.getRequestDispatcher("result.jsp");
 				rd.forward(req, res);
 		    }
         } catch (Exception e) {
-        	System.out.println("spiderman");
             e.printStackTrace();
         }
 	}
