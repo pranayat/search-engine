@@ -152,6 +152,7 @@ public class Driver {
 		  		+ "		    		  BEGIN"
 		  		+ "		    		  return query select term"
 		  		+ "			    		  from eng_term_prob"
+		  		+ "                        WHERE levenshtein(term, word) > 0"
 		  		+ "			    		  ORDER BY levenshtein(term, word) ASC, prob DESC LIMIT 5;"
 		  		+ "		    		END;"
 		  		+ "		    		$$ language plpgsql;";
@@ -164,7 +165,8 @@ public class Driver {
 			  		+ "					AS $$"
 			  		+ "		    		  BEGIN"
 			  		+ "		    		  return query select term"
-			  		+ "			    		  from eng_term_prob"
+			  		+ "			    		  from ger_term_prob"
+			  		+ "                        WHERE levenshtein(term, word) > 0"
 			  		+ "			    		  ORDER BY levenshtein(term, word) ASC, prob DESC LIMIT 5;"
 			  		+ "		    		END;"
 			  		+ "		    		$$ language plpgsql;";	

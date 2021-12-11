@@ -99,34 +99,8 @@ public class Okapi {
 			this.okapifunction();
 			
 			CallableStatement cstmt;
-			PreparedStatement pstmt;
-			PreparedStatement pstmtupdate;
-			int fqD;
-			int nq;
-			float idf;
-			float result;
-			float k1 = (float) 1.7;
-			float b = (float) 0.75;
-			int D;
 			
 			for (int featureId: featureIds) {
-				// version 1: calculation in java-----------------------------------------------------------------------------------
-//				pstmt = conn.prepareStatement("SELECT term_frequency AS fqD, df AS nq, num_elem AS D FROM features WHERE id=?");
-//				pstmt.setInt(1, featureId);
-//				ResultSet rs = pstmt.executeQuery();
-//				rs.next();
-//				fqD = rs.getInt("fqD");
-//				nq = rs.getInt("nq");
-//				D = rs.getInt("D");
-//				idf = (float) Math.log((N-nq+0.5)/(nq+0.5));
-//				result = idf * ((fqD * (k1 + 1))/(fqD + k1 * 1 - b + b * (D/avgdl)));
-//				
-//				pstmtupdate = conn.prepareStatement("UPDATE features SET bm25 = ? WHERE id=?");
-//        	    pstmtupdate.setFloat(1,result);
-//        	    pstmtupdate.setInt(2, featureId);
-//        	    pstmtupdate.executeUpdate();
-			
-				// version 2: calculation in postgres---------------------------------------------------------------------------------
 			    cstmt = conn.prepareCall("select okapibm25(?,?,?,?,?)");
 			    cstmt.setInt(1, featureId);
 			    cstmt.setInt(2, N);
