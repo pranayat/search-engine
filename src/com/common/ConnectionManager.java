@@ -16,7 +16,7 @@ public class ConnectionManager {
         String port="5432";
         String db_name="search_engine";
         String username="postgres";
-        String password="20p19m31s";
+        String password="password";
         try {
             Class.forName("org.postgresql.Driver");
             this.connection = DriverManager.getConnection("jdbc:postgresql://"+host+":"+port+"/"+db_name+"", ""+username+"", ""+password+"");
