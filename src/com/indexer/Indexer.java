@@ -110,6 +110,13 @@ public class Indexer{
        }
 
        try {
+    	   
+    	   PreparedStatement pstmtwords = conn.prepareStatement("INSERT INTO dbwords (term, language) VALUES(?,?)");
+    	   for (String word: text) {
+    		   pstmtwords.setString(1, word);
+    		   pstmtwords.setString(2, textLanguage);
+    		   pstmtwords.executeUpdate();
+    	   }
   
     	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date, pagerank, language)"
     			   + "VALUES(?,?,?,?) RETURNING docid";
