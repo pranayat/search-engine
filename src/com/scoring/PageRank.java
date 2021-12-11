@@ -27,7 +27,7 @@ public class PageRank {
 	}
 	
 	public Matrix getP(Map<Integer,Integer> indices) {
-		Matrix P;
+		Matrix P = null;
 		Integer N;
 		try {
 			PreparedStatement pstmtN = conn.prepareStatement("SELECT COUNT(*) AS count FROM documents");
@@ -41,21 +41,21 @@ public class PageRank {
 	 	    ResultSet rslinks = pstmtlinks.executeQuery();
 	 	    int from;
 	 	    int to;
-	 	    int[] nonzeros = new int[N];
-	 	    Arrays.fill(nonzeros, 0);
+	 	    int[] outDegree = new int[N];
+	 	    Arrays.fill(outDegree, 0);
 	 	    while(rslinks.next()) {
 	 	    	from = indices.get(rslinks.getInt("from_docid"));
 	 	    	to = indices.get(rslinks.getInt("to_docid"));
-	 	    	T.set(from, to, T.get(from,to)+1);
-	 	    	nonzeros[from] += 1;
+	 	    	T.set(from, to, 1);
+	 	    	outDegree[from] += 1;
 			}
 			
 	 	    //calculate T
 	 	    for (int i=0; i<N; i++) {
-//	 	    	VectorProcedure V = new VectorProc(nonzeros[i]);
+//	 	    	VectorProcedure V = new VectorProc(outDegree[i]);
 //	 	    	T.eachNonZeroInColumn(i, V); //here V
 	 	    	
-	 	    	if (nonzeros[i]==0) {
+	 	    	if (outDegree[i]==0) {
 	 	    		for (int j =0; j<N;j++) {
 	 	    			MatrixFunction f = new updateMatrix(N);
 	 	    			T.updateAt(i, j, f);
@@ -63,7 +63,7 @@ public class PageRank {
 	 	    	} else {
 	 	    		for (int j=0; j<N;j++) {
 	 	    			if (T.get(i, j) != 0) {
-	 	    				MatrixFunction f = new updateMatrix(nonzeros[i]);
+	 	    				MatrixFunction f = new updateMatrix(outDegree[i]);
 	 	    				T.updateAt(i,j,f);
 	 	    			}
 	 	    		}
@@ -73,16 +73,10 @@ public class PageRank {
 	 	    Matrix Rand = Matrix.zero(N,N);
 	 	    Rand.add(1/N);
 	 	    P = T.multiply(0.9).add(Rand.multiply(0.1));
-	 	    conn.commit();    
 		} catch (SQLException e) {
-	    	   System.out.println(e);
-	    	   try {
-	    		   conn.rollback();
-	    	   } catch (SQLException e1) {
-	    		   e1.printStackTrace();
-	    	   }
-	      return null;
-	       }
+			e.printStackTrace();
+	    }
+		
 		return P;
 	}
 	
@@ -97,6 +91,7 @@ public class PageRank {
 			pi_new = pi_save.multiply(P);
 			pi_old = pi_save;
 		}
+
 		return pi_new;
 	}
 	
@@ -119,9 +114,10 @@ public class PageRank {
 			PreparedStatement pstmtupdate = conn.prepareStatement("UPDATE documents SET pagerank = ? WHERE docid=?");
 			int act_docid = -1;
 			for (int i=0; i<rank.length(); i++) {
-				for ( Integer docid : indices.keySet() ) {
+				for (Integer docid : indices.keySet()) {
 				    if (indices.get(docid) == i) {
 				    	act_docid = docid;
+				    	break;
 				    }
 				}
 				pstmtupdate.setDouble(1, rank.get(i));
@@ -132,7 +128,7 @@ public class PageRank {
 			conn.commit();
 			
 		} catch (SQLException e) {
-	    	   System.out.println(e);
+	    	   e.printStackTrace();
 	    	   try {
 	    		   conn.rollback();
 	    	   } catch (SQLException e1) {
@@ -140,7 +136,4 @@ public class PageRank {
 	    	   }
 	       }
 	}
-	
-	
-	
 }

@@ -28,11 +28,11 @@ public class CombinedScore {
 		    String query = "CREATE OR REPLACE FUNCTION combined(featureId int, pagerank float, x1 float, x2 float)"
 		    		+ " RETURNS float"
 		    		+ " AS $$"
-		    		+ "   declare tfidf float;"
+		    		+ "   declare bm25_score float;"
 		    		+ "	  declare result float;"
 		    		+ "	  BEGIN"
-		    		+ "	  select tf_idf into tfidf from features where id = featureId;"
-		    		+ "	  result = x1 * tfidf + x2 * pagerank;"
+		    		+ "	  select bm25 into bm25_score from features where id = featureId;"
+		    		+ "	  result = x1 * bm25_score + x2 * pagerank;"
 		    		+ "	  UPDATE features SET combined = result WHERE id=featureId;"
 		    		+ " return result;"
 		    		+ " END;"
@@ -86,7 +86,7 @@ public class CombinedScore {
 			    conn.commit();
 			}
 		} catch (SQLException e) {
-	    	   System.out.println(e);
+	    	   e.printStackTrace();
 	    	   try {
 	    		   conn.rollback();
 	    	   } catch (SQLException e1) {

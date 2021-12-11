@@ -64,11 +64,11 @@ public class SearchApiServlet extends HttpServlet {
 		    		queryLanguage = req.getParameter("lang");
 		    	}
 		    	
-		    	if (scoreTypeOption == "1") {
+		    	if (scoreTypeOption.equals("1")) {
 		    		scoreType = "tf_idf";
-		    	} else if (scoreTypeOption == "2") {
+		    	} else if (scoreTypeOption.equals("2")) {
 		    		scoreType = "bm25";
-		    	} else if (scoreTypeOption == "3") {
+		    	} else if (scoreTypeOption.equals("3")) {
 		    		scoreType = "combined";
 		    	}
 		    	
