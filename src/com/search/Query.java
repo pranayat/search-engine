@@ -117,8 +117,8 @@ public class Query {
     		String[] suggestedQuery = spellcheck.suggest(queryTextTerms);
     		System.out.println(suggestedQuery);
     		
-    		Set<String> queryTextWithoutStopwords = sr.removeStopwords(queryTextTerms);
-    		Set<String> queryWithoutSpecialChars = new HashSet<String>();
+    		List<String> queryTextWithoutStopwords = sr.removeStopwords(queryTextTerms);
+    		List<String> queryWithoutSpecialChars = new ArrayList<String>();
     		   
     		String regex = "([a-zA-Z0-9�������\"]+)";
     		Pattern pattern = Pattern.compile(regex);

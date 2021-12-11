@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class StopwordRemover {
@@ -48,8 +50,8 @@ public class StopwordRemover {
         return stopwords;
     }
     
-    public Set<String> removeStopwords(String[] text) {
-    	Set<String> textwithoutStopwords = new HashSet<String>();
+    public List<String> removeStopwords(String[] text) {
+    	List<String> textwithoutStopwords = new ArrayList<String>();
     	for (String term : text) {
     		if (!this.stopwords.contains(term)) {
     			textwithoutStopwords.add(term);

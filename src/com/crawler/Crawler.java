@@ -205,8 +205,7 @@ public class Crawler implements Runnable {
 				this.crawledDocsCount++;
 							    
 			} catch (Exception e) {
-//				System.out.println("Error hitting - " + urlToHit);
-//				e.printStackTrace();
+
 				continue;
 			}
 			
@@ -221,6 +220,7 @@ public class Crawler implements Runnable {
 			}
 			
 			if (childLinks.size() == 0) {
+				System.out.println("Ending crawl session for thread " + this.threadId + " no child urls found on page");
 				return;
 			}
 
@@ -238,6 +238,7 @@ public class Crawler implements Runnable {
 					normalizedChildLinks.add(childUrl.getUrlString());
 					this.addToQueue(new String[] { childUrl.getUrlString() }, this.depth);
 				} catch (Exception e) {
+					continue;
 				}
 			}
 			

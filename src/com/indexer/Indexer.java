@@ -1,5 +1,6 @@
 package com.indexer;
 
+import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,7 +27,7 @@ public class Indexer{
 		this.languageClassifier = new LanguageClassifier();
 	}
     
-    private Map<String, Integer> getCounts(Set<String> text, Boolean stem) {
+    private Map<String, Integer> getCounts(List<String> text, Boolean stem) {
 
     	Map<String, Integer> countMap = new HashMap<String, Integer>();
     	String token = null;
@@ -36,21 +37,22 @@ public class Indexer{
     		} else {
     			token = word;
     		}
-            
+				
 			if (countMap.containsKey(token)) {
 				countMap.put(token, countMap.get(token)+1);
 			} else {
 				countMap.put(token,1);
 			}
     	}
+    	
     	return countMap;
     }
     
-    public Map<String, Integer> getTermCounts(Set<String> text) {
+    public Map<String, Integer> getTermCounts(List<String> text) {
     	return this.getCounts(text, false);
     }
     
-    public Map<String, Integer> getStemCounts(Set<String> text) {
+    public Map<String, Integer> getStemCounts(List<String> text) {
     	return this.getCounts(text, true);
     }
     
@@ -91,11 +93,11 @@ public class Indexer{
 	   
 	   String textLanguage = this.languageClassifier.classify(textArrayWithoutSpecialChars.toArray(new String[0]));
 	   
-	   Set<String> text;
+	   List<String> text;
 	   if (textLanguage.equals("eng")) {		   
 		   text = this.sr.removeStopwords(textArrayWithoutSpecialChars.toArray(new String[0]));
 	   } else {
-		   text = new HashSet<>(Arrays.asList(textArrayWithoutSpecialChars.toArray(new String[0])));
+		   text = Arrays.asList(textArrayWithoutSpecialChars.toArray(new String[0]));
 	   }
        
 
@@ -146,6 +148,20 @@ public class Indexer{
         	   ResultSet rs0 = pstmtdocuments.executeQuery();
         	   rs0.next();
         	   docid0 = rs0.getInt("docid");
+        	   
+        	   for (Map.Entry<String,Integer> termPair : data.entrySet()) {
+
+        		   pstmtfeatures.setInt(1,docid0);
+        		   pstmtfeatures.setString(2, termPair.getKey());
+        		   pstmtfeatures.setInt(3,termPair.getValue());
+        		   pstmtfeatures.setInt(4, 1);
+        		   pstmtfeatures.setDouble(5, 0);
+        		   pstmtfeatures.setDouble(6,0);
+        		   pstmtfeatures.setDouble(7,0);
+        		   pstmtfeatures.setString(8, textLanguage);
+        		   pstmtfeatures.executeUpdate();
+
+        	   }
     	   }
     	   
     	   //Insert documents from outgoing links
@@ -174,20 +190,6 @@ public class Indexer{
         	   pstmtlinks.setInt(1, docid0);
         	   pstmtlinks.setInt(2, outgoingid);
         	   pstmtlinks.executeUpdate();
-    	   }
-    	   
-    	   for (Map.Entry<String,Integer> termPair : data.entrySet()) {
-    		   
-    		   pstmtfeatures.setInt(1,docid0);
-    		   pstmtfeatures.setString(2, termPair.getKey());
-    		   pstmtfeatures.setInt(3,termPair.getValue());
-    		   pstmtfeatures.setInt(4, 1);
-    		   pstmtfeatures.setDouble(5, 0);
-    		   pstmtfeatures.setDouble(6,0);
-    		   pstmtfeatures.setDouble(7,0);
-    		   pstmtfeatures.setString(8, textLanguage);
-    		   pstmtfeatures.executeUpdate();
-
     	   }
     	   
     	   conn.commit();

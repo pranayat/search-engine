@@ -282,17 +282,19 @@ public class Driver {
 			crawler5.join();
 
 			System.out.println("Crawl session ended");
-		} catch (InterruptedException e) {
+			
+			Connection conn = (new ConnectionManager()).getConnection();
+			TFIDFscoring(conn);
+			PageRankScoring(conn);
+			OkapiScoring(conn);
+			combinedScoring(conn);
+			creatingViews(conn);
+			
+			System.out.println("END");
+			
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		Connection conn = (new ConnectionManager()).getConnection();
-		TFIDFscoring(conn);
-		PageRankScoring(conn);
-		OkapiScoring(conn);
-		combinedScoring(conn);
-		creatingViews(conn);
-		
 	}
 }
 
