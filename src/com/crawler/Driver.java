@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -56,12 +57,6 @@ public class Driver {
 
 		try {
 			
-//			pstmt = conn.prepareStatement("DROP VIEW IF EXISTS features_tfifd");
-//			pstmt.execute();
-//			
-//			pstmt = conn.prepareStatement("DROP VIEW IF EXISTS features_bm25");
-//			pstmt.execute();
-			
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS crawler_queue");
 			pstmt.execute();
 			
@@ -81,6 +76,15 @@ public class Driver {
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS gerterms");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS best_fit_eng");
+			pstmt.execute();
+
+			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS best_fit_ger");
+			pstmt.execute();
+
+			pstmt = conn.prepareStatement("DROP EXTENSION IF EXISTS fuzzystrmatch");
 			pstmt.execute();
 			
 			conn.commit();
@@ -131,7 +135,35 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE INDEX doc_id ON documents USING hash (docid)");
 			pstmt.execute();
 			
-			
+			Statement stmt = conn.createStatement();
+			stmt.execute("CREATE EXTENSION fuzzystrmatch");
+
+		  String query = "CREATE FUNCTION best_fit_eng(word VARCHAR)"
+		  		+ "						RETURNS TABLE ( "
+		  		+ "							suggestion VARCHAR "
+		  		+ "					)"
+		  		+ "					AS $$"
+		  		+ "		    		  BEGIN"
+		  		+ "		    		  return query select term"
+		  		+ "			    		  from eng_term_prob"
+		  		+ "			    		  ORDER BY levenshtein(term, word) ASC, prob DESC LIMIT 5;"
+		  		+ "		    		END;"
+		  		+ "		    		$$ language plpgsql;";
+
+			stmt.execute(query);
+			query = "CREATE FUNCTION best_fit_ger(word VARCHAR)"
+			  		+ "						RETURNS TABLE ( "
+			  		+ "							suggestion VARCHAR "
+			  		+ "					)"
+			  		+ "					AS $$"
+			  		+ "		    		  BEGIN"
+			  		+ "		    		  return query select term"
+			  		+ "			    		  from eng_term_prob"
+			  		+ "			    		  ORDER BY levenshtein(term, word) ASC, prob DESC LIMIT 5;"
+			  		+ "		    		END;"
+			  		+ "		    		$$ language plpgsql;";	
+				
+			stmt.execute(query);
 			conn.commit();
 		} catch (Exception e) {
 			try {

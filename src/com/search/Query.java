@@ -114,7 +114,7 @@ public class Query {
     		
     		//this would be a place to put the alternative spell suggestions and the spell checking
     		SpellChecker spellcheck = new SpellChecker(conn);
-    		String[] suggestedQuery = spellcheck.suggest(queryTextTerms);
+    		String[][] suggestedQuery = spellcheck.suggest(queryTextTerms);
     		System.out.println(suggestedQuery);
     		
     		List<String> queryTextWithoutStopwords = sr.removeStopwords(queryTextTerms);
