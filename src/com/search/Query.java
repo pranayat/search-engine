@@ -112,10 +112,16 @@ public class Query {
     			queryTextTerms = Arrays.copyOfRange(queryTextTerms, 1, queryTextTerms.length); // don't consider site:abc.com as query term
     		}
     		
-    		//this would be a place to put the alternative spell suggestions and the spell checking
     		SpellChecker spellcheck = new SpellChecker(conn);
-    		String[][] suggestedQuery = spellcheck.suggest(queryTextTerms);
-    		System.out.println(suggestedQuery);
+    		String[][] suggestedQueryTerms = spellcheck.suggest(queryTextTerms, this.language);
+    		String [] suggestedQueries = new String[5];
+    		
+    		for (int i = 0; i < 5; i++) {
+    			suggestedQueries[i] = "";
+    			for (int j = 0; j < suggestedQueryTerms.length; j++) {
+    				suggestedQueries[i] += suggestedQueryTerms[j][i].toLowerCase() + " ";
+    			}
+    		}
     		
     		List<String> queryTextWithoutStopwords = sr.removeStopwords(queryTextTerms);
     		List<String> queryWithoutSpecialChars = new ArrayList<String>();
@@ -197,7 +203,7 @@ public class Query {
 			rs = pstmt.executeQuery();
 			rs.next();
 			
-			apiResult = new ApiResult(resultList, query, stats, rs.getInt("cw"));
+			apiResult = new ApiResult(resultList, query, stats, rs.getInt("cw"), suggestedQueries);
 						
         } catch (SQLException e) {
         	e.printStackTrace();

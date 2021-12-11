@@ -19,9 +19,14 @@ public class SpellChecker {
 		this.conn = conn;
 	}	
 
-	public String[][] suggest(String[] query) throws SQLException{
-	    LanguageClassifier langclass = new LanguageClassifier();
-	    String lang = langclass.classify(query);
+	public String[][] suggest(String[] query, String selectedLang) throws SQLException{
+			String lang;
+			if (selectedLang.length() > 0) {
+				lang = selectedLang;
+			} else {
+				LanguageClassifier langclass = new LanguageClassifier();
+				lang = langclass.classify(query);
+			}
 	    
 	    String[][] suggestedQuery = new String[query.length][5];
 	    

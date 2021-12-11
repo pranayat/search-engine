@@ -72,6 +72,8 @@ public class SearchServlet extends HttpServlet {
 				Query q = new Query(queryText, k, scoreType, queryLanguage);
 				apiResult = q.getResults();
 				req.setAttribute("results", apiResult.resultList);
+				req.setAttribute("suggestedQueries", apiResult.suggestedQueries);
+				req.setAttribute("queryLang", queryLanguage);
 				RequestDispatcher rd = req.getRequestDispatcher("result.jsp");
 				rd.forward(req, res);
 		    }

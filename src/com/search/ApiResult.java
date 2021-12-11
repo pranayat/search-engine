@@ -11,6 +11,7 @@ public class ApiResult {
 	public Map<String, String> query;
 	public List<Stat> stats;
 	public int cw;
+	public String[] suggestedQueries;
 	
 	public ApiResult() {
 		this.resultList = new ArrayList<Result>();
@@ -19,10 +20,11 @@ public class ApiResult {
 		this.cw = 0;
 	}
 
-	public ApiResult(List<Result> resultList, Map<String, String> query, List<Stat> stats, int cw) {
+	public ApiResult(List<Result> resultList, Map<String, String> query, List<Stat> stats, int cw, String[] suggestedQueries) {
 		this.resultList = resultList;
 		this.query = query;
 		this.stats = stats;
 		this.cw = cw;
+		this.suggestedQueries = suggestedQueries;
 	}
 }
