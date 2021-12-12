@@ -25,7 +25,7 @@ public class CombinedScore {
 
 			Statement stmt = conn.createStatement();
 		      //Query to create a function
-		    String query = "CREATE OR REPLACE FUNCTION combined(featureId int, pagerank float, x1 float, x2 float)"
+		    String query = "CREATE OR REPLACE FUNCTION combined(featureId int, pagerank float)"
 		    		+ " RETURNS float"
 		    		+ " AS $$"
 		    		+ "   declare bm25_score float;"
@@ -78,11 +78,9 @@ public class CombinedScore {
 				rs.next();
 				pagerank = rs.getFloat("pagerank");
 				
-				cstmt = conn.prepareCall("select combined(?,?,?,?)");
+				cstmt = conn.prepareCall("select combined(?,?)");
 			    cstmt.setInt(1, featureId);
 			    cstmt.setFloat(2, pagerank );
-			    cstmt.setFloat(3, (float) 0.8);
-			    cstmt.setFloat(4, (float) 0.2);
 			    cstmt.execute();
 			    
 			    conn.commit();
