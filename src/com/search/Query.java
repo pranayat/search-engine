@@ -123,8 +123,11 @@ public class Query {
     			}
     		}
     		
-    		List<String> queryTextWithoutStopwords = sr.removeStopwords(queryTextTerms);
-    		List<String> queryWithoutSpecialChars = new ArrayList<String>();
+				List<String> queryTextWithoutStopwords = Arrays.asList(queryTextTerms);
+				List<String> queryWithoutSpecialChars = new ArrayList<String>();
+				if (this.language.equals("eng")) {
+					queryTextWithoutStopwords = sr.removeStopwords(queryTextTerms);
+				}
     		   
     		String regex = "([a-zA-Z0-9�������\"]+)";
     		Pattern pattern = Pattern.compile(regex);
@@ -144,21 +147,22 @@ public class Query {
     		}
     				
     		for(String term: queryWithoutSpecialChars) {
-    			char[] word = term.toCharArray();
-	            for (int j = 0; j<word.length;j++) {
-	                char c = word[j];
-	                s.add(c);
-	            }
-	            s.stem();
+					if (this.language.equals("eng")) {
+						char[] word = term.toCharArray();
+						for (int j = 0; j<word.length;j++) {
+								char c = word[j];
+								s.add(c);
+						}
+						s.stem();
 
-	            term = s.toString();
+						term = s.toString();
+					}
 	            
-	            if (term.startsWith("\"") && term.endsWith("\"")) {
-    				conjunctiveTerms.add(term.split("\"")[1]);
-    			} else {
-    				nonConjunctiveTerms.add(term);
-    			}
-    			
+					if (term.startsWith("\"") && term.endsWith("\"")) {
+						conjunctiveTerms.add(term.split("\"")[1]);
+					} else {
+						nonConjunctiveTerms.add(term);
+					}
     		}
     		allTerms = Stream.concat(conjunctiveTerms.stream(), nonConjunctiveTerms.stream()).collect(Collectors.toSet());
 

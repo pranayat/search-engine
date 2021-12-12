@@ -31,17 +31,17 @@ public class Page {
 	
 	public void setPageSource(String pageSource) {
 		// remove comments
-		this.pageSource = pageSource.replaceAll("<!--(.*?)-->", "");;
+		this.pageSource = pageSource.replaceAll("<!--(.*?)-->", " ");;
 	}
 
 	public String getPageText() {
 		String text = this.pageSource;
 		// remove all inline styles, lazy regex
-		text = text.replaceAll("<style>(.*?)</style>", "");
+		text = text.replaceAll("<style>(.*?)</style>", " ");
 		// remove all inline scripts, lazy regex
-		text = text.replaceAll("<script>(.*?)</script>", "");
+		text = text.replaceAll("<script>(.*?)</script>", " ");
 		// remove all html tags
-		text = text.replaceAll("<[^>]*>", "");
+		text = text.replaceAll("<[^>]*>", " ");
 
 		return text;
 	}
