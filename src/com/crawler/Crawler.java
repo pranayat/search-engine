@@ -86,7 +86,6 @@ public class Crawler implements Runnable {
 		    rd.close();
 		    return response.toString();
 		  } catch (Exception e) {
-		    e.printStackTrace();
 		    throw e;
 		  } finally {
 		    if (connection != null) {
