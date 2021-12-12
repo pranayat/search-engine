@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.*;
 //for timestamps
 import java.sql.Timestamp;
+import java.sql.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -108,6 +109,7 @@ public class Indexer{
        } else {
     	   data = this.getTermCounts(text);
        }
+       
 
        try {
     	   
@@ -130,22 +132,33 @@ public class Indexer{
     	   PreparedStatement pstmtlinks = conn.prepareStatement(SQLlinks);
     	   
     	   //test if document already in database
-    	   PreparedStatement pstmtin = conn.prepareStatement("SELECT docid FROM documents WHERE url = ?");
+    	   PreparedStatement pstmtin = conn.prepareStatement("SELECT docid, crawled_on_date FROM documents WHERE url = ?");
     	   pstmtin.setString(1, docURL);
     	   ResultSet rsin = pstmtin.executeQuery();
     	   
     	   int docid0;
     	   Timestamp timestamp;
+    	   Timestamp ts;
+    	   boolean alreadyInFeatures = true;
     	   
     	   if (rsin.next()){
     		   docid0 = rsin.getInt("docid");
+    		   ts = rsin.getTimestamp("crawled_on_date");
+    		   if (ts == null) {
+    			   System.out.println(ts);
+    			   alreadyInFeatures = false;
+    		   }else {
+    			   System.out.println("not null");
+    		   }
     		   //set real crawled timestamp
     		   PreparedStatement pstmtupdate = conn.prepareStatement("UPDATE documents SET crawled_on_date = ? WHERE docid=?");
     		   timestamp = new Timestamp(System.currentTimeMillis());
         	   pstmtupdate.setTimestamp(1,timestamp);
         	   pstmtupdate.setInt(2, docid0);
         	   pstmtupdate.executeUpdate();
+    
     	   } else {
+    		   
     		   //Insert crawled document
         	   pstmtdocuments.setString(1,docURL);
         	   timestamp = new Timestamp(System.currentTimeMillis());
@@ -156,7 +169,10 @@ public class Indexer{
         	   rs0.next();
         	   docid0 = rs0.getInt("docid");
         	   
-        	   for (Map.Entry<String,Integer> termPair : data.entrySet()) {
+    	   }
+    	   //insert into features
+    	   if (!alreadyInFeatures) {
+    		   for (Map.Entry<String,Integer> termPair : data.entrySet()) {
 
         		   pstmtfeatures.setInt(1,docid0);
         		   pstmtfeatures.setString(2, termPair.getKey());
@@ -167,7 +183,7 @@ public class Indexer{
         		   pstmtfeatures.setDouble(7,0);
         		   pstmtfeatures.setString(8, textLanguage);
         		   pstmtfeatures.executeUpdate();
-
+      
         	   }
     	   }
     	   
