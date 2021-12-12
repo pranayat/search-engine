@@ -99,7 +99,23 @@ public class Url {
 		if (!(this.path.length() > 0)) {
 			return this.protocol + this.domain;
 		}
-
+		
+		if (domain.endsWith("/")) {
+		    domain = domain.substring(0, domain.length() - 1);
+		}
+		
+		if (path.endsWith("/")) {
+		    path = path.substring(0, path.length() - 1);
+		}
+		
+		if (domain.startsWith("/")) {
+		    domain = domain.substring(1, domain.length());
+		}
+		
+		if (path.startsWith("/")) {
+		    path = path.substring(1, path.length());
+		}
+		
 		return this.protocol + this.domain + "/" + this.path;
 	}
 	
