@@ -257,11 +257,17 @@ public class Driver {
 		if(resetIndex.equals("true")) {
 			System.out.println("Deleting old index...");
 			seedUrls.add("https://www.cs.uni-kl.de");
-			seedUrls.add("https://www.asta.uni-kl.de");
 			seedUrls.add("https://www.mathematik.uni-kl.de/en");
 			seedUrls.add("https://www.mv.uni-kl.de/en");
 			seedUrls.add("https://www.architektur.uni-kl.de/en/home/seite");
-
+			seedUrls.add("https://www.eit.uni-kl.de/en/startseite/seite");
+			
+			seedUrls.add("https://www.asta.uni-kl.de");
+			seedUrls.add("https://www.physik.uni-kl.de");
+			seedUrls.add("https://www.sowi.uni-kl.de/home");
+			seedUrls.add("https://wiwi.uni-kl.de");
+			seedUrls.add("https://www.ru.uni-kl.de/startseite");
+			
 			dropTables();
 			createTables();
 			System.out.println("Old index deleted");
