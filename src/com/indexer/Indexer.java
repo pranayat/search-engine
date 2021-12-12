@@ -145,10 +145,7 @@ public class Indexer{
     		   docid0 = rsin.getInt("docid");
     		   ts = rsin.getTimestamp("crawled_on_date");
     		   if (ts == null) {
-    			   System.out.println(ts);
     			   alreadyInFeatures = false;
-    		   }else {
-    			   System.out.println("not null");
     		   }
     		   //set real crawled timestamp
     		   PreparedStatement pstmtupdate = conn.prepareStatement("UPDATE documents SET crawled_on_date = ? WHERE docid=?");
