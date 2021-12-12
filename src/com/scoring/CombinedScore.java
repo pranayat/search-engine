@@ -25,14 +25,16 @@ public class CombinedScore {
 
 			Statement stmt = conn.createStatement();
 		      //Query to create a function
-		    String query = "CREATE OR REPLACE FUNCTION combined(featureId int, pagerank float, x1 float, x2 float)"
+		    String query = "CREATE OR REPLACE FUNCTION combined(featureId int, pagerank float)"
 		    		+ " RETURNS float"
 		    		+ " AS $$"
 		    		+ "   declare bm25_score float;"
 		    		+ "	  declare result float;"
+		    		+ "   declare N int;"
 		    		+ "	  BEGIN"
+		    		+ "   select count(*) into N from documents;"
 		    		+ "	  select bm25 into bm25_score from features where id = featureId;"
-		    		+ "	  result = x1 * bm25_score + x2 * pagerank;"
+		    		+ "	  result = bm25_score^(1-1/log(N)) * pagerank^(1/log(N));"
 		    		+ "	  UPDATE features SET combined = result WHERE id=featureId;"
 		    		+ " return result;"
 		    		+ " END;"
@@ -76,11 +78,9 @@ public class CombinedScore {
 				rs.next();
 				pagerank = rs.getFloat("pagerank");
 				
-				cstmt = conn.prepareCall("select combined(?,?,?,?)");
+				cstmt = conn.prepareCall("select combined(?,?)");
 			    cstmt.setInt(1, featureId);
 			    cstmt.setFloat(2, pagerank );
-			    cstmt.setFloat(3, (float) 0.8);
-			    cstmt.setFloat(4, (float) 0.2);
 			    cstmt.execute();
 			    
 			    conn.commit();

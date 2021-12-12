@@ -78,6 +78,9 @@ public class Driver {
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS gerterms");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS dbterms");
+			pstmt.execute();
+			
 			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS best_fit_eng");
 			pstmt.execute();
 
@@ -123,6 +126,9 @@ public class Driver {
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS links (from_docid INT, to_docid INT)");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS dbwords (term VARCHAR, language VARCHAR)");
 			pstmt.execute();
 			
 			//indices for making it faster
