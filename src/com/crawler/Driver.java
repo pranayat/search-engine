@@ -254,6 +254,8 @@ public class Driver {
     		
 		System.out.println("maxDepth = " + maxDepth + ", maxDocs = " + maxDocs + ", fanOut = " + fanOut);
 		
+		Crawler c1 = null, c2 = null, c3 = null, c4 = null, c5 = null;
+		Thread crawler1 = null, crawler2 = null, crawler3 = null, crawler4 = null, crawler5 = null;
 		if(resetIndex.equals("true")) {
 			System.out.println("Deleting old index...");
 			seedUrls.add("https://www.cs.uni-kl.de");
@@ -270,9 +272,30 @@ public class Driver {
 			
 			dropTables();
 			createTables();
+
 			System.out.println("Old index deleted");
+
+			c1 = new Crawler(1, maxDepth, maxDocs, fanOut, seedUrls.get(0), true);
+			crawler1 = new Thread(c1);
+			c2 = new Crawler(2, maxDepth, maxDocs, fanOut, seedUrls.get(1), true);
+			crawler2 = new Thread(c2);
+			c3 = new Crawler(3, maxDepth, maxDocs, fanOut, seedUrls.get(2), true);		
+			crawler3 = new Thread(c3);
+			c4 = new Crawler(4, maxDepth, maxDocs, fanOut, seedUrls.get(3), true);		
+			crawler4 = new Thread(c4);
+			c5 = new Crawler(5, maxDepth, maxDocs, fanOut, seedUrls.get(4), true);		
+			crawler5 = new Thread(c5);
 		}	else {
-			seedUrls = getSeedUrlsFromDB();
+			c1 = new Crawler(1, maxDepth, maxDocs, fanOut, "", false);
+			crawler1 = new Thread(c1);
+			c2 = new Crawler(2, maxDepth, maxDocs, fanOut, "", false);
+			crawler2 = new Thread(c2);
+			c3 = new Crawler(3, maxDepth, maxDocs, fanOut, "", false);		
+			crawler3 = new Thread(c3);
+			c4 = new Crawler(4, maxDepth, maxDocs, fanOut, "", false);		
+			crawler4 = new Thread(c4);
+			c5 = new Crawler(5, maxDepth, maxDocs, fanOut, "", false);		
+			crawler5 = new Thread(c5);
 		}
 
 		if (resetDict.equals("true")) {
@@ -296,18 +319,6 @@ public class Driver {
 		
 		System.out.println("Starting crawl session...");
 
-		Crawler c1 = new Crawler(1, maxDepth, maxDocs, fanOut, seedUrls.get(0));
-		Thread crawler1 = new Thread(c1);
-		Crawler c2 = new Crawler(2, maxDepth, maxDocs, fanOut, seedUrls.get(1));
-		Thread crawler2 = new Thread(c2);
-		Crawler c3 = new Crawler(3, maxDepth, maxDocs, fanOut, seedUrls.get(2));		
-		Thread crawler3 = new Thread(c3);
-		Crawler c4 = new Crawler(4, maxDepth, maxDocs, fanOut, seedUrls.get(3));		
-		Thread crawler4 = new Thread(c4);
-		Crawler c5 = new Crawler(5, maxDepth, maxDocs, fanOut, seedUrls.get(4));		
-		Thread crawler5 = new Thread(c5);
-
-		
 		crawler1.start();
 		crawler2.start();
 		crawler3.start();

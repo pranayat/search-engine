@@ -23,14 +23,13 @@ public class Crawler implements Runnable {
 	private int maxDepth;
 	private int depth;
 	private int fanOut;
-	private Queue<String> pagesAtLevel;
 	private Connection conn;
 	private int maxDocs;
 	private int crawledDocsCount;
 	private String rootUrlString;
 	private int threadId;
 	
-	public Crawler(int threadId, int maxDepth, int maxDocs, int fanOut, String rootUrlString) {
+	public Crawler(int threadId, int maxDepth, int maxDocs, int fanOut, String rootUrlString, Boolean isFreshRun) {
 		this.fanOut = fanOut;
 		this.maxDepth = maxDepth;
 		this.maxDocs = maxDocs;
@@ -40,10 +39,11 @@ public class Crawler implements Runnable {
 		
 		this.depth = 0;
 		this.crawledDocsCount = 0;
-		this.pagesAtLevel= new LinkedList<>();
 		
-		this.resetQueueState();
-		this.addToQueue(new String [] {this.rootUrlString, null}, 0);
+		if (isFreshRun) {
+			this.resetQueueState();
+			this.addToQueue(new String [] {this.rootUrlString, null}, 0);
+		}
 	}
 	
 	
@@ -112,16 +112,21 @@ public class Crawler implements Runnable {
 				
 				break;
 			}
-			
-			this.pagesAtLevel.add(node);
 		}
 
 		return;
 	}
 	
 	private String popQueueHead() {
+		String url = null;
 		try {
-			PreparedStatement pstmt = conn.prepareStatement("DELETE FROM crawler_queue WHERE id = (SELECT MIN(id) FROM crawler_queue WHERE thread_id = ?);");
+			PreparedStatement pstmt = conn.prepareStatement("SELECT url FROM crawler_queue WHERE id = (SELECT MIN(id) FROM crawler_queue WHERE thread_id = ?);");
+			pstmt.setInt(1,  this.threadId);
+			ResultSet rs = pstmt.executeQuery();
+			rs.next();
+			url = rs.getString("url");
+			
+			pstmt = conn.prepareStatement("DELETE FROM crawler_queue WHERE id = (SELECT MIN(id) FROM crawler_queue WHERE thread_id = ?);");
 			pstmt.setInt(1,  this.threadId);
 			pstmt.executeUpdate();
 			conn.commit();
@@ -133,11 +138,9 @@ public class Crawler implements Runnable {
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
-
-			return null;
 		}
 		
-		return this.pagesAtLevel.poll();
+		return url;
 	}
 	
 	private Boolean isUrlAlreadyCrawled(String url) {
@@ -169,6 +172,26 @@ public class Crawler implements Runnable {
 		
 		return;
 	}
+
+	private Boolean isQueueEmpty () {
+		PreparedStatement pstmt;
+		ResultSet rs;
+		try {
+			pstmt = conn.prepareStatement("SELECT COUNT(*) FROM crawler_queue WHERE thread_id = ?");
+			pstmt.setInt(1, this.threadId);
+			rs = pstmt.executeQuery();
+			rs.next();
+			if (rs.getInt(1) == 0)  {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return true;
+		}
+	}
 	
 	public void crawl() {
 
@@ -178,11 +201,10 @@ public class Crawler implements Runnable {
 		Indexer ind;
 		List<String> childLinks = new ArrayList<String>(), normalizedChildLinks = new ArrayList<String>();
 		
-		while (!this.pagesAtLevel.isEmpty()) {
+		while (!this.isQueueEmpty()) {
 			if (this.depth >= this.maxDepth || this.crawledDocsCount >= this.maxDocs) {
 				System.out.println("Ending crawl session for thread = " + this.threadId
 						+ " docs crawled = " + this.crawledDocsCount + " till depth = " + this.depth);
-				this.resetQueueState();
 				return;
 			}
 			
