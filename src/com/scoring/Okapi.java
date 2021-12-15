@@ -37,7 +37,7 @@ public class Okapi {
 		    		+ "   from features where id = featureId;"
 		    		+ "   select sum(term_frequency) into D from features where docid = did;" 
 		    		+ "   idf = log((N-nq+0.5)/(nq+0.5));"
-		    		+ "	  result = idf * ((fqD * (k1 + 1))/(fqD + k1 * 1 - b + b * (D/avgdl)));"
+		    		+ "	  result = idf * ((fqD * (k1 + 1))/(fqD + k1 * (1 - b + b * (D/avgdl))));"
 		    		+ "	  UPDATE features SET bm25 = result WHERE id=featureId;"
 		    		+ " return result;"
 		    		+ " END;"

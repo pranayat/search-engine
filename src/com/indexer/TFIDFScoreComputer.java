@@ -29,7 +29,7 @@ public class TFIDFScoreComputer {
 		    		+ "	  declare tf int;"
 		    		+ "	  declare docf int;"
 		    		+ "	  declare result float;"
-		    		+ "	  declare actterm character varying;"
+		    		+ "	  declare actterm character varying;" // TODO: remove this line, not needed
 		    		+ "	  BEGIN"
 		    		+ "	  select term_frequency, df into tf, docf"
 		    		+ "   from features where id = featureId;"

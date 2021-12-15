@@ -29,7 +29,7 @@ Resets index and language disctionaries
 
 Run script `/home/project/first_crawl.sh`
 
-This builds the crawler classes and starts a crawl run. Output of the crawl run is appended to a log file `/home/project/crawl_log.sh`
+This builds the crawler classes and starts a crawl run. Output of the crawl run is appended to a log file `/home/project/crawl_log.txt`
 
 first_crawl.sh
 ```
