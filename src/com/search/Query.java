@@ -30,7 +30,7 @@ public class Query {
 	private String language;
 
 	public Query(String queryText, int k, String scoreType, String language) {
-		this.queryText = queryText;
+		this.queryText = queryText.toLowerCase();
 		this.k = k;
 		this.scoreType = scoreType;
 		this.language = language;
