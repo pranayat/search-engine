@@ -125,6 +125,9 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT, bm25 FLOAT, combined FLOAT, language VARCHAR)");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS image_features (id SERIAL, url VARCHAR, term VARCHAR, term_distance BIGINT, score BIGINT)");
+			pstmt.execute();
+			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS links (from_docid INT, to_docid INT)");
 			pstmt.execute();
 			
@@ -264,16 +267,16 @@ public class Driver {
 		Thread crawler1 = null, crawler2 = null, crawler3 = null, crawler4 = null, crawler5 = null, crawler6 = null, crawler7 = null, crawler8 = null, crawler9 = null, crawler10 = null;
 		if(resetIndex.equals("true")) {
 			System.out.println("Deleting old index...");
-			seedUrls.add("https://www.cs.uni-kl.de");
-			seedUrls.add("https://www.mathematik.uni-kl.de/en");
-			seedUrls.add("https://www.mv.uni-kl.de/en");
-			seedUrls.add("https://www.architektur.uni-kl.de/en/home/seite");
-			seedUrls.add("https://www.eit.uni-kl.de/en/startseite/seite");			
-			seedUrls.add("https://www.asta.uni-kl.de");
-			seedUrls.add("https://www.physik.uni-kl.de");
-			seedUrls.add("https://www.sowi.uni-kl.de/home");
-			seedUrls.add("https://wiwi.uni-kl.de");
-			seedUrls.add("https://www.ru.uni-kl.de/startseite");
+			seedUrls.add("https://www.uni-kl.de");
+//			seedUrls.add("https://www.mathematik.uni-kl.de/en");
+//			seedUrls.add("https://www.mv.uni-kl.de/en");
+//			seedUrls.add("https://www.architektur.uni-kl.de/en/home/seite");
+//			seedUrls.add("https://www.eit.uni-kl.de/en/startseite/seite");			
+//			seedUrls.add("https://www.asta.uni-kl.de");
+//			seedUrls.add("https://www.physik.uni-kl.de");
+//			seedUrls.add("https://www.sowi.uni-kl.de/home");
+//			seedUrls.add("https://wiwi.uni-kl.de");
+//			seedUrls.add("https://www.ru.uni-kl.de/startseite");
 			
 			dropTables();
 			createTables();
@@ -282,45 +285,45 @@ public class Driver {
 
 			c1 = new Crawler(1, maxDepth, maxDocs, fanOut, seedUrls.get(0), true);
 			crawler1 = new Thread(c1);
-			c2 = new Crawler(2, maxDepth, maxDocs, fanOut, seedUrls.get(1), true);
-			crawler2 = new Thread(c2);
-			c3 = new Crawler(3, maxDepth, maxDocs, fanOut, seedUrls.get(2), true);		
-			crawler3 = new Thread(c3);
-			c4 = new Crawler(4, maxDepth, maxDocs, fanOut, seedUrls.get(3), true);		
-			crawler4 = new Thread(c4);
-			c5 = new Crawler(5, maxDepth, maxDocs, fanOut, seedUrls.get(4), true);		
-			crawler5 = new Thread(c5);			
-			c6 = new Crawler(6, maxDepth, maxDocs, fanOut, seedUrls.get(5), true);
-			crawler6 = new Thread(c6);
-			c7 = new Crawler(7, maxDepth, maxDocs, fanOut, seedUrls.get(6), true);
-			crawler7 = new Thread(c7);
-			c8 = new Crawler(8, maxDepth, maxDocs, fanOut, seedUrls.get(7), true);		
-			crawler8 = new Thread(c8);
-			c9 = new Crawler(9, maxDepth, maxDocs, fanOut, seedUrls.get(8), true);		
-			crawler9 = new Thread(c9);
-			c10 = new Crawler(10, maxDepth, maxDocs, fanOut, seedUrls.get(9), true);		
-			crawler10 = new Thread(c10);
+//			c2 = new Crawler(2, maxDepth, maxDocs, fanOut, seedUrls.get(1), true);
+//			crawler2 = new Thread(c2);
+//			c3 = new Crawler(3, maxDepth, maxDocs, fanOut, seedUrls.get(2), true);		
+//			crawler3 = new Thread(c3);
+//			c4 = new Crawler(4, maxDepth, maxDocs, fanOut, seedUrls.get(3), true);		
+//			crawler4 = new Thread(c4);
+//			c5 = new Crawler(5, maxDepth, maxDocs, fanOut, seedUrls.get(4), true);		
+//			crawler5 = new Thread(c5);			
+//			c6 = new Crawler(6, maxDepth, maxDocs, fanOut, seedUrls.get(5), true);
+//			crawler6 = new Thread(c6);
+//			c7 = new Crawler(7, maxDepth, maxDocs, fanOut, seedUrls.get(6), true);
+//			crawler7 = new Thread(c7);
+//			c8 = new Crawler(8, maxDepth, maxDocs, fanOut, seedUrls.get(7), true);		
+//			crawler8 = new Thread(c8);
+//			c9 = new Crawler(9, maxDepth, maxDocs, fanOut, seedUrls.get(8), true);		
+//			crawler9 = new Thread(c9);
+//			c10 = new Crawler(10, maxDepth, maxDocs, fanOut, seedUrls.get(9), true);		
+//			crawler10 = new Thread(c10);
 		}	else {
 			c1 = new Crawler(1, maxDepth, maxDocs, fanOut, "", false);
 			crawler1 = new Thread(c1);
-			c2 = new Crawler(2, maxDepth, maxDocs, fanOut, "", false);
-			crawler2 = new Thread(c2);
-			c3 = new Crawler(3, maxDepth, maxDocs, fanOut, "", false);		
-			crawler3 = new Thread(c3);
-			c4 = new Crawler(4, maxDepth, maxDocs, fanOut, "", false);		
-			crawler4 = new Thread(c4);
-			c5 = new Crawler(5, maxDepth, maxDocs, fanOut, "", false);		
-			crawler5 = new Thread(c5);			
-			c6 = new Crawler(6, maxDepth, maxDocs, fanOut, "", false);
-			crawler6 = new Thread(c6);
-			c7 = new Crawler(7, maxDepth, maxDocs, fanOut, "", false);
-			crawler7 = new Thread(c7);
-			c8 = new Crawler(8, maxDepth, maxDocs, fanOut, "", false);		
-			crawler8 = new Thread(c8);
-			c9 = new Crawler(9, maxDepth, maxDocs, fanOut, "", false);		
-			crawler9 = new Thread(c9);
-			c10 = new Crawler(10, maxDepth, maxDocs, fanOut, "", false);		
-			crawler10 = new Thread(c10);			
+//			c2 = new Crawler(2, maxDepth, maxDocs, fanOut, "", false);
+//			crawler2 = new Thread(c2);
+//			c3 = new Crawler(3, maxDepth, maxDocs, fanOut, "", false);		
+//			crawler3 = new Thread(c3);
+//			c4 = new Crawler(4, maxDepth, maxDocs, fanOut, "", false);		
+//			crawler4 = new Thread(c4);
+//			c5 = new Crawler(5, maxDepth, maxDocs, fanOut, "", false);		
+//			crawler5 = new Thread(c5);			
+//			c6 = new Crawler(6, maxDepth, maxDocs, fanOut, "", false);
+//			crawler6 = new Thread(c6);
+//			c7 = new Crawler(7, maxDepth, maxDocs, fanOut, "", false);
+//			crawler7 = new Thread(c7);
+//			c8 = new Crawler(8, maxDepth, maxDocs, fanOut, "", false);		
+//			crawler8 = new Thread(c8);
+//			c9 = new Crawler(9, maxDepth, maxDocs, fanOut, "", false);		
+//			crawler9 = new Thread(c9);
+//			c10 = new Crawler(10, maxDepth, maxDocs, fanOut, "", false);		
+//			crawler10 = new Thread(c10);			
 		}
 
 		if (resetDict.equals("true")) {
@@ -345,27 +348,27 @@ public class Driver {
 		System.out.println("Starting crawl session...");
 
 		crawler1.start();
-		crawler2.start();
-		crawler3.start();
-		crawler4.start();
-		crawler5.start();
-		crawler6.start();
-		crawler7.start();
-		crawler8.start();
-		crawler9.start();
-		crawler10.start();		
+//		crawler2.start();
+//		crawler3.start();
+//		crawler4.start();
+//		crawler5.start();
+//		crawler6.start();
+//		crawler7.start();
+//		crawler8.start();
+//		crawler9.start();
+//		crawler10.start();		
 		
 		try {
 			crawler1.join();
-			crawler2.join();
-			crawler3.join();
-			crawler4.join();
-			crawler5.join();
-			crawler6.join();
-			crawler7.join();
-			crawler8.join();
-			crawler9.join();
-			crawler10.join();			
+//			crawler2.join();
+//			crawler3.join();
+//			crawler4.join();
+//			crawler5.join();
+//			crawler6.join();
+//			crawler7.join();
+//			crawler8.join();
+//			crawler9.join();
+//			crawler10.join();			
 
 			System.out.println("Crawl session ended");
 			
