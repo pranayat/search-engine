@@ -72,7 +72,7 @@ public class Indexer{
         return re;
     }
 
-   public void index (String docURL, String docText, List<String> links) throws SQLException {
+   public int index (String docURL, String docText, List<String> links) throws SQLException {
 	   String docTextLow = docText.toLowerCase();
        
 	   String [] textArray = docTextLow.split("\\s+");
@@ -110,7 +110,8 @@ public class Indexer{
     	   data = this.getTermCounts(text);
        }
        
-
+       
+       int docid0 = -1;
        try {
     	   
     	   PreparedStatement pstmtwords = conn.prepareStatement("INSERT INTO dbwords (term, language) VALUES(?,?)");
@@ -136,7 +137,6 @@ public class Indexer{
     	   pstmtin.setString(1, docURL);
     	   ResultSet rsin = pstmtin.executeQuery();
     	   
-    	   int docid0;
     	   Timestamp timestamp;
     	   Timestamp ts;
     	   boolean alreadyInFeatures = true;
@@ -213,7 +213,6 @@ public class Indexer{
     	   }
     	   
     	   conn.commit();
-    	      
        } catch (SQLException e) {
     	   try {
     		   conn.rollback();
@@ -221,6 +220,8 @@ public class Indexer{
     		   e1.printStackTrace();
     	   }
        }
+       
+	   return docid0;
    }
     
 

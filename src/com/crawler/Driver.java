@@ -66,6 +66,9 @@ public class Driver {
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS features CASCADE");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS image_features CASCADE");
+			pstmt.execute();			
+			
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS links");
 			pstmt.execute();
 			
@@ -125,7 +128,7 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT, bm25 FLOAT, combined FLOAT, language VARCHAR)");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS image_features (id SERIAL, url VARCHAR, term VARCHAR, term_distance BIGINT, score BIGINT)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS image_features (id SERIAL, url VARCHAR, term VARCHAR, score FLOAT, docid INT)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS links (from_docid INT, to_docid INT)");

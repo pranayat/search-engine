@@ -73,7 +73,7 @@ public class SearchApiServlet extends HttpServlet {
 		    	}
 		    	
 		    			    	
-	    		Query q = new Query(queryText, k, scoreType, queryLanguage);
+	    		Query q = new Query(queryText, "web");
 				
 	    		jsonString = objectMapper.writeValueAsString(q.getResults());
 	    		res.setContentType("application/json");

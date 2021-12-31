@@ -53,13 +53,27 @@ public class SearchServlet extends HttpServlet {
 				out.print("Rate limit exceeded for your IP, please try after sometime.");
 				out.flush();
 		    } else {		    	
-		    	String scoreTypeOption = req.getParameter("score");
-		    	String scoreType = "tf_idf";
+		    	String searchMode = req.getParameter("mode");
 		    	String queryLanguage = "eng";
 		    	
 		    	if (req.getParameter("lang") != null && req.getParameter("lang").length() > 0) {
 		    		queryLanguage = req.getParameter("lang");
 		    	}
+		    	
+		    	if (searchMode.equals("image")) {
+					Query q = new Query(queryText, queryLanguage, "image");
+					apiResult = q.getResults();
+					req.setAttribute("results", apiResult.resultList);
+					req.setAttribute("suggestedQueries", apiResult.suggestedQueries);
+					req.setAttribute("queryLang", queryLanguage);
+					RequestDispatcher rd = req.getRequestDispatcher("image_result.jsp");
+					rd.forward(req, res);
+					return;
+		    	}
+		    	
+		    	String scoreTypeOption = req.getParameter("score");
+		    	String scoreType = "tf_idf";
+		    	
 		    	
 		    	if (scoreTypeOption.equals("1")) {
 		    		scoreType = "tf_idf";
@@ -69,7 +83,7 @@ public class SearchServlet extends HttpServlet {
 		    		scoreType = "combined";
 		    	}
 		    	
-				Query q = new Query(queryText, k, scoreType, queryLanguage);
+				Query q = new Query(queryText, k, scoreType, queryLanguage, "web");
 				apiResult = q.getResults();
 				req.setAttribute("results", apiResult.resultList);
 				req.setAttribute("suggestedQueries", apiResult.suggestedQueries);

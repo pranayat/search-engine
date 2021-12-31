@@ -23,17 +23,16 @@ import org.w3c.dom.NodeList;
 import org.w3c.tidy.Tidy;
 import org.xml.sax.InputSource;
 
+import com.common.CharacterSanitizer;
+
 public class Page {
 	private String pageSource;
     private ArrayList<String> outgoingLinks = new ArrayList<String>();
+    private Url url;
     
-    public Page () {
-    	
+    public Page (Url url) {
+    	this.url = url;
     }
-
-	public Page (String pageSource) {
-		this.pageSource = pageSource;
-	}
 	
 	public void setPageSource(String pageSource) {
 		// remove comments
@@ -54,7 +53,7 @@ public class Page {
 		return text;
 	}
 	
-	public void indexImages(Connection conn ) throws SQLException {
+	public void indexImages(Connection conn, int docId) throws Exception {
 		String text = this.pageSource;
 		// remove all line breaks, convert to single line source
 		text = text.replaceAll("[\r\n]", "");
@@ -78,15 +77,15 @@ public class Page {
 		Pattern titlePattern = Pattern.compile("title=\"(.+?)\"");
 		Pattern altPattern = Pattern.compile("alt=\"(.+?)\"");
 		
-		Pattern preTextPattern = Pattern.compile("([>]*.{1,500}?)(<img[^>]*>?)");
+		Pattern preTextPattern = Pattern.compile("([^>]{1,500}?)(<img[^>]*>?)");
 		Matcher matcher = preTextPattern.matcher(text);
 		String preText;
 		String[] preTerms;
 		Map<String, Image> imageMap = new HashMap<String, Image>();
 		
 		while(matcher.find()) {
-			preText = matcher.group(1);
-			preTerms = preText.split("\\s+");
+			preText = CharacterSanitizer.sanitize(matcher.group(1).toLowerCase());
+			preTerms = preText.trim().split("\\s+");
 			imageTag = matcher.group(2);
 
 			Matcher srcMatcher = srcPattern.matcher(imageTag);
@@ -95,29 +94,29 @@ public class Page {
 			}
 			Matcher titleMatcher = titlePattern.matcher(imageTag);
 			if (titleMatcher.find()) {
-				title = srcMatcher.group(1);
+				title = CharacterSanitizer.sanitize(srcMatcher.group(1).toLowerCase());
 			}
 			Matcher altMatcher = altPattern.matcher(imageTag);
 			if (altMatcher.find()) {
-				alt = altMatcher.group(1);
+				alt = CharacterSanitizer.sanitize(altMatcher.group(1).toLowerCase());
 			}
 			
 			// terms towards the end are nearer to the image, so reverse the term array
 			List<String> orderedTerms = Arrays.asList(preTerms);
 		    Collections.reverse(orderedTerms);
 		    
-			Image image = new Image(src, title, alt);
+			Image image = new Image(new Url(src, this.url), title, alt);
 			image.setPreTerms(orderedTerms.toArray(new String[0]));
 			imageMap.put(src, image);
  		}
 		
-		Pattern postTextPattern = Pattern.compile("(<img[^>]*>?)([>]*.{1,500}?)");
+		Pattern postTextPattern = Pattern.compile("(<img[^>]*>)([^<]{1,500})");
 		matcher = postTextPattern.matcher(text);
 		String postText;
 		String[] postTerms;
 		while(matcher.find()) {
-			postText = matcher.group(2);
-			postTerms = postText.split("\\s+");
+			postText = CharacterSanitizer.sanitize(matcher.group(2).toLowerCase());
+			postTerms = postText.trim().split("\\s+");
 			imageTag = matcher.group(1);
 
 			Matcher srcMatcher = srcPattern.matcher(imageTag);
@@ -126,16 +125,16 @@ public class Page {
 			}
 			Matcher titleMatcher = titlePattern.matcher(imageTag);
 			if (titleMatcher.find()) {
-				title = srcMatcher.group(1);
+				title = CharacterSanitizer.sanitize(srcMatcher.group(1).toLowerCase());
 			}
 			Matcher altMatcher = altPattern.matcher(imageTag);
 			if (altMatcher.find()) {
-				alt = altMatcher.group(1);
+				alt = CharacterSanitizer.sanitize(altMatcher.group(1).toLowerCase());
 			}
 			
 			Image image = imageMap.get(src);
 			image.setPostTerms(postTerms);
-			image.index(conn);
+			image.index(conn, docId);
  		}		
 		
 		

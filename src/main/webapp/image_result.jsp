@@ -7,7 +7,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Search Results</title>
+<title>Image Results</title>
 </head>
 <body style="color:green;font-family: 'Courier New', monospace;">
 	<c:if test="${fn:length(results) > 0}"><div style="display:flex;justify-content:center">Showing results for - ${param.query}</div></c:if>
@@ -15,26 +15,19 @@
 	<div style="display:flex;align-items:center; flex-direction: column">
 		<div>Did you mean</div>
 		<c:forEach items="${suggestedQueries}" var="suggestedQuery">
-			<div><a href="/is-project/search?query=${suggestedQuery}&lang=${queryLang}&score=1&mode=web">${suggestedQuery}</a></div>
+			<div><a href="/is-project/search?query=${suggestedQuery}&mode=image">${suggestedQuery}</a></div>
 		</c:forEach>
 	</div>
 	
 	<c:if test="${fn:length(results) > 0}">
-		<table style="display:flex;justify-content:center">
-			 <tr> 
-			   <th>Rank</th> 
-			   <th>URL</th>
-			   <th>Score</th>
-			 </tr>
+		<div style="display:flex;justify-content:center">
 			<c:forEach items="${results}" var="element">
-			  <tr> 
-			    <td>${element.rank}</td> 
-			    <td><a href="${element.url}">${element.url}</a></td>
-			    <td>${element.score}</td>
-			  </tr>
-			  <br>
+			  <div style="border: 1px solid; margin: 4px">  
+			    <img src="${element.url}" height="250" width="250"/>
+			    <div>${element.score}</div>
+			  </div>
 			</c:forEach> 
-		</table>
+		</div>
 	</c:if>
 </body>
 </html>

@@ -28,12 +28,20 @@ public class Query {
 	private int k;
 	private String scoreType;
 	private String language;
+	private String searchMode;
 
-	public Query(String queryText, int k, String scoreType, String language) {
+	public Query(String queryText, String language, String searchMode) {
+		this.queryText = queryText.toLowerCase();
+		this.searchMode = searchMode;
+		this.language = language;
+	}
+	
+	public Query(String queryText, int k, String scoreType, String language, String searchMode) {
 		this.queryText = queryText.toLowerCase();
 		this.k = k;
 		this.scoreType = scoreType;
 		this.language = language;
+		this.searchMode = searchMode;
 	}
 
 	private String buildDisjunctiveClause(Set<String> terms) {
@@ -86,6 +94,36 @@ public class Query {
 		
 		return queryString;
 	}
+	
+	private String buildImageSearchQuery (Set <String> conjunctiveTerms, Set<String> allTerms) {
+		String queryString = "";
+//		String documentQueryString = "";
+		
+//		if (site.length() > 0) {
+//			documentQueryString = "	(select docid, url from documents WHERE url LIKE '%" + site +"%' AND language = '" + this.language + "') as d ";
+//		} else {
+//			documentQueryString = "	(select docid, url from documents WHERE language = '" + this.language + "') as d ";
+//		}
+		
+		if (conjunctiveTerms.size() > 0) {			
+			queryString = "select a.url, b.agg_score from"
+					+ "		(select * from ("
+					+ "		select url, count(*) as count from image_features where " + this.buildDisjunctiveClause(conjunctiveTerms)
+					+ " 	group by url"
+					+ "		) as t2 WHERE t2.count = " + conjunctiveTerms.size() + ") as a"
+					+ "		INNER JOIN"
+					+ "		("
+					+ "		select url, sum(score) as agg_score from image_features where " + this.buildDisjunctiveClause(allTerms)
+					+ " 	group by url"
+					+ "		) as b on a.url = b.url ORDER BY b.agg_score DESC";
+			
+		} else {
+			queryString = "	select url, sum(score) as agg_score from image_features where " + this.buildDisjunctiveClause(allTerms)
+					+ " group by url order by agg_score DESC";
+		}
+		
+		return queryString;
+	}	
 	
     public ApiResult getResults() throws ClassNotFoundException {
         String[] queryTextTerms = null;
@@ -166,7 +204,12 @@ public class Query {
     		}
     		allTerms = Stream.concat(conjunctiveTerms.stream(), nonConjunctiveTerms.stream()).collect(Collectors.toSet());
 
-    		pstmt = conn.prepareStatement(this.buildSearchQuery(conjunctiveTerms, allTerms, this.k, site));
+    		if (this.searchMode.equals("image")) {
+        		pstmt = conn.prepareStatement(this.buildImageSearchQuery(conjunctiveTerms, allTerms));    			
+    		} else {
+    			pstmt = conn.prepareStatement(this.buildSearchQuery(conjunctiveTerms, allTerms, this.k, site));    			
+    		}
+    		
 			rs = pstmt.executeQuery();
 			
 			int i = 0;
