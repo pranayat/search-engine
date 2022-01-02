@@ -116,7 +116,7 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE INDEX h_url ON crawler_queue USING hash (url)");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS documents (docid SERIAL PRIMARY KEY, url VARCHAR UNIQUE, crawled_on_date TIMESTAMP NULL, pagerank FLOAT, language VARCHAR)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS documents (docid SERIAL PRIMARY KEY, url VARCHAR UNIQUE, crawled_on_date TIMESTAMP NULL, pagerank FLOAT, language VARCHAR, doc_text TEXT)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE EXTENSION IF NOT EXISTS pg_trgm");

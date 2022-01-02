@@ -48,7 +48,9 @@ public class Page {
 		// remove all inline scripts, lazy regex
 		text = text.replaceAll("<script>(.*?)</script>", " ");
 		// remove all html tags
-		text = text.replaceAll("<[^>]*>", " ");		
+		text = text.replaceAll("<[^>]*>", " ");	
+		// replace multiple white spaces with single white space
+		text = text.replaceAll("\\s+"," ");
 
 		return text;
 	}
