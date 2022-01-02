@@ -104,7 +104,7 @@ public class Page {
 			// terms towards the end are nearer to the image, so reverse the term array
 			List<String> orderedTerms = Arrays.asList(preTerms);
 		    Collections.reverse(orderedTerms);
-		    
+
 			Image image = new Image(new Url(src, this.url), title, alt);
 			image.setPreTerms(orderedTerms.toArray(new String[0]));
 			imageMap.put(src, image);

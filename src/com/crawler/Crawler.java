@@ -268,7 +268,6 @@ public class Crawler implements Runnable {
 				int docId = ind.index(urlToHit, page.getPageText(), normalizedChildLinks);
 				page.indexImages(conn, docId);
 			} catch (Exception e) {
-				e.printStackTrace();
 				System.out.println("Error in call to indexer");
 			}
 		}
