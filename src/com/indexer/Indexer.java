@@ -13,6 +13,8 @@ import java.sql.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import java.util.stream.*;
+
 import com.languageclassifier.LanguageClassifier;
 
 public class Indexer{
@@ -25,7 +27,7 @@ public class Indexer{
 	public Indexer(Connection conn) {
 		this.conn = conn;
 		this.sr = new StopwordRemover();
-		this.languageClassifier = new LanguageClassifier();
+		this.languageClassifier = new LanguageClassifier(conn);
 	}
     
     private Map<String, Integer> getCounts(List<String> text, Boolean stem) {
@@ -72,7 +74,7 @@ public class Indexer{
         return re;
     }
 
-   public void index (String docURL, String docText, List<String> links) throws SQLException {
+   public void index (String docURL, String docText, List<String> links, int k) throws SQLException {
 	   String docTextLow = docText.toLowerCase();
        
 	   String [] textArray = docTextLow.split("\\s+");
@@ -126,10 +128,12 @@ public class Indexer{
     	   		+ "term_frequency, df, tf_idf, bm25, combined, language)" + "VALUES(?,?,?,?,?,?,?,?)"; // TODO: check if really needed here
     	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
     	   		 + "VALUES(?,?)";
+    	   String SQLshingles = "INSERT INTO kshingles (docid, shingle) VALUES(?,?)";
     	   
     	   PreparedStatement pstmtdocuments = conn.prepareStatement(SQLdocuments);
     	   PreparedStatement pstmtfeatures = conn.prepareStatement(SQLfeatures);
     	   PreparedStatement pstmtlinks = conn.prepareStatement(SQLlinks);
+    	   PreparedStatement pstmtshingle = conn.prepareStatement(SQLshingles);
     	   
     	   //test if document already in database
     	   PreparedStatement pstmtin = conn.prepareStatement("SELECT docid, crawled_on_date FROM documents WHERE url = ?");
@@ -182,6 +186,19 @@ public class Indexer{
         		   pstmtfeatures.executeUpdate();
       
         	   }
+    		   
+    		   for (int l = 0; l<(textArrayWithoutSpecialChars.size()-k); l++) {
+    			   StringBuilder stringBuilder = new StringBuilder();
+    			   for (int shinglelen = 0; shinglelen < k; shinglelen++) {
+    				   stringBuilder.append(textArrayWithoutSpecialChars.get(l+shinglelen));
+    			   }
+    			   String shingle = stringBuilder.toString();
+    			   
+    			   pstmtshingle.setInt(1,docid0);
+    			   pstmtshingle.setString(2, shingle);
+    			   pstmtshingle.executeUpdate();
+    			   
+    		   }
     	   }
     	   
     	   //Insert documents from outgoing links

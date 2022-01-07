@@ -52,8 +52,6 @@ public class PageRank {
 			
 	 	    //calculate T
 	 	    for (int i=0; i<N; i++) {
-//	 	    	VectorProcedure V = new VectorProc(outDegree[i]);
-//	 	    	T.eachNonZeroInColumn(i, V); //here V
 	 	    	
 	 	    	if (outDegree[i]==0) {
 	 	    		for (int j =0; j<N;j++) {
@@ -86,10 +84,12 @@ public class PageRank {
 		Vector pi_new = pi_old.multiply(P);
 		Vector pi_save;
 		
-		while (pi_new.subtract(pi_old).norm() > stop_crit) {
+		int iterations = 0;
+		while ((pi_new.subtract(pi_old).norm() > stop_crit) && (iterations < 100)){
 			pi_save = pi_new;
 			pi_new = pi_save.multiply(P);
 			pi_old = pi_save;
+			iterations ++;
 		}
 
 		return pi_new;

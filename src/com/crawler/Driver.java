@@ -27,6 +27,7 @@ import com.scoring.PageRank;
 import com.scoring.Okapi;
 import com.scoring.ViewCreator;
 import com.scoring.CombinedScore;
+import com.neardup.Shingling;
 
 public class Driver {
 
@@ -81,10 +82,19 @@ public class Driver {
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS dbterms");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS kshingles");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS docsimilarities");
+			pstmt.execute();
+			
 			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS best_fit_eng");
 			pstmt.execute();
 
 			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS best_fit_ger");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS jaccardcalc");
 			pstmt.execute();
 
 			pstmt = conn.prepareStatement("DROP EXTENSION IF EXISTS fuzzystrmatch");
@@ -131,6 +141,12 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS dbwords (term VARCHAR, language VARCHAR)");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS kshingles (docid INT, shingle VARCHAR)");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS docsimilarities (docid1 INT, docid2 INT, jaccard FLOAT )");
+			pstmt.execute();
+			
 			//indices for making it faster
 			pstmt = conn.prepareStatement("CREATE INDEX feat_id ON features USING hash (id)");
 			pstmt.execute();
@@ -139,6 +155,9 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE INDEX feat_term ON features USING hash (term)");
 			pstmt.execute();
 			pstmt = conn.prepareStatement("CREATE INDEX doc_id ON documents USING hash (docid)");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("CREATE INDEX findshingle ON kshingles USING hash (shingle)");
 			pstmt.execute();
 			
 			Statement stmt = conn.createStatement();
@@ -171,6 +190,20 @@ public class Driver {
 			  		+ "		    		END;"
 			  		+ "		    		$$ language plpgsql;";	
 				
+			stmt.execute(query);
+			query = "CREATE FUNCTION jaccardcalc(firstdocid int, seconddocid int) RETURNS float AS $$"
+					+ "					declare cutsize integer;"
+					+ "					declare unionsize integer;"
+					+ "					declare jaccardval float;"
+					+ "					BEGIN"
+					+ "					select count(distinct k1.shingle) into cutsize from kshingles k1, kshingles k2"
+					+ "					where k1.docid = firstdocid and k2.docid = seconddocid and k1.shingle = k2.shingle;"
+					+ "					select count(distinct shingle) into unionsize from kshingles where docid = firstdocid or docid = seconddocid;"
+					+ "					jaccardval = cutsize::float/unionsize;"
+					+ "					insert into docsimilarities (docid1, docid2, jaccard) Values(firstdocid, seconddocid, jaccardval);"
+					+ "					return jaccardval;"
+					+ "					END"
+					+ "					$$ language plpgsql;";
 			stmt.execute(query);
 			conn.commit();
 		} catch (Exception e) {
@@ -212,6 +245,12 @@ public class Driver {
 		System.out.println("views created");
 		ViewCreator vc = new ViewCreator(conn);
 		vc.createViews();
+	}
+	
+	public static void jaccard(Connection conn) {
+		System.out.println("jaccard calculated");
+		Shingling shing = new Shingling(conn);
+		shing.calculateJaccard();
 	}
 	
 	public static void main(String[] args) throws NumberFormatException, SQLException, IOException {
@@ -375,7 +414,13 @@ public class Driver {
 			OkapiScoring(conn);
 			combinedScoring(conn);
 			creatingViews(conn);
+			jaccard(conn);
 			
+			try {
+	            conn.close();
+	        } catch (SQLException e) {
+	        	e.printStackTrace();
+	        }
 			System.out.println("END");
 			
 		} catch (Exception e) {

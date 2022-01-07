@@ -25,8 +25,9 @@ public class LanguageClassifier {
 		languageTermCounts.put("ger", 46387276);		
 	}
 	
-	public LanguageClassifier () {
-		this.conn = (new ConnectionManager()).getConnection();
+	public LanguageClassifier (Connection conn) {
+		//this.conn = (new ConnectionManager()).getConnection();
+		this.conn = conn;
 	}
 	
 	public static void bootstrapClassifierForLanguage(String language) throws SQLException, NumberFormatException, IOException {

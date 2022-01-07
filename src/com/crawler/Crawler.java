@@ -50,6 +50,12 @@ public class Crawler implements Runnable {
 	@Override
 	public void run() {
 		this.crawl();
+		// hier connection closen
+		try {
+            conn.close();
+        } catch (SQLException e) {
+        	e.printStackTrace();
+        }
 	}
 
 	public String getPageAtUrl(String targetURL, String urlParameters) throws Exception {
@@ -265,7 +271,8 @@ public class Crawler implements Runnable {
 			
 			try {
 				ind = new Indexer(conn);
-				ind.index(urlToHit, page.getPageText(), normalizedChildLinks);
+				int k=4;
+				ind.index(urlToHit, page.getPageText(), normalizedChildLinks,k);
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.out.println("Error in call to indexer");
