@@ -1,14 +1,9 @@
 package com.indexer;
 
 import java.lang.reflect.Array;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 // Import the Scanner class to read text files
 import java.util.*;
 //for timestamps
-import java.sql.Timestamp;
 import java.sql.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -128,12 +123,13 @@ public class Indexer{
     	   		+ "term_frequency, df, tf_idf, bm25, combined, language)" + "VALUES(?,?,?,?,?,?,?,?)"; // TODO: check if really needed here
     	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
     	   		 + "VALUES(?,?)";
-    	   String SQLshingles = "INSERT INTO kshingles (docid, shingle) VALUES(?,?)";
+    	   String SQLshingles = "INSERT INTO kshingles (docid, shingle, md5value) VALUES(?,?,?)";
     	   
     	   PreparedStatement pstmtdocuments = conn.prepareStatement(SQLdocuments);
     	   PreparedStatement pstmtfeatures = conn.prepareStatement(SQLfeatures);
     	   PreparedStatement pstmtlinks = conn.prepareStatement(SQLlinks);
     	   PreparedStatement pstmtshingle = conn.prepareStatement(SQLshingles);
+    	   CallableStatement cstmt;
     	   
     	   //test if document already in database
     	   PreparedStatement pstmtin = conn.prepareStatement("SELECT docid, crawled_on_date FROM documents WHERE url = ?");
@@ -196,7 +192,13 @@ public class Indexer{
     			   
     			   pstmtshingle.setInt(1,docid0);
     			   pstmtshingle.setString(2, shingle);
+    			   pstmtshingle.setInt(3, 0);
     			   pstmtshingle.executeUpdate();
+    			   
+    			   cstmt = conn.prepareCall("select computeIntMD5(?,?)");
+   			       cstmt.setInt(1, docid0);
+   			       cstmt.setString(2, shingle);
+   			       cstmt.execute();
     			   
     		   }
     	   }
@@ -232,6 +234,7 @@ public class Indexer{
     	   conn.commit();
     	      
        } catch (SQLException e) {
+    	   e.printStackTrace();
     	   try {
     		   conn.rollback();
     	   } catch (SQLException e1) {

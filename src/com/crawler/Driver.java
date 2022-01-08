@@ -96,6 +96,15 @@ public class Driver {
 			
 			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS jaccardcalc");
 			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS jaccardOverThreshold");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS computeIntMD5");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS jaccardapproximationN");
+			pstmt.execute();
 
 			pstmt = conn.prepareStatement("DROP EXTENSION IF EXISTS fuzzystrmatch");
 			pstmt.execute();
@@ -141,10 +150,10 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS dbwords (term VARCHAR, language VARCHAR)");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS kshingles (docid INT, shingle VARCHAR)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS kshingles (docid INT, shingle VARCHAR, md5value INT)");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS docsimilarities (docid1 INT, docid2 INT, jaccard FLOAT )");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS docsimilarities (docid1 INT, docid2 INT, jaccard FLOAT, approx_jaccard FLOAT)");
 			pstmt.execute();
 			
 			//indices for making it faster
@@ -157,8 +166,11 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE INDEX doc_id ON documents USING hash (docid)");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("CREATE INDEX findshingle ON kshingles USING hash (shingle)");
+			pstmt = conn.prepareStatement("CREATE INDEX findshingle1 ON kshingles USING hash (shingle)");
 			pstmt.execute();
+			pstmt = conn.prepareStatement("CREATE INDEX findshingle2 ON kshingles USING hash (docid)");
+			pstmt.execute();
+			
 			
 			Statement stmt = conn.createStatement();
 			stmt.execute("CREATE EXTENSION fuzzystrmatch");
@@ -204,6 +216,40 @@ public class Driver {
 					+ "					return jaccardval;"
 					+ "					END"
 					+ "					$$ language plpgsql;";
+			stmt.execute(query);
+			query = "CREATE FUNCTION jaccardOverThreshold(docid INT,t FLOAT) "
+					+ "RETURNS TABLE(docid1 INT,docid2 INT,simvalue FLOAT) AS $$ "
+					+ "BEGIN "
+					+ "RETURN query select * from docsimilarities d where d.jaccard >t AND d.docid1=docid; "
+					+ "END; "
+					+ "$$ language plpgsql;";
+			stmt.execute(query);
+			query = "create function computeIntMD5(docidact INT, shingleact VARCHAR) "
+					+ "returns void AS $$ "
+					+ "BEGIN "
+					+ "	UPDATE kshingles SET md5value = ('x'||substr(md5(shingleact),1,8))::bit(32)::int WHERE docid=docidact and shingle = shingleact; "
+					+ "END; "
+					+ "$$ language plpgsql;";
+			stmt.execute(query);
+			query = "create function jaccardapproximationN(firstdocid int, seconddocid int, n int) "
+					+ "returns float AS $$ "
+					+ "declare cutsize integer; "
+					+ "declare unionsize integer; "
+					+ "declare jaccardappr float; "
+					+ "Begin "
+					+ "select count(*) into cutsize from "
+					+ "	(select distinct md5value from kshingles where docid = firstdocid order by md5value limit n) md5first, "
+					+ "	(select distinct md5value from kshingles where docid = seconddocid order by md5value limit n) md5second "
+					+ "	 where md5first.md5value = md5second.md5value; "
+					+ "select count(*) into unionsize from "
+					+ "	((select distinct md5value from kshingles where docid = firstdocid order by md5value limit n) "
+					+ "	union "
+					+ "	(select distinct md5value from kshingles where docid = seconddocid order by md5value limit n) ) as tableunion; "
+					+ "jaccardappr = cutsize::float/unionsize; "
+					+ "UPDATE docsimilarities SET approx_jaccard = jaccardappr WHERE docid1 = firstdocid and docid2 = seconddocid; "
+					+ "return jaccardappr; "
+					+ "end; "
+					+ "$$ language plpgsql;";
 			stmt.execute(query);
 			conn.commit();
 		} catch (Exception e) {

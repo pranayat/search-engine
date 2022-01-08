@@ -29,7 +29,7 @@ public class Shingling {
 				
 				//get number such that 100 000 pairs are calculated
 				int randnum = (int) 1000/docIds.size();
-				
+				int n_minhash = 10;
 				CallableStatement cstmt;
 				
 		
@@ -44,24 +44,15 @@ public class Shingling {
 					    cstmt.setInt(1, docIds.get(i));
 					    cstmt.setInt(2, docIds.get(randomVals.get(j)));
 					    cstmt.execute();
+					    
+					    cstmt = conn.prepareCall("select jaccardapproximationN(?,?,?)");
+					    cstmt.setInt(1, docIds.get(i));
+					    cstmt.setInt(2, docIds.get(randomVals.get(j)));
+					    cstmt.setInt(3, n_minhash);
+					    cstmt.execute();
 					}
 					conn.commit();
 				}
-				
-//				cstmt = conn.prepareCall("select jaccardcalc(?,?)");
-//			    cstmt.setInt(1, docIds.get(1));
-//			    cstmt.setInt(2, docIds.get(2));
-//			    cstmt.execute();
-//			    
-//			    cstmt = conn.prepareCall("select jaccardcalc(?,?)");
-//			    cstmt.setInt(1, docIds.get(1));
-//			    cstmt.setInt(2, docIds.get(3));
-//			    cstmt.execute();
-//			    
-//			    cstmt = conn.prepareCall("select jaccardcalc(?,?)");
-//			    cstmt.setInt(1, docIds.get(50));
-//			    cstmt.setInt(2, docIds.get(100));
-//			    cstmt.execute();
 				
 				conn.commit();
 				
