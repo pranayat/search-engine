@@ -79,7 +79,7 @@ public class Indexer{
 	   
 	   List<String> textArrayWithoutSpecialChars = new ArrayList<String>();
 	   
-	   String regex = "([a-zA-Z0-9�������]+)";
+	   String regex = "([a-zA-Z0-0äüëö]+)";
 	   Pattern pattern = Pattern.compile(regex);
 	   for(String text: textArray) {
 			Matcher matcher = pattern.matcher(text);

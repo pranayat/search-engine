@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,7 +21,142 @@ import java.util.stream.Stream;
 
 import com.indexer.StopwordRemover;
 import com.common.ConnectionManager;
+import com.indexer.Indexer;
 import com.indexer.Stemmer;
+
+class Segment implements Comparable<Segment>{
+	private int serial;
+	private List<String> terms;
+	private List<String> stemmedTerms;
+	private float coverage;
+	private int tf;
+	
+	public Segment(int serial, List<String> terms, Set<String> queryTerms, Boolean stem) {
+		this.terms = terms;
+		this.serial = serial;
+		
+		this.stemmedTerms = new ArrayList<String>();
+		if (stem) {
+			for (String term: terms) {
+				this.stemmedTerms.add(Indexer.stem_word(term));				
+			}
+		} else {
+			stemmedTerms = terms;
+		}
+		
+		int count = 0;
+		for (String term: queryTerms) {
+			if(this.stemmedTerms.contains(term)) {
+				count += 1;
+			}
+		}
+		this.coverage = count/queryTerms.size();
+		
+		this.tf = 0;
+		for (String term: this.stemmedTerms) {
+			if(queryTerms.contains(term)) {
+				this.tf += 1;
+			}
+		}
+	}
+
+	public void appendSegment(Segment s) {
+		this.terms = Stream.concat(this.terms.stream(), s.terms.stream())
+        .collect(Collectors.toList());
+	}
+	
+	public void prependSegment(Segment s) {
+		this.terms = Stream.concat(s.terms.stream(), this.terms.stream())
+        .collect(Collectors.toList());
+	}
+	
+	
+	public List<String> getTerms() {
+		return this.terms;
+	}
+	
+	public List<String> getStemmedTerms() {
+		return this.stemmedTerms;
+	}	
+
+	public float getCoverage() {
+		return this.coverage;
+	}
+	
+	public int getTf() {
+		return this.tf;
+	}
+	
+	public int getSerial() {
+		return this.serial;
+	}
+
+	@Override
+	public int compareTo(Segment s) {
+		if (this.coverage < s.coverage) {
+			return 1;
+		}
+		
+		if (this.coverage > s.coverage) {
+			return -1;
+		}
+		
+		if (this.coverage == s.coverage && this.tf < s.tf) {
+			return 1;
+		}
+		
+		if (this.coverage == s.coverage && this.tf > s.tf) {
+			return -1;
+		}
+		
+		if (this.coverage == s.coverage && this.tf == s.tf) {
+			return 0;
+		}
+		
+		else {
+			return -1;
+		}
+	}
+	
+	public static List<Segment> getBestSegments(List<Segment> segments, Set<String> queryTerms) {
+		Collections.sort(segments);
+		List<Segment> diverseSegments = new ArrayList<Segment>();
+		for (Segment s: segments) {
+			Boolean found = false;
+			List<String> termsToRemove = new ArrayList<String>();
+			for (String queryTerm: queryTerms) {
+				if (s.getStemmedTerms().contains(queryTerm)) {
+					termsToRemove.add(queryTerm);
+					found = true; // don't break since this segment might contain more query terms
+				}
+			}
+			
+			if (found) {
+				diverseSegments.add(s);
+				
+				for (String termToRemove: termsToRemove) {
+					queryTerms.remove(termToRemove);
+				}
+			}
+		}
+		
+		// at this point we have done our best to get all query terms covered in segments with highest tf of these terms
+		// if we still have space left we can stitch the neihbours of these segments together
+		
+		// 8 x 4 = 32
+		
+		List<Segment> finalSegments = new ArrayList<Segment>(diverseSegments);
+		for (Segment s: diverseSegments) {
+			if (finalSegments.size() < 4) {
+				finalSegments.add(segments.stream().filter(seg -> seg.getSerial() == s.getSerial() + 1).findAny().orElse(null));				
+			} else {
+				break;
+			}
+		}
+
+		return finalSegments;
+	}
+}
 
 public class Query {
 
@@ -43,6 +179,58 @@ public class Query {
 		this.language = language;
 		this.searchMode = searchMode;
 	}
+	
+	//	Distinct query term count = N
+	//			Seen terms S = 0
+	//
+	//			1. Break up doc into segments of 8 words each
+	//			2. For each distinct word in query
+	//			  2.1 Find segments with word
+	//			  2.2 For each segment store - 1. coverage 2. sum of term frequency of query terms
+	//			3. Sort segments by 1. coverage 2. term frequency of query terms descending
+	//			4. Iterate over sorted list, skipping segments that don't bring up S. We want to make sure all terms are covered in the first few segments. Remaining segments just fill up the max 32 word limit.
+	//			5. Stitch together contiguous segments into a single segment
+	private String generateSnippet(String docText, Set<String> queryTerms) {
+		List<String> docTerms = new ArrayList<String>();
+		List<Segment> segments = new ArrayList<Segment>();
+		List<Segment> finalSegments = new ArrayList<Segment>();
+		
+		docTerms = Arrays.asList(docText.split("\\s"));
+		int serial = 0;
+		for (int i = 0; i < docTerms.size(); i = i + 8) {
+			if (i + 8 < docTerms.size()) {
+				segments.add(new Segment(serial, docTerms.subList(i, i + 8), queryTerms, this.language.equals("eng")));				
+			} else {
+				segments.add(new Segment(serial, docTerms.subList(i, docTerms.size()), queryTerms, this.language.equals("eng")));
+				break;
+			}
+			
+			serial = serial + 1;
+		}
+		
+		
+		finalSegments = Segment.getBestSegments(segments, queryTerms);
+		
+	    Collections.sort(finalSegments, (s1, s2) -> ((Segment) s1).getSerial() - ((Segment) s2).getSerial());
+		
+		String snippet = "";
+		Segment prev = null;
+		for (Segment s: finalSegments) {
+			if (prev == null) {
+				snippet = String.join(" ", s.getTerms());
+			} else {
+				if  (prev.getSerial() + 1 == s.getSerial()) {
+					snippet = snippet + " " + String.join(" ", s.getTerms());
+				} else {
+					snippet = snippet + "..." + String.join(" ", s.getTerms()); 
+				}
+			}
+			
+			prev = s;
+		}
+
+		return snippet;
+	}
 
 	private String buildDisjunctiveClause(Set<String> terms) {
 		String clause = "term = ";
@@ -58,13 +246,13 @@ public class Query {
 		String documentQueryString = "";
 		
 		if (site.length() > 0) {
-			documentQueryString = "	(select docid, url from documents WHERE url LIKE '%" + site +"%' AND language = '" + this.language + "') as d ";
+			documentQueryString = "	(select docid, url, doc_text from documents WHERE url LIKE '%" + site +"%' AND language = '" + this.language + "') as d ";
 		} else {
-			documentQueryString = "	(select docid, url from documents WHERE language = '" + this.language + "') as d ";
+			documentQueryString = "	(select docid, url, doc_text from documents WHERE language = '" + this.language + "') as d ";
 		}
 		
 		if (conjunctiveTerms.size() > 0) {			
-			queryString = "select d.docid, d.url, e.agg_score from "
+			queryString = "select d.docid, d.url, d.doc_text, e.agg_score from "
 					+ documentQueryString
 					+ "	INNER JOIN"
 					+ "	("
@@ -82,7 +270,7 @@ public class Query {
 					+ "on d.docid = e.docid ORDER BY e.agg_score DESC LIMIT " + k + ";";
 			
 		} else {
-			queryString = "select a.docid, d.url, a.agg_score from "
+			queryString = "select a.docid, d.url, d.doc_text, a.agg_score from "
 					+ "	("
 					+ "	select docid, sum(" + this.scoreType + ") as agg_score from features where " + this.buildDisjunctiveClause(allTerms)
 					+ " AND language = '" + this.language + "' group by docid order by agg_score DESC"
@@ -215,9 +403,12 @@ public class Query {
 			int i = 0;
 			while(rs.next()) {
 				++i;
-				resultList.add(new Result(rs.getString("url").trim(),
-						Double.parseDouble(rs.getString("agg_score").trim()),
-						i));
+				
+			resultList.add(new Result(
+					rs.getString("url").trim(),
+					this.generateSnippet(rs.getString("doc_text"), allTerms.stream().collect(Collectors.toSet())),
+					Double.parseDouble(rs.getString("agg_score").trim()),
+					i));
 			}
 			
 			String[] allTermsArray = allTerms.toArray(new String[allTerms.size()]);

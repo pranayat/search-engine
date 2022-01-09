@@ -51,6 +51,8 @@ public class Page {
 		text = text.replaceAll("<[^>]*>", " ");	
 		// replace multiple white spaces with single white space
 		text = text.replaceAll("\\s+"," ");
+		
+		text = CharacterSanitizer.sanitize(text.toLowerCase());
 
 		return text;
 	}
