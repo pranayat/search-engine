@@ -27,9 +27,9 @@ public class Shingling {
 					docIds.add(rsids.getInt("docid"));
 				}
 				
-				//get number such that 100 000 pairs are calculated
-				int randnum = (int) 1000/docIds.size();
-				int n_minhash = 10;
+				//get number such that 10 000 pairs are calculated
+				int randnum = (int) 10000/docIds.size();
+				int n_minhash = 16;
 				CallableStatement cstmt;
 				
 		

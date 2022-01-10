@@ -232,7 +232,7 @@ public class Driver {
 					+ "$$ language plpgsql;";
 			stmt.execute(query);
 			query = "create function jaccardapproximationN(firstdocid int, seconddocid int, n int) "
-					+ "returns float AS $$ "
+					+ "returns void AS $$ "
 					+ "declare cutsize integer; "
 					+ "declare unionsize integer; "
 					+ "declare jaccardappr float; "
@@ -247,7 +247,6 @@ public class Driver {
 					+ "	(select distinct md5value from kshingles where docid = seconddocid order by md5value limit n) ) as tableunion; "
 					+ "jaccardappr = cutsize::float/unionsize; "
 					+ "UPDATE docsimilarities SET approx_jaccard = jaccardappr WHERE docid1 = firstdocid and docid2 = seconddocid; "
-					+ "return jaccardappr; "
 					+ "end; "
 					+ "$$ language plpgsql;";
 			stmt.execute(query);
