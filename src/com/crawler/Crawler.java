@@ -236,7 +236,7 @@ public class Crawler implements Runnable {
 				continue;
 			}
 			
-			page = new Page();
+			page = new Page(parentUrl);
 			page.setPageSource(response);
 			
 			try {
@@ -272,9 +272,10 @@ public class Crawler implements Runnable {
 			try {
 				ind = new Indexer(conn);
 				int k=4;
-				ind.index(urlToHit, page.getPageText(), normalizedChildLinks,k);
+				int docId = ind.index(urlToHit, page.getPageText(), normalizedChildLinks, k);
+				page.indexImages(conn, docId);
+
 			} catch (Exception e) {
-				e.printStackTrace();
 				System.out.println("Error in call to indexer");
 			}
 		}

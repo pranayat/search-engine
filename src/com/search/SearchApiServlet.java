@@ -2,7 +2,6 @@ package com.search;
 
 import java.io.PrintWriter;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,6 +37,7 @@ public class SearchApiServlet extends HttpServlet {
 			PrintWriter out = res.getWriter();
 			ObjectMapper objectMapper= new ObjectMapper();
 			String jsonString;
+			ApiResult apiResult = null;
 			
 			Bucket ipBucket = this.getBucketByIp(req.getRemoteAddr());
 			Bucket globalBucket = Bucket4j.builder()
@@ -54,6 +54,7 @@ public class SearchApiServlet extends HttpServlet {
 				out.print("Rate limit exceeded for your IP, please try after sometime.");
 				out.flush();
 		    } else {
+		    	String searchMode = req.getParameter("mode");
 		    	String queryText = req.getParameter("query");
 		    	int k = req.getParameter("k").length() > 0 ? Integer.parseInt(req.getParameter("k")) : 20;		    	
 		    	String scoreTypeOption = req.getParameter("score");
@@ -64,6 +65,16 @@ public class SearchApiServlet extends HttpServlet {
 		    		queryLanguage = req.getParameter("lang");
 		    	}
 		    	
+		    	if (searchMode.equals("image")) {
+					Query q = new Query(queryText, queryLanguage, "image");
+		    		jsonString = objectMapper.writeValueAsString(q.getResults());
+		    		res.setContentType("application/json");
+		    		res.setCharacterEncoding("UTF-8");
+		    		out.print(jsonString);
+		    		out.flush();
+					return;
+		    	}
+
 		    	if (scoreTypeOption.equals("1")) {
 		    		scoreType = "tf_idf";
 		    	} else if (scoreTypeOption.equals("2")) {
@@ -73,7 +84,7 @@ public class SearchApiServlet extends HttpServlet {
 		    	}
 		    	
 		    			    	
-	    		Query q = new Query(queryText, k, scoreType, queryLanguage);
+	    		Query q = new Query(queryText, queryLanguage, "web");
 				
 	    		jsonString = objectMapper.writeValueAsString(q.getResults());
 	    		res.setContentType("application/json");

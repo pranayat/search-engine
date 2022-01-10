@@ -69,14 +69,16 @@ public class Indexer{
         return re;
     }
 
-   public void index (String docURL, String docText, List<String> links, int k) throws SQLException {
+
+   public int index (String docURL, String docText, List<String> links, int k) throws SQLException {
+
 	   String docTextLow = docText.toLowerCase();
        
 	   String [] textArray = docTextLow.split("\\s+");
 	   
 	   List<String> textArrayWithoutSpecialChars = new ArrayList<String>();
 	   
-	   String regex = "([a-zA-Z0-9�������]+)";
+	   String regex = "([a-zA-Z0-0äüëö]+)";
 	   Pattern pattern = Pattern.compile(regex);
 	   for(String text: textArray) {
 			Matcher matcher = pattern.matcher(text);
@@ -107,7 +109,8 @@ public class Indexer{
     	   data = this.getTermCounts(text);
        }
        
-
+       
+       int docid0 = -1;
        try {
     	   
     	   PreparedStatement pstmtwords = conn.prepareStatement("INSERT INTO dbwords (term, language) VALUES(?,?)");
@@ -117,8 +120,8 @@ public class Indexer{
     		   pstmtwords.executeUpdate();
     	   }
   
-    	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date, pagerank, language)"
-    			   + "VALUES(?,?,?,?) RETURNING docid";
+    	   String SQLdocuments = "INSERT INTO documents (url, crawled_on_date, pagerank, language, doc_text)"
+    			   + "VALUES(?,?,?,?,?) RETURNING docid";
     	   String SQLfeatures = "INSERT INTO features (docid, term, "
     	   		+ "term_frequency, df, tf_idf, bm25, combined, language)" + "VALUES(?,?,?,?,?,?,?,?)"; // TODO: check if really needed here
     	   String SQLlinks = "INSERT INTO links (from_docid, to_docid) "
@@ -136,7 +139,6 @@ public class Indexer{
     	   pstmtin.setString(1, docURL);
     	   ResultSet rsin = pstmtin.executeQuery();
     	   
-    	   int docid0;
     	   Timestamp timestamp;
     	   Timestamp ts;
     	   boolean alreadyInFeatures = true;
@@ -153,6 +155,11 @@ public class Indexer{
         	   pstmtupdate.setTimestamp(1,timestamp);
         	   pstmtupdate.setInt(2, docid0);
         	   pstmtupdate.executeUpdate();
+        	   
+        	   pstmtupdate = conn.prepareStatement("UPDATE documents SET doc_text = ? WHERE docid=?");
+        	   pstmtupdate.setString(1, docText);
+        	   pstmtupdate.setInt(2, docid0);
+        	   pstmtupdate.executeUpdate();
     
     	   } else {
     		   
@@ -162,6 +169,7 @@ public class Indexer{
         	   pstmtdocuments.setTimestamp(2,timestamp);
         	   pstmtdocuments.setFloat(3, 0);
         	   pstmtdocuments.setString(4, textLanguage);
+        	   pstmtdocuments.setString(5, docText);
         	   ResultSet rs0 = pstmtdocuments.executeQuery();
         	   rs0.next();
         	   docid0 = rs0.getInt("docid");
@@ -220,6 +228,7 @@ public class Indexer{
         		   pstmtdocuments.setTimestamp(2,timestamp);
         		   pstmtdocuments.setFloat(3, 0);
         		   pstmtdocuments.setString(4, textLanguage);
+        		   pstmtdocuments.setString(5, "");
             	   ResultSet rs = pstmtdocuments.executeQuery();
 
             	   rs.next();
@@ -232,7 +241,6 @@ public class Indexer{
     	   }
     	   
     	   conn.commit();
-    	      
        } catch (SQLException e) {
     	   e.printStackTrace();
     	   try {
@@ -241,6 +249,8 @@ public class Indexer{
     		   e1.printStackTrace();
     	   }
        }
+       
+	   return docid0;
    }
     
 
