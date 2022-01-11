@@ -109,9 +109,15 @@ public class Page {
 			List<String> orderedTerms = Arrays.asList(preTerms);
 		    Collections.reverse(orderedTerms);
 
-			Image image = new Image(new Url(src, this.url), title, alt);
-			image.setPreTerms(orderedTerms.toArray(new String[0]));
-			imageMap.put(src, image);
+		    Image image = null;
+		    try {
+		    	image = new Image(new Url(src, this.url), title, alt);		    	
+		    	image.setPreTerms(orderedTerms.toArray(new String[0]));
+		    	imageMap.put(src, image);
+		    } catch (Exception e) {
+		    	// skip this image
+		    	continue;
+		    }
  		}
 		
 		Pattern postTextPattern = Pattern.compile("(<img[^>]*>)([^<]{1,500})");
@@ -137,10 +143,12 @@ public class Page {
 			}
 			
 			Image image = imageMap.get(src);
-			image.setPostTerms(postTerms);
-			image.index(conn, docId);
+			
+			if (image != null) {
+				image.setPostTerms(postTerms);
+				image.index(conn, docId);				
+			}
  		}		
-		
 		
 //		([>]*.{1,500}?)(<img[^>]*>?) - to capture text before image, capture max 500 letters before image till > tag is reached
 // 		(<img[^>]*>?)([>]*.{1,500}?) - to capture text after image, capture max 500 letters after image till > tag is reached
