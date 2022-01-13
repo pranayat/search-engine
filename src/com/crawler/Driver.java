@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import org.apache.commons.cli.CommandLine;
@@ -218,7 +219,8 @@ public class Driver {
 					+ "					where k1.docid = firstdocid and k2.docid = seconddocid and k1.shingle = k2.shingle;"
 					+ "					select count(distinct shingle) into unionsize from kshingles where docid = firstdocid or docid = seconddocid;"
 					+ "					jaccardval = cutsize::float/unionsize;"
-					+ "					insert into docsimilarities (docid1, docid2, jaccard) Values(firstdocid, seconddocid, jaccardval);"
+					+ "					insert into docsimilarities (docid1, docid2, jaccard) Values(firstdocid, seconddocid, jaccardval)"
+					//+ "					where not exists(select * from docsimilarities where docid1=firstdocid and docid2=seconddocid);"
 					+ "					return jaccardval;"
 					+ "					END"
 					+ "					$$ language plpgsql;";
@@ -252,7 +254,8 @@ public class Driver {
 					+ "	union "
 					+ "	(select distinct md5value from kshingles where docid = seconddocid order by md5value limit n) ) as tableunion; "
 					+ "jaccardappr = cutsize::float/unionsize; "
-					+ "UPDATE docsimilarities SET approx_jaccard = jaccardappr WHERE docid1 = firstdocid and docid2 = seconddocid; "
+					//+ "UPDATE docsimilarities SET approx_jaccard = jaccardappr WHERE docid1 = firstdocid and docid2 = seconddocid; "
+					+ "UPDATE docsimilarities SET 3 WHERE docid1 = firstdocid and docid2 = seconddocid; "
 					+ "end; "
 					+ "$$ language plpgsql;";
 			stmt.execute(query);
@@ -300,8 +303,14 @@ public class Driver {
 	
 	public static void jaccard(Connection conn) {
 		System.out.println("jaccard calculated");
-		Shingling shing = new Shingling(conn);
+		List<Integer> minhashparameters = new ArrayList<Integer>();
+		minhashparameters.add(1);
+		minhashparameters.add(4);
+		minhashparameters.add(16);
+		minhashparameters.add(32);
+		Shingling shing = new Shingling(conn, minhashparameters);
 		shing.calculateJaccard();
+		shing.calculateapproxJaccard();
 	}
 	
 	public static void main(String[] args) throws NumberFormatException, SQLException, IOException {
