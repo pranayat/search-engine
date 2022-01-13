@@ -3,11 +3,9 @@ package com.crawler;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -20,37 +18,15 @@ import org.apache.commons.cli.ParseException;
 import com.common.ConnectionManager;
 import com.indexer.TFIDFScoreComputer;
 import com.languageclassifier.DictionaryBootstrapper;
-import com.languageclassifier.LanguageClassifier;
 
-import com.indexer.TFIDFScoreComputer;
 import com.scoring.PageRank;
 import com.scoring.Okapi;
 import com.scoring.ViewCreator;
+import com.search.Synonym;
 import com.scoring.CombinedScore;
 import com.neardup.Shingling;
 
 public class Driver {
-
-	private static ArrayList<String> getSeedUrlsFromDB() {
-		PreparedStatement pstmt;
-		ResultSet rs;
-		ArrayList<String> seedUrls = new ArrayList<String>();
-		Connection conn = (new ConnectionManager()).getConnection();
-
-		try {
-			pstmt = conn.prepareStatement("SELECT url FROM documents ORDER BY docid DESC LIMIT 5");
-			rs = pstmt.executeQuery();
-
-			while(rs.next()) {
-				seedUrls.add(rs.getString("url"));
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return seedUrls;
-	}
 
 	private static void dropTables() {
 		Connection conn = (new ConnectionManager()).getConnection();
@@ -89,6 +65,9 @@ public class Driver {
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS docsimilarities");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS german_synonyms CASCADE");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS best_fit_eng");
@@ -162,6 +141,9 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS docsimilarities (docid1 INT, docid2 INT, jaccard FLOAT, approx_jaccard FLOAT)");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS german_synonyms (term varchar, synonym varchar)");
+			pstmt.execute();
+			
 			//indices for making it faster
 			pstmt = conn.prepareStatement("CREATE INDEX feat_id ON features USING hash (id)");
 			pstmt.execute();
@@ -177,6 +159,8 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE INDEX findshingle2 ON kshingles USING hash (docid)");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("CREATE INDEX term_idx ON german_synonyms USING hash (term)");
+			pstmt.execute();
 			
 			Statement stmt = conn.createStatement();
 			stmt.execute("CREATE EXTENSION fuzzystrmatch");
@@ -350,6 +334,8 @@ public class Driver {
     		
 		System.out.println("maxDepth = " + maxDepth + ", maxDocs = " + maxDocs + ", fanOut = " + fanOut);
 		
+		Connection conn = (new ConnectionManager()).getConnection();
+
 		Crawler c1 = null, c2 = null, c3 = null, c4 = null, c5 = null, c6 = null, c7 = null, c8 = null, c9 = null, c10 = null;
 		Thread crawler1 = null, crawler2 = null, crawler3 = null, crawler4 = null, crawler5 = null, crawler6 = null, crawler7 = null, crawler8 = null, crawler9 = null, crawler10 = null;
 		if(resetIndex.equals("true")) {
@@ -426,6 +412,8 @@ public class Driver {
 			try {
 				db1Thread.join();
 				db2Thread.join();
+				
+				Synonym.bootstrap(conn);
 				System.out.println("Dictionaries created");
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -459,7 +447,6 @@ public class Driver {
 
 			System.out.println("Crawl session ended");
 			
-			Connection conn = (new ConnectionManager()).getConnection();
 			TFIDFscoring(conn);
 			PageRankScoring(conn);
 			OkapiScoring(conn);
