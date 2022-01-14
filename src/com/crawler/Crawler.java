@@ -276,6 +276,7 @@ public class Crawler implements Runnable {
 				page.indexImages(conn, docId);
 
 			} catch (Exception e) {
+				e.printStackTrace();
 				System.out.println("Error in call to indexer");
 			}
 		}

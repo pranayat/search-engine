@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -58,7 +60,7 @@ public class Driver {
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS gerterms");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS dbterms");
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS dbwords");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS kshingles");
@@ -138,7 +140,7 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS kshingles (docid INT, shingle VARCHAR, md5value INT)");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS docsimilarities (docid1 INT, docid2 INT, jaccard FLOAT, approx_jaccard FLOAT)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS docsimilarities (docid1 INT, docid2 INT, jaccard FLOAT, approx_jaccard FLOAT, UNIQUE(docid1,docid2))" );
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS german_synonyms (term varchar, synonym varchar)");
@@ -171,10 +173,10 @@ public class Driver {
 		  		+ "					)"
 		  		+ "					AS $$"
 		  		+ "		    		  BEGIN"
-		  		+ "		    		  return query select term"
-		  		+ "			    		  from eng_term_prob"
-		  		+ "                        WHERE levenshtein(term, word) > 0"
-		  		+ "			    		  ORDER BY levenshtein(term, word) ASC, prob DESC LIMIT 5;"
+		  		+ "		    		  return query select p.term from"
+		  		+ "				(select * from eng_term_prob natural join dbwords) p where levenshtein(p.term, word) > 0"
+		  		+ "				GROUP BY p.term,p.prob"
+		  		+ "		  				    		  ORDER BY levenshtein(p.term, word) ASC, p.prob DESC LIMIT 5;"
 		  		+ "		    		END;"
 		  		+ "		    		$$ language plpgsql;";
 
@@ -185,10 +187,10 @@ public class Driver {
 			  		+ "					)"
 			  		+ "					AS $$"
 			  		+ "		    		  BEGIN"
-			  		+ "		    		  return query select term"
-			  		+ "			    		  from ger_term_prob"
-			  		+ "                        WHERE levenshtein(term, word) > 0"
-			  		+ "			    		  ORDER BY levenshtein(term, word) ASC, prob DESC LIMIT 5;"
+			  		+ "		    		  return query select p.term from "
+			  		+ "			    	(select * from eng_term_prob natural join dbwords) p where levenshtein(p.term, word) > 0"
+			  		+ "					GROUP BY p.term,p.prob"
+			  		+ "		  			ORDER BY levenshtein(p.term, word) ASC, p.prob DESC LIMIT 5;"
 			  		+ "		    		END;"
 			  		+ "		    		$$ language plpgsql;";	
 				
@@ -202,7 +204,8 @@ public class Driver {
 					+ "					where k1.docid = firstdocid and k2.docid = seconddocid and k1.shingle = k2.shingle;"
 					+ "					select count(distinct shingle) into unionsize from kshingles where docid = firstdocid or docid = seconddocid;"
 					+ "					jaccardval = cutsize::float/unionsize;"
-					+ "					insert into docsimilarities (docid1, docid2, jaccard) Values(firstdocid, seconddocid, jaccardval);"
+					+ "					insert into docsimilarities (docid1, docid2, jaccard) Values(firstdocid, seconddocid, jaccardval)"
+					+ "					on conflict (docid1,docid2) do nothing;"
 					+ "					return jaccardval;"
 					+ "					END"
 					+ "					$$ language plpgsql;";
@@ -284,8 +287,14 @@ public class Driver {
 	
 	public static void jaccard(Connection conn) {
 		System.out.println("jaccard calculated");
-		Shingling shing = new Shingling(conn);
+		List<Integer> minhashparameters = new ArrayList<Integer>();
+		minhashparameters.add(1);
+		minhashparameters.add(4);
+		minhashparameters.add(16);
+		minhashparameters.add(32);
+		Shingling shing = new Shingling(conn, minhashparameters);
 		shing.calculateJaccard();
+		shing.calculateapproxJaccard();
 	}
 	
 	public static void main(String[] args) throws NumberFormatException, SQLException, IOException {
@@ -341,15 +350,15 @@ public class Driver {
 		if(resetIndex.equals("true")) {
 			System.out.println("Deleting old index...");
 			seedUrls.add("https://www.uni-kl.de");
-//			seedUrls.add("https://www.mathematik.uni-kl.de/en");
-//			seedUrls.add("https://www.mv.uni-kl.de/en");
-//			seedUrls.add("https://www.architektur.uni-kl.de/en/home/seite");
-//			seedUrls.add("https://www.eit.uni-kl.de/en/startseite/seite");			
-//			seedUrls.add("https://www.asta.uni-kl.de");
-//			seedUrls.add("https://www.physik.uni-kl.de");
-//			seedUrls.add("https://www.sowi.uni-kl.de/home");
-//			seedUrls.add("https://wiwi.uni-kl.de");
-//			seedUrls.add("https://www.ru.uni-kl.de/startseite");
+			seedUrls.add("https://www.mathematik.uni-kl.de/en");
+			seedUrls.add("https://www.mv.uni-kl.de/en");
+			seedUrls.add("https://www.architektur.uni-kl.de/en/home/seite");
+			seedUrls.add("https://www.eit.uni-kl.de/en/startseite/seite");			
+			seedUrls.add("https://www.asta.uni-kl.de");
+			seedUrls.add("https://www.physik.uni-kl.de");
+			seedUrls.add("https://www.sowi.uni-kl.de/home");
+			seedUrls.add("https://wiwi.uni-kl.de");
+			seedUrls.add("https://www.ru.uni-kl.de/startseite");
 			
 			dropTables();
 			createTables();
@@ -358,45 +367,45 @@ public class Driver {
 
 			c1 = new Crawler(1, maxDepth, maxDocs, fanOut, seedUrls.get(0), true);
 			crawler1 = new Thread(c1);
-//			c2 = new Crawler(2, maxDepth, maxDocs, fanOut, seedUrls.get(1), true);
-//			crawler2 = new Thread(c2);
-//			c3 = new Crawler(3, maxDepth, maxDocs, fanOut, seedUrls.get(2), true);		
-//			crawler3 = new Thread(c3);
-//			c4 = new Crawler(4, maxDepth, maxDocs, fanOut, seedUrls.get(3), true);		
-//			crawler4 = new Thread(c4);
-//			c5 = new Crawler(5, maxDepth, maxDocs, fanOut, seedUrls.get(4), true);		
-//			crawler5 = new Thread(c5);			
-//			c6 = new Crawler(6, maxDepth, maxDocs, fanOut, seedUrls.get(5), true);
-//			crawler6 = new Thread(c6);
-//			c7 = new Crawler(7, maxDepth, maxDocs, fanOut, seedUrls.get(6), true);
-//			crawler7 = new Thread(c7);
-//			c8 = new Crawler(8, maxDepth, maxDocs, fanOut, seedUrls.get(7), true);		
-//			crawler8 = new Thread(c8);
-//			c9 = new Crawler(9, maxDepth, maxDocs, fanOut, seedUrls.get(8), true);		
-//			crawler9 = new Thread(c9);
-//			c10 = new Crawler(10, maxDepth, maxDocs, fanOut, seedUrls.get(9), true);		
-//			crawler10 = new Thread(c10);
+			c2 = new Crawler(2, maxDepth, maxDocs, fanOut, seedUrls.get(1), true);
+			crawler2 = new Thread(c2);
+			c3 = new Crawler(3, maxDepth, maxDocs, fanOut, seedUrls.get(2), true);		
+			crawler3 = new Thread(c3);
+			c4 = new Crawler(4, maxDepth, maxDocs, fanOut, seedUrls.get(3), true);		
+			crawler4 = new Thread(c4);
+			c5 = new Crawler(5, maxDepth, maxDocs, fanOut, seedUrls.get(4), true);		
+			crawler5 = new Thread(c5);			
+			c6 = new Crawler(6, maxDepth, maxDocs, fanOut, seedUrls.get(5), true);
+			crawler6 = new Thread(c6);
+			c7 = new Crawler(7, maxDepth, maxDocs, fanOut, seedUrls.get(6), true);
+			crawler7 = new Thread(c7);
+			c8 = new Crawler(8, maxDepth, maxDocs, fanOut, seedUrls.get(7), true);		
+			crawler8 = new Thread(c8);
+			c9 = new Crawler(9, maxDepth, maxDocs, fanOut, seedUrls.get(8), true);		
+			crawler9 = new Thread(c9);
+			c10 = new Crawler(10, maxDepth, maxDocs, fanOut, seedUrls.get(9), true);		
+			crawler10 = new Thread(c10);
 		}	else {
 			c1 = new Crawler(1, maxDepth, maxDocs, fanOut, "", false);
 			crawler1 = new Thread(c1);
-//			c2 = new Crawler(2, maxDepth, maxDocs, fanOut, "", false);
-//			crawler2 = new Thread(c2);
-//			c3 = new Crawler(3, maxDepth, maxDocs, fanOut, "", false);		
-//			crawler3 = new Thread(c3);
-//			c4 = new Crawler(4, maxDepth, maxDocs, fanOut, "", false);		
-//			crawler4 = new Thread(c4);
-//			c5 = new Crawler(5, maxDepth, maxDocs, fanOut, "", false);		
-//			crawler5 = new Thread(c5);			
-//			c6 = new Crawler(6, maxDepth, maxDocs, fanOut, "", false);
-//			crawler6 = new Thread(c6);
-//			c7 = new Crawler(7, maxDepth, maxDocs, fanOut, "", false);
-//			crawler7 = new Thread(c7);
-//			c8 = new Crawler(8, maxDepth, maxDocs, fanOut, "", false);		
-//			crawler8 = new Thread(c8);
-//			c9 = new Crawler(9, maxDepth, maxDocs, fanOut, "", false);		
-//			crawler9 = new Thread(c9);
-//			c10 = new Crawler(10, maxDepth, maxDocs, fanOut, "", false);		
-//			crawler10 = new Thread(c10);			
+			c2 = new Crawler(2, maxDepth, maxDocs, fanOut, "", false);
+			crawler2 = new Thread(c2);
+			c3 = new Crawler(3, maxDepth, maxDocs, fanOut, "", false);		
+			crawler3 = new Thread(c3);
+			c4 = new Crawler(4, maxDepth, maxDocs, fanOut, "", false);		
+			crawler4 = new Thread(c4);
+			c5 = new Crawler(5, maxDepth, maxDocs, fanOut, "", false);		
+			crawler5 = new Thread(c5);			
+			c6 = new Crawler(6, maxDepth, maxDocs, fanOut, "", false);
+			crawler6 = new Thread(c6);
+			c7 = new Crawler(7, maxDepth, maxDocs, fanOut, "", false);
+			crawler7 = new Thread(c7);
+			c8 = new Crawler(8, maxDepth, maxDocs, fanOut, "", false);		
+			crawler8 = new Thread(c8);
+			c9 = new Crawler(9, maxDepth, maxDocs, fanOut, "", false);		
+			crawler9 = new Thread(c9);
+			c10 = new Crawler(10, maxDepth, maxDocs, fanOut, "", false);		
+			crawler10 = new Thread(c10);			
 		}
 
 		if (resetDict.equals("true")) {
@@ -423,27 +432,27 @@ public class Driver {
 		System.out.println("Starting crawl session...");
 
 		crawler1.start();
-//		crawler2.start();
-//		crawler3.start();
-//		crawler4.start();
-//		crawler5.start();
-//		crawler6.start();
-//		crawler7.start();
-//		crawler8.start();
-//		crawler9.start();
-//		crawler10.start();		
+		crawler2.start();
+		crawler3.start();
+		crawler4.start();
+		crawler5.start();
+		crawler6.start();
+		crawler7.start();
+		crawler8.start();
+		crawler9.start();
+		crawler10.start();		
 		
 		try {
 			crawler1.join();
-//			crawler2.join();
-//			crawler3.join();
-//			crawler4.join();
-//			crawler5.join();
-//			crawler6.join();
-//			crawler7.join();
-//			crawler8.join();
-//			crawler9.join();
-//			crawler10.join();			
+			crawler2.join();
+			crawler3.join();
+			crawler4.join();
+			crawler5.join();
+			crawler6.join();
+			crawler7.join();
+			crawler8.join();
+			crawler9.join();
+			crawler10.join();			
 
 			System.out.println("Crawl session ended");
 			
