@@ -421,9 +421,10 @@ public class Driver {
 			try {
 				db1Thread.join();
 				db2Thread.join();
+				System.out.println("Dictionaries created");
 				
 				Synonym.bootstrap();
-				System.out.println("Dictionaries created");
+				System.out.println("Thesaurus created");
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

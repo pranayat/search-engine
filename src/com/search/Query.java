@@ -416,23 +416,36 @@ public class Query {
     		allTerms = Stream.concat(conjunctiveTerms.stream(), nonConjunctiveTerms.stream()).collect(Collectors.toSet());
     		
     		if (this.searchMode.equals("image")) {
-        		pstmt = conn.prepareStatement(this.buildImageSearchQuery(conjunctiveTerms, allTerms, termSynonymMap));    			
+        		pstmt = conn.prepareStatement(this.buildImageSearchQuery(conjunctiveTerms, allTerms, termSynonymMap));
+    			rs = pstmt.executeQuery();
+    			
+    			int i = 0;
+    			while(rs.next()) {
+    				++i;
+    				
+    			resultList.add(new Result(
+    					rs.getString("url").trim(),
+    					null,
+    					Double.parseDouble(rs.getString("agg_score").trim()),
+    					i));
+    			}
     		} else {
-    			pstmt = conn.prepareStatement(this.buildSearchQuery(conjunctiveTerms, allTerms, termSynonymMap, this.k, site));    			
+    			pstmt = conn.prepareStatement(this.buildSearchQuery(conjunctiveTerms, allTerms, termSynonymMap, this.k, site));
+    			rs = pstmt.executeQuery();
+    			
+    			int i = 0;
+    			while(rs.next()) {
+    				++i;
+    				
+    			resultList.add(new Result(
+    					rs.getString("url").trim(),
+    					this.generateSnippet(rs.getString("doc_text"), allTerms.stream().collect(Collectors.toSet())),
+    					Double.parseDouble(rs.getString("agg_score").trim()),
+    					i));
+    			}
     		}
     		
-			rs = pstmt.executeQuery();
-			
-			int i = 0;
-			while(rs.next()) {
-				++i;
-				
-			resultList.add(new Result(
-					rs.getString("url").trim(),
-					this.generateSnippet(rs.getString("doc_text"), allTerms.stream().collect(Collectors.toSet())),
-					Double.parseDouble(rs.getString("agg_score").trim()),
-					i));
-			}
+
 			
 			String[] allTermsArray = allTerms.toArray(new String[allTerms.size()]);
 			String[] termListClauseArray = new String[allTerms.size()];
