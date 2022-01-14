@@ -37,13 +37,13 @@ first_crawl.sh
 
 cd /home/project/group-03
 
-javac -d bin -cp lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/commons-cli-1.3.1.jar:lib/concurrentlinkedhashmap-lru-1.3.2:lib extjwnl-2.0.4:lib/extjwnl-data-wn31-1.2:lib/slf4j-api-1.7.25 src/com/cli/QueryCLI.java src/com/common/CharacterSanitizer.java src/com/common/ConnectionManager.java src/com/crawler/Crawler.java src/com/crawler/Driver.java src/com/crawler/Page.java src/com/crawler/Url.java src/com/indexer/Indexer.java src/com/indexer/Stemmer.java src/com/indexer/StopwordRemover.java src/com/indexer/TFIDFScoreComputer.java src/com/search/Query.java src/com/search/Result.java src/com/search/ApiResult.java src/com/search/Stat.java src/com/search/Synonym.java com/search/SpellChecker.java src/com/scoring/PageRank.java src/com/scoring/CombinedScore.java src/com/scoring/Okapi.java src/com/scoring/PageRank.java src/com/scoring/updateMatrix.java src/com/scoring/VectorProc.java src/com/scoring/ViewCreator.java src/com/languageclassifier/LanguageClassifier.java src/com/languageclassifier/DictionaryBootstrapper.java src/com/neardup/ShingleReport.java src/com/neardup/Shingling.java
+javac -d bin -cp lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/commons-cli-1.3.1.jar:lib/concurrentlinkedhashmap-lru-1.3.2.jar:lib/extjwnl-2.0.4.jar:lib/extjwnl-data-wn31-1.2.jar:lib/slf4j-api-1.7.25.jar src/com/cli/QueryCLI.java src/com/common/CharacterSanitizer.java src/com/common/ConnectionManager.java src/com/crawler/Crawler.java src/com/crawler/Driver.java src/com/crawler/Page.java src/com/crawler/Url.java src/com/indexer/Indexer.java src/com/indexer/Stemmer.java src/com/indexer/StopwordRemover.java src/com/indexer/TFIDFScoreComputer.java src/com/search/Query.java src/com/search/Result.java src/com/search/ApiResult.java src/com/search/Stat.java src/com/search/Synonym.java src/com/search/SpellChecker.java src/com/scoring/PageRank.java src/com/scoring/CombinedScore.java src/com/scoring/Okapi.java src/com/scoring/PageRank.java src/com/scoring/updateMatrix.java src/com/scoring/VectorProc.java src/com/scoring/ViewCreator.java src/com/languageclassifier/LanguageClassifier.java src/com/languageclassifier/DictionaryBootstrapper.java src/com/neardup/ShingleReport.java src/com/neardup/Shingling.java
 
 echo "CRAWL LOG" >> /home/project/crawl_log.txt
 
 echo `date` >> /home/project/crawl_log.txt
 
-java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/commons-cli-1.3.1.jar:lib/concurrentlinkedhashmap-lru-1.3.2:lib/extjwnl-2.0.4:lib/extjwnl-data-wn31-1.2:lib/slf4j-api-1.7.25 com.crawler.Driver --maxDocs 50 --maxDepth 10 --fanOut 10 --resetIndex true --resetDict true >> /home/project/crawl_log.txt
+java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/commons-cli-1.3.1.jar:lib/concurrentlinkedhashmap-lru-1.3.2.jar:lib/extjwnl-2.0.4.jar:lib/extjwnl-data-wn31-1.2.jar:lib/slf4j-api-1.7.25.jar com.crawler.Driver --maxDocs 10 --maxDepth 10 --fanOut 100 --resetIndex true --resetDict true >> /home/project/crawl_log.txt
 ```
 
 Subsequent runs
@@ -58,13 +58,13 @@ crawl.sh
 
 cd /home/project/group-03
 
-javac -d bin -cp lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/commons-cli-1.3.1.jar:lib/concurrentlinkedhashmap-lru-1.3.2:lib extjwnl-2.0.4:lib/extjwnl-data-wn31-1.2:lib/slf4j-api-1.7.25 src/com/cli/QueryCLI.java src/com/common/CharacterSanitizer.java src/com/common/ConnectionManager.java src/com/crawler/Crawler.java src/com/crawler/Driver.java src/com/crawler/Page.java src/com/crawler/Url.java src/com/indexer/Indexer.java src/com/indexer/Stemmer.java src/com/indexer/StopwordRemover.java src/com/indexer/TFIDFScoreComputer.java src/com/search/Query.java src/com/search/Result.java src/com/search/ApiResult.java src/com/search/Stat.java src/com/search/Synonym.java com/search/SpellChecker.java src/com/scoring/PageRank.java src/com/scoring/CombinedScore.java src/com/scoring/Okapi.java src/com/scoring/PageRank.java src/com/scoring/updateMatrix.java src/com/scoring/VectorProc.java src/com/scoring/ViewCreator.java src/com/languageclassifier/LanguageClassifier.java src/com/languageclassifier/DictionaryBootstrapper.java src/com/neardup/ShingleReport.java src/com/neardup/Shingling.java
+javac -d bin -cp lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/commons-cli-1.3.1.jar:lib/concurrentlinkedhashmap-lru-1.3.2.jar:lib/extjwnl-2.0.4.jar:lib/extjwnl-data-wn31-1.2.jar:lib/slf4j-api-1.7.25.jar src/com/cli/QueryCLI.java src/com/common/CharacterSanitizer.java src/com/common/ConnectionManager.java src/com/crawler/Crawler.java src/com/crawler/Driver.java src/com/crawler/Page.java src/com/crawler/Url.java src/com/indexer/Indexer.java src/com/indexer/Stemmer.java src/com/indexer/StopwordRemover.java src/com/indexer/TFIDFScoreComputer.java src/com/search/Query.java src/com/search/Result.java src/com/search/ApiResult.java src/com/search/Stat.java src/com/search/Synonym.java src/com/search/SpellChecker.java src/com/scoring/PageRank.java src/com/scoring/CombinedScore.java src/com/scoring/Okapi.java src/com/scoring/PageRank.java src/com/scoring/updateMatrix.java src/com/scoring/VectorProc.java src/com/scoring/ViewCreator.java src/com/languageclassifier/LanguageClassifier.java src/com/languageclassifier/DictionaryBootstrapper.java src/com/neardup/ShingleReport.java src/com/neardup/Shingling.java
 
 echo "CRAWL LOG" >> /home/project/crawl_log.txt
 
 echo `date` >> /home/project/crawl_log.txt
 
-java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/commons-cli-1.3.1.jar:lib/concurrentlinkedhashmap-lru-1.3.2:lib/extjwnl-2.0.4:lib/extjwnl-data-wn31-1.2:lib/slf4j-api-1.7.25 com.crawler.Driver --maxDocs 50 --maxDepth 10 --fanOut 10 --resetIndex false --resetDict false >> /home/project/crawl_log.txt
+java -cp bin:lib/jtidy-r938.jar:lib/la4j-0.6.0.jar:lib/postgresql-42.3.1.jar:lib/commons-cli-1.3.1.jar:lib/concurrentlinkedhashmap-lru-1.3.2.jar:lib/extjwnl-2.0.4.jar:lib/extjwnl-data-wn31-1.2.jar:lib/slf4j-api-1.7.25.jar com.crawler.Driver --maxDocs 10 --maxDepth 10 --fanOut 100 --resetIndex false --resetDict false >> /home/project/crawl_log.txt
 ```
 
 ## Cron job
