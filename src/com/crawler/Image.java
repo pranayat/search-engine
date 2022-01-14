@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.common.ConnectionManager;
+import com.indexer.Indexer;
 
 public class Image {
 	private String url;
@@ -31,16 +31,20 @@ public class Image {
 		this.postTerms = postTerms;
 	}	
 	
-	public void index(Connection conn, int docId) throws SQLException {
+	public void index(Connection conn, int docId, String docLanguage) throws SQLException {
 		// score = lambda * e^(-lambda*distance) + 1 (if present in alt or title) TODO: make this weighted
 		// lambda = 1
-
+		
 		if (this.preTerms.length > 0) {
 			for (int i = 0; i < this.preTerms.length; i++) {
 				// insert or improve the term score, always consider shortest distance to image (largeset score)
 				double distanceScore = 1 * Math.exp(-1 * i);
-				if (!this.preTerms[i].equals("") && (this.termMap.get(this.preTerms[i]) == null || this.termMap.get(this.preTerms[i]) < distanceScore)) {				
-					this.termMap.put(this.preTerms[i], distanceScore);
+				if (!this.preTerms[i].equals("") && (this.termMap.get(this.preTerms[i]) == null || this.termMap.get(this.preTerms[i]) < distanceScore)) {
+					if (docLanguage.equals("eng")) {
+						this.termMap.put(Indexer.stem_word(this.preTerms[i]), distanceScore);						
+					} else {
+						this.termMap.put(this.preTerms[i], distanceScore);
+					}
 				}
 			}			
 		}
@@ -49,8 +53,12 @@ public class Image {
 			for (int i = 0; i < this.postTerms.length; i++) {
 				// insert or improve the term score, always consider shortest distance to image (largest score)
 				double distanceScore = 1 * Math.exp(-1 * i);
-				if (!this.postTerms[i].equals("") && (this.termMap.get(this.postTerms[i]) == null || this.termMap.get(this.postTerms[i]) < distanceScore)) {				
-					this.termMap.put(this.postTerms[i], distanceScore);
+				if (!this.postTerms[i].equals("") && (this.termMap.get(this.postTerms[i]) == null || this.termMap.get(this.postTerms[i]) < distanceScore)) {
+					if (docLanguage.equals("eng")) {
+						this.termMap.put(Indexer.stem_word(this.postTerms[i]), distanceScore);
+					} else {
+						this.termMap.put(this.postTerms[i], distanceScore);
+					}
 				}
 			}			
 		}
@@ -66,7 +74,11 @@ public class Image {
 				}
 				
 				score += 1;
-				this.termMap.put(term, score);
+				if (docLanguage.equals("eng")) {
+					this.termMap.put(Indexer.stem_word(term), score);					
+				} else {
+					this.termMap.put(term, score);					
+				}
 			}			
 		}
 		
@@ -81,7 +93,11 @@ public class Image {
 				}
 				
 				score += 1;
-				this.termMap.put(term, score);
+				if (docLanguage.equals("eng")) {
+					this.termMap.put(Indexer.stem_word(term), score);					
+				} else {
+					this.termMap.put(term, score);					
+				}
 			}			
 		}
 		

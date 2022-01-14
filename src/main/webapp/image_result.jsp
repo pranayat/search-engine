@@ -20,7 +20,7 @@
 	</div>
 	
 	<c:if test="${fn:length(results) > 0}">
-		<div style="display:flex;justify-content:center">
+		<div style="display:flex;flex-wrap:wrap;justify-content:center">
 			<c:forEach items="${results}" var="element">
 			  <div style="border: 1px solid; margin: 4px">  
 			    <img src="${element.url}" height="250" width="250"/>

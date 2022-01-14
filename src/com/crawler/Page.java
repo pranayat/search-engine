@@ -4,7 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.sql.Connection;
-import java.sql.SQLException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -87,6 +88,14 @@ public class Page {
 		String[] preTerms;
 		Map<String, Image> imageMap = new HashMap<String, Image>();
 		
+		PreparedStatement pstmtFind = conn.prepareStatement("SELECT language FROM documents WHERE docid = ?");
+		pstmtFind.setInt(1, docId);
+		ResultSet rs = pstmtFind.executeQuery();
+		String docLanguage = "eng";
+		if (rs.next()) {
+			docLanguage = rs.getString("language");
+		}
+		
 		while(matcher.find()) {
 			preText = CharacterSanitizer.sanitize(matcher.group(1).toLowerCase());
 			preTerms = preText.trim().split("\\s+");
@@ -146,7 +155,7 @@ public class Page {
 			
 			if (image != null) {
 				image.setPostTerms(postTerms);
-				image.index(conn, docId);				
+				image.index(conn, docId, docLanguage);				
 			}
  		}		
 		
