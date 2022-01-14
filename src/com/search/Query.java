@@ -393,10 +393,10 @@ public class Query {
     			List<String> synonyms = new ArrayList<String>();
     			
     			if (this.language.equals("eng")) {
-    				synonyms = sy.getSynonyms(term, true);
+    				synonyms = sy.getEnglishSynonyms(term);
     				termSynonymMap.put(Indexer.stem_word(term), synonyms);
     			} else {
-    				synonyms = sy.getSynonyms(term, false);
+    				synonyms = sy.getGermanSynonyms(term);
     				termSynonymMap.put(term, synonyms);
     			}
     		}

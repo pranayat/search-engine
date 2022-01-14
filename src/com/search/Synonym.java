@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.common.ConnectionManager;
 import com.indexer.Indexer;
 
 import net.sf.extjwnl.JWNLException;
@@ -35,7 +36,9 @@ public class Synonym {
 		}
 	}
 	
-	public static void bootstrap(Connection conn) throws SQLException, FileNotFoundException, IOException {
+	public static void bootstrap() throws SQLException, FileNotFoundException, IOException {
+		Connection conn = (new ConnectionManager()).getConnection();
+		
 		try(BufferedReader br = new BufferedReader(new FileReader("./openthesaurus.txt"))) {
 			PreparedStatement pstmtInsert = conn.prepareStatement("INSERT INTO german_synonyms (term, synonym) VALUES (?,?)");
 			PreparedStatement pstmtFind = conn.prepareStatement("SELECT * FROM german_synonyms WHERE (term = ? AND synonym = ?)");
@@ -68,9 +71,11 @@ public class Synonym {
 		        }
 		    }
 		}
+		
+		conn.close();
 	}
 	
-	public List<String> getSynonyms(String inputWord, Boolean stem) throws JWNLException{
+	public List<String> getEnglishSynonyms(String inputWord) throws JWNLException{
 		IndexWord indexNoun = this.dictionary.lookupIndexWord(POS.NOUN, inputWord);
 		IndexWord indexVerb = this.dictionary.lookupIndexWord(POS.VERB, inputWord);
 		IndexWord indexAdjective = this.dictionary.lookupIndexWord(POS.ADJECTIVE, inputWord);
@@ -95,11 +100,7 @@ public class Synonym {
 			List<Word> words = wordSense.getWords();
 			
 			for (Word word: words) {
-				if (stem) {
-					synonyms.add(Indexer.stem_word(word.getLemma().toLowerCase()));
-				} else {
-					synonyms.add(word.getLemma().toLowerCase());
-				}
+				synonyms.add(Indexer.stem_word(word.getLemma().toLowerCase()));
 			}
 		}
 		
@@ -108,4 +109,20 @@ public class Synonym {
 			     .collect(Collectors.toList());
 		
 	}
+	
+	public List<String> getGermanSynonyms(String inputWord) throws JWNLException, SQLException{
+		Connection conn = (new ConnectionManager()).getConnection();
+		PreparedStatement pstmtFind = conn.prepareStatement("SELECT synonym FROM german_synonyms WHERE term = ?");
+		pstmtFind.setString(1, inputWord);
+		ResultSet rs = pstmtFind.executeQuery();
+		
+		List<String> synonyms = new ArrayList<String>();
+		while(rs.next()) {
+			synonyms.add(rs.getString(1));
+		}
+		
+		conn.close();
+
+		return synonyms;
+	}	
 }
