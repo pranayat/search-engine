@@ -7,9 +7,11 @@ import com.search.ApiResult;
 import com.search.Query;
 import com.search.Result;
 
+import net.sf.extjwnl.JWNLException;
+
 public class QueryCLI {
 
-	public static void main(String[] args) throws ClassNotFoundException {
+	public static void main(String[] args) throws ClassNotFoundException, JWNLException {
 		String queryMode = "conjunctive", queryText;
 		int choice, k;
 		Scanner sc = new Scanner(System.in);

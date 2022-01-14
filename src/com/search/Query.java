@@ -1,28 +1,29 @@
 package com.search;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
 import com.indexer.StopwordRemover;
+import com.common.CharacterSanitizer;
 import com.common.ConnectionManager;
 import com.indexer.Indexer;
 import com.indexer.Stemmer;
+
+import net.sf.extjwnl.JWNLException;
 
 class Segment implements Comparable<Segment>{
 	private int serial;
@@ -232,16 +233,27 @@ public class Query {
 		return snippet;
 	}
 
-	private String buildDisjunctiveClause(Set<String> terms) {
+	private String buildDisjunctiveClause(Set<String> terms, Map<String, List<String>> termSynonymMap) {
 		String clause = "term = ";
 		for (String term: terms) {
+			term = term.replace("'", "''");
 			clause += "'" + term + "'" + " OR term = ";
+			List<String> synonyms = termSynonymMap.get(term);
+			if (synonyms == null) {
+				continue;
+			}
+
+			for (String synonym: synonyms) {
+				synonym = synonym.replace("'", "''");
+				clause += "'" + synonym + "'" + " OR term = ";
+			}			
 		}
+		
 		
 		return clause.substring(0, clause.length() - 10); // remove the last OR term =
 	}
 
-	private String buildSearchQuery (Set <String> conjunctiveTerms, Set<String> allTerms, int k, String site) {
+	private String buildSearchQuery (Set <String> conjunctiveTerms, Set<String> allTerms, Map<String, List<String>> termSynonymMap, int k, String site) {
 		String queryString = "";
 		String documentQueryString = "";
 		
@@ -258,12 +270,12 @@ public class Query {
 					+ "	("
 					+ "		select a.docid, b.agg_score from"
 					+ "		(select * from ("
-					+ "		select docid, count(*) as count from features where " + this.buildDisjunctiveClause(conjunctiveTerms)
+					+ "		select docid, count(*) as count from features where " + this.buildDisjunctiveClause(conjunctiveTerms, termSynonymMap)
 					+ " 	AND language = '" + this.language + "' group by docid"
 					+ "		) as t2 WHERE t2.count = " + conjunctiveTerms.size() + ") as a"
 					+ "		INNER JOIN"
 					+ "		("
-					+ "		select docid, sum(" + this.scoreType + ") as agg_score from features where " + this.buildDisjunctiveClause(allTerms)
+					+ "		select docid, sum(" + this.scoreType + ") as agg_score from features where " + this.buildDisjunctiveClause(allTerms, termSynonymMap)
 					+ " 	AND language = '" + this.language + "' group by docid"
 					+ "		) as b on a.docid = b.docid"
 					+ "	) as e "
@@ -272,7 +284,7 @@ public class Query {
 		} else {
 			queryString = "select a.docid, d.url, d.doc_text, a.agg_score from "
 					+ "	("
-					+ "	select docid, sum(" + this.scoreType + ") as agg_score from features where " + this.buildDisjunctiveClause(allTerms)
+					+ "	select docid, sum(" + this.scoreType + ") as agg_score from features where " + this.buildDisjunctiveClause(allTerms, termSynonymMap)
 					+ " AND language = '" + this.language + "' group by docid order by agg_score DESC"
 					+ "	) as a"
 					+ "	INNER JOIN"
@@ -283,7 +295,7 @@ public class Query {
 		return queryString;
 	}
 	
-	private String buildImageSearchQuery (Set <String> conjunctiveTerms, Set<String> allTerms) {
+	private String buildImageSearchQuery (Set <String> conjunctiveTerms, Set<String> allTerms, Map<String, List<String>> termSynonymMap) {
 		String queryString = "";
 //		String documentQueryString = "";
 		
@@ -296,24 +308,24 @@ public class Query {
 		if (conjunctiveTerms.size() > 0) {			
 			queryString = "select a.url, b.agg_score from"
 					+ "		(select * from ("
-					+ "		select url, count(*) as count from image_features where " + this.buildDisjunctiveClause(conjunctiveTerms)
+					+ "		select url, count(*) as count from image_features where " + this.buildDisjunctiveClause(conjunctiveTerms, termSynonymMap)
 					+ " 	group by url"
 					+ "		) as t2 WHERE t2.count = " + conjunctiveTerms.size() + ") as a"
 					+ "		INNER JOIN"
 					+ "		("
-					+ "		select url, sum(score) as agg_score from image_features where " + this.buildDisjunctiveClause(allTerms)
+					+ "		select url, sum(score) as agg_score from image_features where " + this.buildDisjunctiveClause(allTerms, termSynonymMap)
 					+ " 	group by url"
 					+ "		) as b on a.url = b.url ORDER BY b.agg_score DESC";
 			
 		} else {
-			queryString = "	select url, sum(score) as agg_score from image_features where " + this.buildDisjunctiveClause(allTerms)
+			queryString = "	select url, sum(score) as agg_score from image_features where " + this.buildDisjunctiveClause(allTerms, termSynonymMap)
 					+ " group by url order by agg_score DESC";
 		}
 		
 		return queryString;
 	}	
 	
-    public ApiResult getResults() throws ClassNotFoundException {
+    public ApiResult getResults() throws ClassNotFoundException, JWNLException {
         String[] queryTextTerms = null;
         ApiResult apiResult = null;
         List<Result> resultList = new ArrayList<Result>();
@@ -332,6 +344,7 @@ public class Query {
     		StopwordRemover sr = new StopwordRemover();
     		Stemmer s = new Stemmer();
     		
+    		// extract and remove site operator from query
     		queryTextTerms = this.queryText.split("\\s+");
     		if (this.queryText.startsWith("site:")) {    			
     			site = queryTextTerms[0].substring(5, queryTextTerms[0].length());
@@ -342,6 +355,7 @@ public class Query {
     		String[][] suggestedQueryTerms = spellcheck.suggest(queryTextTerms, this.language);
     		String [] suggestedQueries = new String[5];
     		
+    		// create 5 suggestions
     		for (int i = 0; i < 5; i++) {
     			suggestedQueries[i] = "";
     			for (int j = 0; j < suggestedQueryTerms.length; j++) {
@@ -349,39 +363,47 @@ public class Query {
     			}
     		}
     		
-				List<String> queryTextWithoutStopwords = Arrays.asList(queryTextTerms);
-				List<String> queryWithoutSpecialChars = new ArrayList<String>();
-				if (this.language.equals("eng")) {
-					queryTextWithoutStopwords = sr.removeStopwords(queryTextTerms);
-				}
+
+    		// remove stopwords for english queries
+			List<String> queryTextWithoutStopwords = Arrays.asList(queryTextTerms);
+			if (this.language.equals("eng")) {
+				queryTextWithoutStopwords = sr.removeStopwords(queryTextTerms);
+			}
     		   
-    		String regex = "([a-zA-Z0-9�������\"]+)";
-    		Pattern pattern = Pattern.compile(regex);
+			// keep only numbers and english/german alphabets
+			List<String> queryWithoutSpecialChars = new ArrayList<String>();
+			List<String> queryTermsToExpand = new ArrayList<String>();
     		for(String term: queryTextWithoutStopwords) {
-    			Matcher matcher = pattern.matcher(term);
-    			String iText = "";
-    			while(matcher.find()) {
-    				iText = iText + matcher.group(1);
+    			if (term.startsWith("~")) {
+    				queryTermsToExpand.add(CharacterSanitizer.sanitize(term));
     			}
-    			if (iText.length() > 0) {
-    				queryWithoutSpecialChars.add(iText);				
-    			}
+
+    			queryWithoutSpecialChars.add(CharacterSanitizer.sanitize(term));
     		}
     		   
+    		// if query is empty return empty result
     		if (!(queryWithoutSpecialChars.size() > 0)) {
     			return new ApiResult();
     		}
-    				
+    		
+    		// get synonyms for each expandable query term
+    		Map<String, List<String>> termSynonymMap = new HashMap<String, List<String>>();
+    		Synonym sy = new Synonym();    			
+    		for (String term: queryTermsToExpand) {
+    			List<String> synonyms = new ArrayList<String>();
+    			
+    			if (this.language.equals("eng")) {
+    				synonyms = sy.getSynonyms(term, true);
+    				termSynonymMap.put(Indexer.stem_word(term), synonyms);
+    			} else {
+    				synonyms = sy.getSynonyms(term, false);
+    				termSynonymMap.put(term, synonyms);
+    			}
+    		}
+    		
     		for(String term: queryWithoutSpecialChars) {
 					if (this.language.equals("eng")) {
-						char[] word = term.toCharArray();
-						for (int j = 0; j<word.length;j++) {
-								char c = word[j];
-								s.add(c);
-						}
-						s.stem();
-
-						term = s.toString();
+						term = Indexer.stem_word(term);
 					}
 	            
 					if (term.startsWith("\"") && term.endsWith("\"")) {
@@ -390,12 +412,13 @@ public class Query {
 						nonConjunctiveTerms.add(term);
 					}
     		}
-    		allTerms = Stream.concat(conjunctiveTerms.stream(), nonConjunctiveTerms.stream()).collect(Collectors.toSet());
 
+    		allTerms = Stream.concat(conjunctiveTerms.stream(), nonConjunctiveTerms.stream()).collect(Collectors.toSet());
+    		
     		if (this.searchMode.equals("image")) {
-        		pstmt = conn.prepareStatement(this.buildImageSearchQuery(conjunctiveTerms, allTerms));    			
+        		pstmt = conn.prepareStatement(this.buildImageSearchQuery(conjunctiveTerms, allTerms, termSynonymMap));    			
     		} else {
-    			pstmt = conn.prepareStatement(this.buildSearchQuery(conjunctiveTerms, allTerms, this.k, site));    			
+    			pstmt = conn.prepareStatement(this.buildSearchQuery(conjunctiveTerms, allTerms, termSynonymMap, this.k, site));    			
     		}
     		
 			rs = pstmt.executeQuery();
