@@ -25,6 +25,7 @@ import org.w3c.tidy.Tidy;
 import org.xml.sax.InputSource;
 
 import com.common.CharacterSanitizer;
+import com.crawler.Image;
 
 public class Page {
 	private String pageSource;
