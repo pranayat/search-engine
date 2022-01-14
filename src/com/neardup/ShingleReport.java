@@ -34,6 +34,7 @@ public class ShingleReport {
 				diffsim = Math.abs(rssim.getFloat("jaccard")-rssim.getFloat("approx_jaccard"));
 				sumdiffsimvalues += diffsim;
 				diffsimvalues.add(diffsim);
+				numvalues+=1;
 			}
 			
 			// average, the median, and the first and third quartile of the observed absolute error

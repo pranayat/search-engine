@@ -160,7 +160,7 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS kshingles (docid INT, shingle VARCHAR, md5value INT)");
 			pstmt.execute();
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS docsimilarities (docid1 INT, docid2 INT, jaccard FLOAT, approx_jaccard FLOAT)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS docsimilarities (docid1 INT, docid2 INT, jaccard FLOAT, approx_jaccard FLOAT, UNIQUE(docid1,docid2))" );
 			pstmt.execute();
 			
 			//indices for making it faster
@@ -220,7 +220,7 @@ public class Driver {
 					+ "					select count(distinct shingle) into unionsize from kshingles where docid = firstdocid or docid = seconddocid;"
 					+ "					jaccardval = cutsize::float/unionsize;"
 					+ "					insert into docsimilarities (docid1, docid2, jaccard) Values(firstdocid, seconddocid, jaccardval)"
-					//+ "					where not exists(select * from docsimilarities where docid1=firstdocid and docid2=seconddocid);"
+					+ "					on conflict (docid1,docid2) do nothing;"
 					+ "					return jaccardval;"
 					+ "					END"
 					+ "					$$ language plpgsql;";
@@ -254,8 +254,7 @@ public class Driver {
 					+ "	union "
 					+ "	(select distinct md5value from kshingles where docid = seconddocid order by md5value limit n) ) as tableunion; "
 					+ "jaccardappr = cutsize::float/unionsize; "
-					//+ "UPDATE docsimilarities SET approx_jaccard = jaccardappr WHERE docid1 = firstdocid and docid2 = seconddocid; "
-					+ "UPDATE docsimilarities SET 3 WHERE docid1 = firstdocid and docid2 = seconddocid; "
+					+ "UPDATE docsimilarities SET approx_jaccard = jaccardappr WHERE docid1 = firstdocid and docid2 = seconddocid; "
 					+ "end; "
 					+ "$$ language plpgsql;";
 			stmt.execute(query);

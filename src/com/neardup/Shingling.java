@@ -67,21 +67,34 @@ public class Shingling {
 		public void calculateapproxJaccard() {
 			try {
 				CallableStatement cstmt;
-				Map<Integer, Integer> shingledocids = new HashMap<Integer, Integer>();
+				Map<Integer,List<Integer>> shingledocids = new HashMap<Integer,List<Integer>>();
 				PreparedStatement pstmtsim = conn.prepareStatement("SELECT docid1, docid2 from docsimilarities");
 				ResultSet rsidpairs = pstmtsim.executeQuery();
 				while(rsidpairs.next()) {
-					shingledocids.put(rsidpairs.getInt("docid1"), rsidpairs.getInt("docid2"));
+					if (shingledocids.containsKey(rsidpairs.getInt("docid1"))) {
+						List<Integer> docids = shingledocids.get(rsidpairs.getInt("docid1"));
+						docids.add(rsidpairs.getInt("docid2"));
+						shingledocids.put(rsidpairs.getInt("docid1"), docids);
+					} else {
+						List<Integer> docids = new ArrayList<Integer>();
+						docids.add(rsidpairs.getInt("docid2"));
+						shingledocids.put(rsidpairs.getInt("docid1"),docids);
+					}
 				}
 				System.out.println(shingledocids);
 				for (int n_minhash: minhashparameters) {
-					for (Map.Entry<Integer,Integer> idPair : shingledocids.entrySet()) {
-						cstmt = conn.prepareCall("select jaccardapproximationN(?,?,?)");
-					    cstmt.setInt(1, idPair.getKey());
-					    cstmt.setInt(2, idPair.getValue());
-					    cstmt.setInt(3, n_minhash);
-					    cstmt.execute();
+					for (int key : shingledocids.keySet()) {
+						List<Integer> pairs = shingledocids.get(key);
+						for (int id: pairs) {
+							cstmt = conn.prepareCall("select jaccardapproximationN(?,?,?)");
+						    cstmt.setInt(1, key);
+						    cstmt.setInt(2, id);
+						    cstmt.setInt(3, n_minhash);
+						    cstmt.execute();
+						}
 					}
+					conn.commit();
+					
 					System.out.println("calculating diff");
 					ShingleReport sr = new ShingleReport(conn);
 					sr.report();
