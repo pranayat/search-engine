@@ -4,6 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.CallableStatement;
 import java.sql.Statement;
+
+import com.common.ConnectionManager;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -11,8 +14,8 @@ public class ViewCreator {
 	
 	private Connection conn;
 	
-	public ViewCreator(Connection conn) {
-		this.conn = conn;
+	public ViewCreator() {
+		this.conn = (new ConnectionManager()).getConnection();
 	}
 	
 	public void createViews() {
@@ -37,6 +40,8 @@ public class ViewCreator {
 		    statement3.execute(viewcombined);
 		    
 		    conn.commit();
+		    
+		    conn.close();
 			
 		} catch (SQLException e) {
 	    	   System.out.println(e);

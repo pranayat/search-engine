@@ -14,6 +14,8 @@ import org.la4j.iterator.VectorIterator;
 import org.la4j.Vector;
 import org.la4j.vector.functor.VectorProcedure;
 
+import com.common.ConnectionManager;
+
 import org.la4j.matrix.functor.MatrixFunction;
 
 import java.lang.Object;
@@ -22,8 +24,8 @@ public class PageRank {
 	
 	private Connection conn;
 	
-	public PageRank(Connection conn) {
-		this.conn = conn;
+	public PageRank() {
+		this.conn = (new ConnectionManager()).getConnection();
 	}
 	
 	public Matrix getP(Map<Integer,Integer> indices) {
@@ -126,6 +128,7 @@ public class PageRank {
 			}
 			
 			conn.commit();
+			conn.close();
 			
 		} catch (SQLException e) {
 	    	   e.printStackTrace();

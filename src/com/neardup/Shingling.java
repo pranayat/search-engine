@@ -11,14 +11,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.common.ConnectionManager;
 import com.scoring.ViewCreator;
 
 public class Shingling {
 		private Connection conn;
 		List<Integer> minhashparameters;
 			
-		public Shingling(Connection conn, List<Integer> parameters) {
-			this.conn = conn;
+		public Shingling(List<Integer> parameters) {
+			this.conn = (new ConnectionManager()).getConnection();
 			this.minhashparameters = parameters;
 		}
 		
@@ -33,8 +34,8 @@ public class Shingling {
 					docIds.add(rsids.getInt("docid"));
 				}
 				
-				//get number such that 10 000 pairs are calculated
-				int numpairs = (int) 10000/docIds.size();
+				//get number such that at least 10 000 pairs are calculated
+				int numpairs = (int) 15000/docIds.size();
 				CallableStatement cstmt;
 				
 				for (int i = 0; i<docIds.size()-1; i++) {
@@ -81,7 +82,11 @@ public class Shingling {
 						shingledocids.put(rsidpairs.getInt("docid1"),docids);
 					}
 				}
-				System.out.println(shingledocids);
+				
+				// calculate approx_jaccard for different n
+				float[] errors = new float[minhashparameters.size()*4];
+				ShingleReport sr = new ShingleReport(conn);
+				int count = 0;
 				for (int n_minhash: minhashparameters) {
 					for (int key : shingledocids.keySet()) {
 						List<Integer> pairs = shingledocids.get(key);
@@ -96,11 +101,13 @@ public class Shingling {
 					conn.commit();
 					
 					System.out.println("calculating diff");
-					ShingleReport sr = new ShingleReport(conn);
-					sr.report();
+					errors = sr.report(errors, count);
+					count+=1;
 				}
+				sr.plot(errors);
 				
 				conn.commit();
+				conn.close();
 				
 			} catch (SQLException e) {
 		    	   System.out.println(e);
