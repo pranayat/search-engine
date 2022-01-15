@@ -94,6 +94,7 @@ public class Driver {
 			pstmt.execute();
 			
 			conn.commit();
+			conn.close();//close here
 		} catch (Exception e) {
 			try {
 				conn.rollback();
@@ -244,6 +245,7 @@ public class Driver {
 					+ "$$ language plpgsql;";
 			stmt.execute(query);
 			conn.commit();
+			conn.close();//close here
 		} catch (Exception e) {
 			try {
 				conn.rollback();
@@ -255,44 +257,44 @@ public class Driver {
         }
 	}
 	
-	public static void TFIDFscoring(Connection conn) {
+	public static void TFIDFscoring() {
 		System.out.println("calling TFIDF scorer");
-		TFIDFScoreComputer Scorer = new TFIDFScoreComputer(conn);
+		TFIDFScoreComputer Scorer = new TFIDFScoreComputer();
 		Scorer.computeScores();
 	}
 	
-	public static void PageRankScoring(Connection conn) {
+	public static void PageRankScoring() {
 		System.out.println("calling PageRank scorer");
-		PageRank pr = new PageRank(conn);
+		PageRank pr = new PageRank();
 		pr.pageRanking();
 	}
 	
-	public static void OkapiScoring(Connection conn) {
+	public static void OkapiScoring() {
 		System.out.println("calling Okapi scorer");
-		Okapi ok = new Okapi(conn);
+		Okapi ok = new Okapi();
 		ok.okapiScoring();
 	}
 	
-	public static void combinedScoring(Connection conn) {
+	public static void combinedScoring() {
 		System.out.println("calling Combined scorer");
-		CombinedScore cs = new CombinedScore(conn);
+		CombinedScore cs = new CombinedScore();
 		cs.combinedScoring();
 	}
 	
-	public static void creatingViews(Connection conn) {
+	public static void creatingViews() {
 		System.out.println("views created");
-		ViewCreator vc = new ViewCreator(conn);
+		ViewCreator vc = new ViewCreator();
 		vc.createViews();
 	}
 	
-	public static void jaccard(Connection conn) {
+	public static void jaccard() {
 		System.out.println("jaccard calculated");
 		List<Integer> minhashparameters = new ArrayList<Integer>();
 		minhashparameters.add(1);
 		minhashparameters.add(4);
 		minhashparameters.add(16);
 		minhashparameters.add(32);
-		Shingling shing = new Shingling(conn, minhashparameters);
+		Shingling shing = new Shingling(minhashparameters);
 		shing.calculateJaccard();
 		shing.calculateapproxJaccard();
 	}
@@ -457,12 +459,12 @@ public class Driver {
 
 			System.out.println("Crawl session ended");
 			
-			TFIDFscoring(conn);
-			PageRankScoring(conn);
-			OkapiScoring(conn);
-			combinedScoring(conn);
-			creatingViews(conn);
-			jaccard(conn);
+			TFIDFscoring();
+			PageRankScoring();
+			OkapiScoring();
+			combinedScoring();
+			creatingViews();
+			jaccard();
 			
 			try {
 	            conn.close();

@@ -10,14 +10,17 @@ import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+
+import com.common.ConnectionManager;
+
 import java.lang.*;
 
 public class CombinedScore {
 	
 	private Connection conn;
 	
-	public CombinedScore(Connection conn) {
-		this.conn = conn;
+	public CombinedScore() {
+		this.conn = (new ConnectionManager()).getConnection();
 	}	
 	
 	public void combinedfunction() {
@@ -85,6 +88,8 @@ public class CombinedScore {
 			    
 			    conn.commit();
 			}
+			
+			conn.close();
 		} catch (SQLException e) {
 	    	   e.printStackTrace();
 	    	   try {

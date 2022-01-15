@@ -9,13 +9,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+import com.common.ConnectionManager;
+
 
 public class TFIDFScoreComputer {
 	
 	private Connection conn;
 		
-	public TFIDFScoreComputer(Connection conn) {
-		this.conn = conn;
+	public TFIDFScoreComputer() {
+		this.conn = (new ConnectionManager()).getConnection();
 	}
 	
 	public void tfidffunction() {
@@ -105,7 +107,7 @@ public class TFIDFScoreComputer {
 				    
 				    conn.commit();
 				}
-				
+				conn.close();//close here
 
 			} catch (SQLException e) {
 		    	   System.out.println(e);

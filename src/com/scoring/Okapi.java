@@ -8,14 +8,17 @@ import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+
+import com.common.ConnectionManager;
+
 import java.lang.*;
 
 public class Okapi {
 
 	private Connection conn;
 	
-	public Okapi(Connection conn) {
-		this.conn = conn;
+	public Okapi() {
+		this.conn = (new ConnectionManager()).getConnection();
 	}
 	
 	public void okapifunction() {
@@ -111,6 +114,7 @@ public class Okapi {
 			    
 			    conn.commit();
 			}
+			conn.close();
 		} catch (SQLException e) {
 	    	   System.out.println(e);
 	    	   try {
