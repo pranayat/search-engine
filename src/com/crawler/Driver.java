@@ -165,6 +165,9 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE INDEX term_idx ON german_synonyms USING hash (term)");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("CREATE INDEX img_term_idx ON image_features USING hash (term)");
+			pstmt.execute();
+			
 			Statement stmt = conn.createStatement();
 			stmt.execute("CREATE EXTENSION fuzzystrmatch");
 
