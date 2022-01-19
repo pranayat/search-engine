@@ -119,7 +119,7 @@ class Segment implements Comparable<Segment>{
 		}
 	}
 	
-	public static List<Segment> getBestSegments(List<Segment> segments, Set<String> queryTerms) {
+	public static List<Segment> getBestSegments(List<Segment> segments, Set<String> queryTerms, Query q) {
 		Collections.sort(segments);
 		List<Segment> diverseSegments = new ArrayList<Segment>();
 		for (Segment s: segments) {
@@ -140,6 +140,8 @@ class Segment implements Comparable<Segment>{
 				}
 			}
 		}
+		
+		q.setTermsNotFound(queryTerms);
 		
 		// at this point we have done our best to get all query terms covered in segments with highest tf of these terms
 		// if we still have space left we can stitch the neihbours of these segments together
@@ -166,6 +168,7 @@ public class Query {
 	private String scoreType;
 	private String language;
 	private String searchMode;
+	private Set<String> termsNotFound;
 
 	public Query(String queryText, String language, String searchMode) {
 		this.queryText = queryText.toLowerCase();
@@ -179,6 +182,14 @@ public class Query {
 		this.scoreType = scoreType;
 		this.language = language;
 		this.searchMode = searchMode;
+	}
+	
+	public void setTermsNotFound(Set<String> termsNotFound) {
+		this.termsNotFound = termsNotFound;
+	}
+	
+	public Set<String> getTermsNotFound() {
+		return this.termsNotFound;
 	}
 	
 	//	Distinct query term count = N
@@ -210,7 +221,7 @@ public class Query {
 		}
 		
 		
-		finalSegments = Segment.getBestSegments(segments, queryTerms);
+		finalSegments = Segment.getBestSegments(segments, queryTerms, this);
 		
 	    Collections.sort(finalSegments, (s1, s2) -> ((Segment) s1).getSerial() - ((Segment) s2).getSerial());
 		
@@ -230,6 +241,9 @@ public class Query {
 			prev = s;
 		}
 
+		if (this.termsNotFound.size() > 0) {
+			snippet = snippet + "<br> Not found: " + String.join(",", this.termsNotFound);
+		}
 		return snippet;
 	}
 
