@@ -104,7 +104,7 @@ public class Shingling {
 					errors = sr.report(errors, count);
 					count+=1;
 				}
-				sr.plot(errors);
+//				sr.plot(errors);
 				
 				conn.commit();
 				conn.close();
