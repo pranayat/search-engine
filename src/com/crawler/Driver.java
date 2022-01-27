@@ -291,9 +291,9 @@ public class Driver {
 		System.out.println("jaccard calculated");
 		List<Integer> minhashparameters = new ArrayList<Integer>();
 		minhashparameters.add(1);
-		minhashparameters.add(4);
-		minhashparameters.add(16);
-		minhashparameters.add(32);
+//		minhashparameters.add(4);
+//		minhashparameters.add(16);
+//		minhashparameters.add(32);
 		Shingling shing = new Shingling(minhashparameters);
 		shing.calculateJaccard();
 		shing.calculateapproxJaccard();
