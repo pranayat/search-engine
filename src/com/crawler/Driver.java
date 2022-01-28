@@ -72,6 +72,15 @@ public class Driver {
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS german_synonyms CASCADE");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS ad");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS ad_customer");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS ad_ngrams");
+			pstmt.execute();
+			
 			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS best_fit_eng");
 			pstmt.execute();
 
@@ -145,6 +154,14 @@ public class Driver {
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS german_synonyms (term varchar, synonym varchar)");
+			pstmt.execute();
+			
+			
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad (adid SERIAL PRIMARY KEY, customerid int, url varchar, text varchar, image varchar, budget float, onclick float)");
+			pstmt.execute();
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad_customer (customerid SERIAL PRIMARY KEY, lastname varchar, firstname varchar)");//optional birthdate, company...
+			pstmt.execute();
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad_ngrams (adid int, ngram varchar)");
 			pstmt.execute();
 			
 			//indices for making it faster
@@ -467,7 +484,7 @@ public class Driver {
 			OkapiScoring();
 			combinedScoring();
 			creatingViews();
-			jaccard();
+			//jaccard();
 			
 			try {
 	            conn.close();

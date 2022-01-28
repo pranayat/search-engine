@@ -10,6 +10,10 @@
 		<servlet-name>searchApi</servlet-name>
 		<servlet-class>com.search.SearchApiServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>placeAd</servlet-name>
+		<servlet-class>com.adplacement.AdServlet</servlet-class>
+	</servlet>
 
 	<servlet-mapping>
 		<servlet-name>search</servlet-name>
@@ -18,6 +22,10 @@
 	<servlet-mapping>
 		<servlet-name>searchApi</servlet-name>
 		<url-pattern>/search/json</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>placeAd</servlet-name>
+		<url-pattern>/placeAd</url-pattern>
 	</servlet-mapping>
 
 </web-app>

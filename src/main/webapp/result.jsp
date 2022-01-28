@@ -18,6 +18,7 @@
 			<div><a href="/is-project/search?query=${suggestedQuery}&lang=${queryLang}&score=1&mode=web">${suggestedQuery}</a></div>
 		</c:forEach>
 	</div>
+	<a href="AdForm.jsp">place an ad</a><br>
 	
 	<c:if test="${fn:length(results) > 0}">
 		<table style="display:flex;justify-content:center">
