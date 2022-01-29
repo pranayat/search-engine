@@ -32,7 +32,7 @@ public class Image {
 	}	
 	
 	public void index(Connection conn, int docId, String docLanguage) throws SQLException {
-		// score = lambda * e^(-lambda*distance) + 1 (if present in alt or title) TODO: make this weighted
+		// score = lambda * e^(-lambda*distance) + 1 (if present in alt or title)
 		// lambda = 1
 		
 		if (this.preTerms.length > 0) {
@@ -49,7 +49,7 @@ public class Image {
 			}			
 		}
 		
-		if (this.preTerms.length > 0) {
+		if (this.postTerms.length > 0) {
 			for (int i = 0; i < this.postTerms.length; i++) {
 				// insert or improve the term score, always consider shortest distance to image (largest score)
 				double distanceScore = 1 * Math.exp(-1 * i);

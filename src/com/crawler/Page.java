@@ -143,14 +143,6 @@ public class Page {
 			if (srcMatcher.find()) {
 				src = srcMatcher.group(1);
 			}
-			Matcher titleMatcher = titlePattern.matcher(imageTag);
-			if (titleMatcher.find()) {
-				title = CharacterSanitizer.sanitize(srcMatcher.group(1).toLowerCase());
-			}
-			Matcher altMatcher = altPattern.matcher(imageTag);
-			if (altMatcher.find()) {
-				alt = CharacterSanitizer.sanitize(altMatcher.group(1).toLowerCase());
-			}
 			
 			Image image = imageMap.get(src);
 			

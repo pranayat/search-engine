@@ -60,17 +60,6 @@ class Segment implements Comparable<Segment>{
 			}
 		}
 	}
-
-	public void appendSegment(Segment s) {
-		this.terms = Stream.concat(this.terms.stream(), s.terms.stream())
-        .collect(Collectors.toList());
-	}
-	
-	public void prependSegment(Segment s) {
-		this.terms = Stream.concat(s.terms.stream(), this.terms.stream())
-        .collect(Collectors.toList());
-	}
-	
 	
 	public List<String> getTerms() {
 		return this.terms;
