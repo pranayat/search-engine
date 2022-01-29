@@ -1,6 +1,7 @@
 package com.search;
 
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ public class ApiResult {
 	public List<Stat> stats;
 	public int cw;
 	public String[] suggestedQueries;
+	public Set<String> allsearchterms;
 	
 	public ApiResult() {
 		this.resultList = new ArrayList<Result>();
@@ -20,11 +22,12 @@ public class ApiResult {
 		this.cw = 0;
 	}
 
-	public ApiResult(List<Result> resultList, Map<String, String> query, List<Stat> stats, int cw, String[] suggestedQueries) {
+	public ApiResult(List<Result> resultList, Map<String, String> query, List<Stat> stats, int cw, String[] suggestedQueries, Set<String> allsearchterms) {
 		this.resultList = resultList;
 		this.query = query;
 		this.stats = stats;
 		this.cw = cw;
 		this.suggestedQueries = suggestedQueries;
+		this.allsearchterms = allsearchterms;
 	}
 }

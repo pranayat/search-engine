@@ -98,6 +98,9 @@ public class Driver {
 			
 			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS jaccardapproximationN");
 			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS updatengrams");
+			pstmt.execute();
 
 			pstmt = conn.prepareStatement("DROP EXTENSION IF EXISTS fuzzystrmatch");
 			pstmt.execute();
@@ -161,7 +164,7 @@ public class Driver {
 			pstmt.execute();
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad_customer (customerid SERIAL PRIMARY KEY, lastname varchar, firstname varchar)");//optional birthdate, company...
 			pstmt.execute();
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad_ngrams (adid int, ngram varchar)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad_ngrams (adid int, ngram varchar, weighting float, score float)");
 			pstmt.execute();
 			
 			//indices for making it faster
@@ -263,6 +266,18 @@ public class Driver {
 					+ "UPDATE docsimilarities SET approx_jaccard = jaccardappr WHERE docid1 = firstdocid and docid2 = seconddocid; "
 					+ "end; "
 					+ "$$ language plpgsql;";
+			stmt.execute(query);
+			//weight considering total number of ngrams given for the ad and how often a term occurs in the ngrams db
+			query = "CREATE FUNCTION updatengrams(curr_ngram varchar, curr_adid int, num_ngrams int) returns void as $$"
+					+ "	declare count_ngrams int;"
+					+ " declare curr_weighting float;"
+					+ "	BEGIN "
+					+ " curr_weighting = 0.5*exp(-0.5*num_ngrams);"
+					+ "	INSERT INTO ad_ngrams (adid, ngram, weighting, score) VALUES(curr_adid, curr_ngram, curr_weighting, 0);"
+					+ "	SELECT COUNT(*) into count_ngrams FROM ad_ngrams WHERE ngram = curr_ngram;"
+					+ "	UPDATE ad_ngrams SET score = weighting * 1::float/count_ngrams WHERE ngram = curr_ngram;"
+					+ "	END;"
+					+ "	$$ language plpgsql;";
 			stmt.execute(query);
 			conn.commit();
 			conn.close();//close here

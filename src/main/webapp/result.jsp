@@ -36,5 +36,21 @@
 			</c:forEach> 
 		</table>
 	</c:if>
+	
+	<c:if test="${fn:length(adresults) > 0}">
+		<table style="display:flex;justify-content:center">
+			<c:forEach items="${adresults}" var="adelement">
+			  <tr>
+			    <td>
+			    	<div style="margin-bottom:10px">
+			    		<a href="${adelement.url}">${adelement.url}</a>
+			    		<div style="width: 30%">${adelement.text}</div>
+			    	</div>
+			    </td>
+			  </tr>
+			  <br>
+			</c:forEach> 
+		</table>
+	</c:if>
 </body>
 </html>

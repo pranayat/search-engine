@@ -1,6 +1,7 @@
 package com.adplacement;
 
 import java.util.Set;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -52,11 +53,15 @@ public class Ad {
         	       adid = rsad.getInt("adid");
         	   }
     
-        	   PreparedStatement pstmtadngr = conn.prepareStatement("INSERT INTO ad_ngrams (adid, ngram) VALUES(?,?)");
+        	   CallableStatement cstmt;
         	   for (String ngram: this.ngrams) {
-        		   pstmtadngr.setInt(1, adid);
-    	    	   pstmtadngr.setString(2, ngram);
-    	    	   pstmtadngr.executeUpdate();
+        		    cstmt = conn.prepareCall("select updatengrams(?,?,?)");
+	   			    cstmt.setString(1, ngram.toLowerCase());
+	   			    cstmt.setInt(2, adid);
+	   			    cstmt.setInt(3, this.ngrams.size());
+	   			    cstmt.execute();
+	   			    
+	   			    conn.commit();
         	   }
         	   conn.commit();
         	   conn.close();
