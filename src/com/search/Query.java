@@ -158,6 +158,7 @@ public class Query {
 	private String language;
 	private String searchMode;
 	private Set<String> termsNotFound;
+	private Boolean isApiSearch;
 
 	public Query(String queryText, String language, String searchMode) {
 		this.queryText = queryText.toLowerCase();
@@ -165,12 +166,13 @@ public class Query {
 		this.language = language;
 	}
 	
-	public Query(String queryText, int k, String scoreType, String language, String searchMode) {
+	public Query(String queryText, int k, String scoreType, String language, String searchMode, Boolean isApiSearch) {
 		this.queryText = queryText.toLowerCase();
 		this.k = k;
 		this.scoreType = scoreType;
 		this.language = language;
 		this.searchMode = searchMode;
+		this.isApiSearch = isApiSearch;
 	}
 	
 	public void setTermsNotFound(Set<String> termsNotFound) {
@@ -328,6 +330,22 @@ public class Query {
 		return queryString;
 	}	
 	
+	public String[] getSuggestedQueries(Connection conn, String[] queryTextTerms) throws SQLException {
+		SpellChecker spellcheck = new SpellChecker(conn);
+		String[][] suggestedQueryTerms = spellcheck.suggest(queryTextTerms, this.language);
+		String [] suggestedQueries = new String[5];
+		
+		// create 5 suggestions
+		for (int i = 0; i < 5; i++) {
+			suggestedQueries[i] = "";
+			for (int j = 0; j < suggestedQueryTerms.length; j++) {
+				suggestedQueries[i] += suggestedQueryTerms[j][i].toLowerCase() + " ";
+			}
+		}
+
+		return suggestedQueries;
+	}
+
     public ApiResult getResults() throws ClassNotFoundException, JWNLException {
         String[] queryTextTerms = null;
         ApiResult apiResult = null;
@@ -354,19 +372,8 @@ public class Query {
     			queryTextTerms = Arrays.copyOfRange(queryTextTerms, 1, queryTextTerms.length); // don't consider site:abc.com as query term
     		}
     		
-    		SpellChecker spellcheck = new SpellChecker(conn);
-    		String[][] suggestedQueryTerms = spellcheck.suggest(queryTextTerms, this.language);
-    		String [] suggestedQueries = new String[5];
+    		String [] suggestedQueries = !this.isApiSearch ? this.getSuggestedQueries(conn, queryTextTerms) : null;
     		
-    		// create 5 suggestions
-    		for (int i = 0; i < 5; i++) {
-    			suggestedQueries[i] = "";
-    			for (int j = 0; j < suggestedQueryTerms.length; j++) {
-    				suggestedQueries[i] += suggestedQueryTerms[j][i].toLowerCase() + " ";
-    			}
-    		}
-    		
-
     		// remove stopwords for english queries
 			List<String> queryTextWithoutStopwords = Arrays.asList(queryTextTerms);
 			if (this.language.equals("eng")) {
@@ -442,7 +449,7 @@ public class Query {
     				
     			resultList.add(new Result(
     					rs.getString("url").trim(),
-    					this.generateSnippet(rs.getString("doc_text"), allTerms.stream().collect(Collectors.toSet())),
+    					!this.isApiSearch ? this.generateSnippet(rs.getString("doc_text"), allTerms.stream().collect(Collectors.toSet())) : null,
     					Double.parseDouble(rs.getString("agg_score").trim()),
     					i));
     			}

@@ -83,7 +83,7 @@ public class SearchServlet extends HttpServlet {
 		    		scoreType = "combined";
 		    	}
 		    	
-				Query q = new Query(queryText, k, scoreType, queryLanguage, "web");
+				Query q = new Query(queryText, k, scoreType, queryLanguage, "web", false);
 				apiResult = q.getResults();
 				req.setAttribute("results", apiResult.resultList);
 				req.setAttribute("suggestedQueries", apiResult.suggestedQueries);

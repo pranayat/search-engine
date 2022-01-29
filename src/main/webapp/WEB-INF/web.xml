@@ -17,7 +17,7 @@
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>searchApi</servlet-name>
-		<url-pattern>/search/json</url-pattern>
+		<url-pattern>/json</url-pattern>
 	</servlet-mapping>
 
 </web-app>

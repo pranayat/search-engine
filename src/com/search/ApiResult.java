@@ -5,6 +5,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.*;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResult {
 
 	public List<Result> resultList;
