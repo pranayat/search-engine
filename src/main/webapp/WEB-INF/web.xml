@@ -14,6 +14,10 @@
 		<servlet-name>placeAd</servlet-name>
 		<servlet-class>com.adplacement.AdServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>AdClick</servlet-name>
+		<servlet-class>com.adplacement.AdClickServlet</servlet-class>
+	</servlet>
 
 	<servlet-mapping>
 		<servlet-name>search</servlet-name>
@@ -26,6 +30,10 @@
 	<servlet-mapping>
 		<servlet-name>placeAd</servlet-name>
 		<url-pattern>/placeAd</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>AdClick</servlet-name>
+		<url-pattern>/AdClick</url-pattern>
 	</servlet-mapping>
 
 </web-app>
