@@ -16,6 +16,7 @@ public class AdServlet extends HttpServlet{
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 		try {
+			
 			String firstname = req.getParameter("firstname");
 			String lastname = req.getParameter("lastname");
 			AdCustomer c = new AdCustomer(firstname,lastname);
@@ -28,6 +29,9 @@ public class AdServlet extends HttpServlet{
 			float budget = Float.parseFloat(req.getParameter("budget"));
 			String ngrams = req.getParameter("listngrams");
 			
+			
+			
+			
 			Set<String> setngrams = new HashSet<String>(Arrays.asList(ngrams.split(";")));
 			
 			if (iurl == null) {
@@ -37,7 +41,7 @@ public class AdServlet extends HttpServlet{
 				Ad a = new Ad(url, text, iurl, budget, onclick,  setngrams);
 				a.registerAd(customerid);
 			}
-		
+			res.sendRedirect("index.html");
 		    
         } catch (Exception e) {
             e.printStackTrace();

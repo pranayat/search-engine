@@ -32,17 +32,33 @@
 			<div><a href="/is-project/search?query=${suggestedQuery}&lang=${queryLang}&score=1&mode=web">${suggestedQuery}</a></div>
 		</c:forEach>
 	</div>
-	<a href="AdForm.jsp">place an ad</a><br>
-	<button> your button that looks like a link</button>
+	
+	<hr>
+	Place your add <a href="AdForm.jsp">here</a>!
+	<hr>
+	<c:if test="${fn:length(adresults) > 0}">
+			<c:forEach items="${adresults}" var="adelement">
+			  <tr>
+			    	<div style="display:flex;justify-content:center">
+			    	<form action="AdClick">
+			    		Advertisement - <button type="submit" name="adbutton" value="${adelement.url}">${adelement.url}</button>
+			    		<div>${adelement.text}</div>
+			    	</form>
+			    	</div>
+			  </tr>
+			  <br>
+			</c:forEach> 
+	</c:if>
+	<hr>
 	
 	<c:if test="${fn:length(results) > 0}">
-		<table style="display:flex;justify-content:center">
+		<table style="width:100%">
 			<c:forEach items="${results}" var="element">
 			  <tr>
 			    <td>
-			    	<div style="margin-bottom:10px">
+			    	<div>
 			    		<a href="${element.url}">${element.url}</a>
-			    		<div style="width: 30%">${element.snippet}</div>
+			    		<div style="width: 40%">${element.snippet}</div>
 			    	</div>
 			    </td>
 			    <td>${element.score}</td>
@@ -52,23 +68,5 @@
 		</table>
 	</c:if>
 	
-	<c:if test="${fn:length(adresults) > 0}">
-		<table style="display:flex;justify-content:center">
-			<c:forEach items="${adresults}" var="adelement">
-			  <tr>
-			    <td>
-			    	<div style="margin-bottom:10px">
-			    	<form action="AdClick">
-			    		<button type="submit" name="adbutton" value="${adelement.url}">${adelement.url}</button>
-			    		<a href="${adelement.url}">${adelement.url}</a>
-			    		<div style="width: 30%">${adelement.text}</div>
-			    	</form>
-			    	</div>
-			    </td>
-			  </tr>
-			  <br>
-			</c:forEach> 
-		</table>
-	</c:if>
 </body>
 </html>
