@@ -28,7 +28,7 @@ public class AdServlet extends HttpServlet{
 			float onclick = Float.parseFloat(req.getParameter("onclick"));
 			float budget = Float.parseFloat(req.getParameter("budget"));
 			String ngrams = req.getParameter("listngrams");
-			String language = req.getParameter("language");
+			String language = req.getParameter("lang");
 			
 			
 			
