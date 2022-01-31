@@ -13,7 +13,7 @@ public class ApiResult {
 	public List<Stat> stats;
 	public int cw;
 	public String[] suggestedQueries;
-	public Set<String> allsearchterms;
+	public String[] allsearchterms;
 	
 	public ApiResult() {
 		this.resultList = new ArrayList<Result>();
@@ -22,7 +22,7 @@ public class ApiResult {
 		this.cw = 0;
 	}
 
-	public ApiResult(List<Result> resultList, Map<String, String> query, List<Stat> stats, int cw, String[] suggestedQueries, Set<String> allsearchterms) {
+	public ApiResult(List<Result> resultList, Map<String, String> query, List<Stat> stats, int cw, String[] suggestedQueries, String[] allsearchterms) {
 		this.resultList = resultList;
 		this.query = query;
 		this.stats = stats;

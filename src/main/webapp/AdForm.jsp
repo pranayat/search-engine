@@ -59,6 +59,14 @@ I do not want to place an ad. Back to <a href="index.html">home page...</a><br>
 		    <td>Money you pay per click on your ad</td>
 		    <td><input type="text" name="onclick"size="5px" placeholder="0.01">&euro;<br /></td>
 		  </tr>
+		   <tr>
+		    <td> </td>
+		    <td>Language of your ad</td>
+		    <td><select name="lang" id="language">
+		    		<option value="eng">English</option>
+		    		<option value="ger">Deutsch</option>
+				</select><br /></td>
+		  </tr>
 	 </table>	
 			<br><br>
 			<input type="submit" value="place your ad" style="float:right;" >						

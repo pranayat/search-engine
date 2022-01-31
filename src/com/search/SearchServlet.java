@@ -92,7 +92,7 @@ public class SearchServlet extends HttpServlet {
 				req.setAttribute("suggestedQueries", apiResult.suggestedQueries);
 				req.setAttribute("queryLang", queryLanguage);
 				
-				AdQuery aq = new AdQuery(apiResult.allsearchterms, k_ad);
+				AdQuery aq = new AdQuery(apiResult.allsearchterms, k_ad, queryLanguage);
 				List<AdResult> adresult = aq.getAdResults();
 				req.setAttribute("adresults", adresult);
 				

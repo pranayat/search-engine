@@ -20,6 +20,11 @@
 	  text-decoration: underline;
 	  cursor: pointer;
 	}
+	table {
+  width: 80%;
+  margin-bottom: 0px;
+  margin-top:0px;
+}
 </style> 
 
 </head>
@@ -37,36 +42,40 @@
 	Place your add <a href="AdForm.jsp">here</a>!
 	<hr>
 	<c:if test="${fn:length(adresults) > 0}">
+	<table  style="margin-left:auto;margin-right:auto;">
 			<c:forEach items="${adresults}" var="adelement">
 			  <tr>
-			    	<div style="display:flex;justify-content:center">
+			    	<td>
 			    	<form action="AdClick">
 			    		Advertisement - <button type="submit" name="adbutton" value="${adelement.url}">${adelement.url}</button>
 			    		<div>${adelement.text}</div>
 			    	</form>
-			    	</div>
-			  </tr>
-			  <br>
-			</c:forEach> 
-	</c:if>
+			    	</td>
+			  <c:if test="${not empty adelement.imageurl}">
+				  <td>
+					  <img src="${adelement.imageurl}" style="width:100px;height:100px;">
+					</td>
+			  </c:if></tr>
+			  </c:forEach> 
+	</table>
+    </c:if>
 	<hr>
-	
+	<br>
 	<c:if test="${fn:length(results) > 0}">
-		<table style="width:100%">
+	<table  style="margin-left:auto;margin-right:auto;">
 			<c:forEach items="${results}" var="element">
 			  <tr>
-			    <td>
-			    	<div>
-			    		<a href="${element.url}">${element.url}</a>
-			    		<div style="width: 40%">${element.snippet}</div>
-			    	</div>
-			    </td>
-			    <td>${element.score}</td>
+			    	<td>
+			    	<a href="${element.url}">${element.url}</a>
+			    	<div style="width: 40%">${element.snippet}</div>
+			    	<br>
+			    	</td>
+				  <td>
+					  ${element.score}
+					</td>
 			  </tr>
-			  <br>
-			</c:forEach> 
-		</table>
-	</c:if>
-	
+			  </c:forEach> 
+	</table>
+    </c:if>
 </body>
 </html>

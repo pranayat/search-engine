@@ -17,10 +17,7 @@ public class AdClickServlet extends HttpServlet{
 	
 	protected void doGet(HttpServletRequest req, HttpServletResponse res) {
 		try {
-			System.out.println("does this work");
-			
 			String clickedButton= req.getParameter("adbutton");
-			System.out.println(clickedButton);
 			Connection conn = (new ConnectionManager()).getConnection();
     		PreparedStatement pstmt = conn.prepareStatement("UPDATE ad SET budget = budget - onclick WHERE url = ?");
     		pstmt.setString(1, clickedButton);

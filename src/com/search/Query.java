@@ -491,7 +491,7 @@ public class Query {
 			rs = pstmt.executeQuery();
 			rs.next();
 			
-			apiResult = new ApiResult(resultList, query, stats, rs.getInt("cw"), suggestedQueries, allTerms);
+			apiResult = new ApiResult(resultList, query, stats, rs.getInt("cw"), suggestedQueries, queryTextTerms);
 			conn.close();
 						
         } catch (SQLException e) {

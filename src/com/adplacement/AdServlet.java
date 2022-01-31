@@ -28,6 +28,7 @@ public class AdServlet extends HttpServlet{
 			float onclick = Float.parseFloat(req.getParameter("onclick"));
 			float budget = Float.parseFloat(req.getParameter("budget"));
 			String ngrams = req.getParameter("listngrams");
+			String language = req.getParameter("language");
 			
 			
 			
@@ -35,10 +36,10 @@ public class AdServlet extends HttpServlet{
 			Set<String> setngrams = new HashSet<String>(Arrays.asList(ngrams.split(";")));
 			
 			if (iurl == null) {
-				Ad a = new Ad(url, text, budget, onclick, setngrams);
+				Ad a = new Ad(url, text, budget, onclick, setngrams, language);
 				a.registerAd(customerid);
 			}else {
-				Ad a = new Ad(url, text, iurl, budget, onclick,  setngrams);
+				Ad a = new Ad(url, text, iurl, budget, onclick,  setngrams, language);
 				a.registerAd(customerid);
 			}
 			res.sendRedirect("index.html");

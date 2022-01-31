@@ -23,7 +23,7 @@ public class AdResult {
 		return this.url;
 	}
 	
-	public String getImageUrl () {
+	public String getImageurl () {
 		return this.imageurl;
 	}
 	

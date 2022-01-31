@@ -27,6 +27,7 @@ import com.scoring.ViewCreator;
 import com.search.Synonym;
 import com.scoring.CombinedScore;
 import com.neardup.Shingling;
+import com.adplacement.ExampleAds;
 
 public class Driver {
 
@@ -160,7 +161,7 @@ public class Driver {
 			pstmt.execute();
 			
 			
-			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad (adid SERIAL PRIMARY KEY, customerid int, url varchar, text varchar, image varchar, budget float, onclick float)");
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad (adid SERIAL PRIMARY KEY, customerid int, url varchar, text varchar, image varchar, budget float, onclick float, language varchar)");
 			pstmt.execute();
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad_customer (customerid SERIAL PRIMARY KEY, lastname varchar, firstname varchar)");//optional birthdate, company...
 			pstmt.execute();
@@ -198,7 +199,7 @@ public class Driver {
 		  		+ "					AS $$"
 		  		+ "		    		  BEGIN"
 		  		+ "		    		  return query select p.term from"
-		  		+ "				(select * from eng_term_prob natural join dbwords) p where levenshtein(p.term, word) > 0"
+		  		+ "				(select * from eng_term_prob natural join dbwords where dbwords.language='eng') p where levenshtein(p.term, word) > 0"
 		  		+ "				GROUP BY p.term,p.prob"
 		  		+ "		  				    		  ORDER BY levenshtein(p.term, word) ASC, p.prob DESC LIMIT 5;"
 		  		+ "		    		END;"
@@ -212,7 +213,7 @@ public class Driver {
 			  		+ "					AS $$"
 			  		+ "		    		  BEGIN"
 			  		+ "		    		  return query select p.term from "
-			  		+ "			    	(select * from eng_term_prob natural join dbwords) p where levenshtein(p.term, word) > 0"
+			  		+ "			    	(select * from ger_term_prob natural join dbwords where dbwords.language='ger') p where levenshtein(p.term, word) > 0"
 			  		+ "					GROUP BY p.term,p.prob"
 			  		+ "		  			ORDER BY levenshtein(p.term, word) ASC, p.prob DESC LIMIT 5;"
 			  		+ "		    		END;"
@@ -500,6 +501,7 @@ public class Driver {
 			combinedScoring();
 			creatingViews();
 			//jaccard();
+			ExampleAds.insertExampleAds();
 			
 			try {
 	            conn.close();
