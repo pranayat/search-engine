@@ -52,7 +52,7 @@ public class AdQuery {
 		queryString = "select fitads.url, fitads.image, fitads.text, sum(fitads.score) as totalscore"
 				+ " FROM "
 				+ " (SELECT * FROM ad a, ad_ngrams n"
-				+ " WHERE a.adid = n.adid AND a.language = '" + lang +"' AND "+ this.buildDisjunctiveClause(queryTerms) +") as fitads"
+				+ " WHERE a.adid = n.adid AND a.budget > 0 AND a.language = '" + lang +"' AND "+ this.buildDisjunctiveClause(queryTerms) +") as fitads"
 				+ " GROUP BY fitads.url, fitads.image, fitads.text"
 				+ " ORDER BY totalscore DESC LIMIT " + k_ad + ";";
 		System.out.println(queryString);
