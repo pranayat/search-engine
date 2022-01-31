@@ -55,7 +55,7 @@ public class AdQuery {
 				+ " WHERE a.adid = n.adid AND a.budget > 0 AND a.language = '" + lang +"' AND "+ this.buildDisjunctiveClause(queryTerms) +") as fitads"
 				+ " GROUP BY fitads.url, fitads.image, fitads.text"
 				+ " ORDER BY totalscore DESC LIMIT " + k_ad + ";";
-		System.out.println(queryString);
+		
 		return queryString;
 	}
 	

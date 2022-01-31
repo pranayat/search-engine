@@ -25,10 +25,44 @@
   margin-bottom: 0px;
   margin-top:0px;
 }
+img{
+	        max-width: 100%;
+	        max-height: 100%;
+	        display: block; /* remove extra space below image */
+	    }
+	 .box1{
+	        width: 100px; 
+	        height:100px;       
+	        
+	    }   
 </style> 
 
 </head>
 <body style="font-family: 'Courier New', monospace;">
+<form action="search" style="display:flex; justify-content: center;">
+		<div style="display: flex; flex-direction: column; align-items: flex-start">
+			<div style="display: flex; flex-direction: row; margin: 5px">
+				<input type="text" name="query" placeholder="Enter search terms" style="font-size:28px">
+				<input type="submit" value="Search">
+			</div>
+			<div style="display: flex; flex-direction: row; margin: 5px">
+				<select name="lang" id="language">
+		    		<option value="eng">English</option>
+		    		<option value="ger">Deutsch</option>
+				</select>
+				<select name="score" id="score">
+		    		<option value="1">TF*IDF</option>
+		    		<option value="2">Okap BM25</option>
+		    		<option value="3">Combined</option>
+				</select>
+				<select hidden name="mode" id="mode">
+		    		<option value="web"></option>
+				</select>				
+				<a href="image_search.html" style="color:black; margin-left: 4px">Image Search</a>
+			</div>
+		</div>		
+	</form>
+	<hr>
 	<c:if test="${fn:length(results) > 0}"><div style="display:flex;justify-content:center">Showing results for - ${param.query}</div></c:if>
 	<c:if test="${fn:length(results) == 0}"><div style="display:flex;justify-content:center">No results found for - ${param.query}</div></c:if>
 	<div style="display:flex;align-items:center; flex-direction: column">
@@ -53,7 +87,9 @@
 			    	</td>
 			  <c:if test="${not empty adelement.imageurl}">
 				  <td>
-					  <img src="${adelement.imageurl}" style="width:100px;height:100px;">
+					  <div class="box1">
+				   <img src="${adelement.imageurl}">
+				  </div>
 					</td>
 			  </c:if></tr>
 			  </c:forEach> 
