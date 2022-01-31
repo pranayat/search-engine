@@ -45,6 +45,9 @@ public class Driver {
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS features CASCADE");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS collection_scores CASCADE");
+			pstmt.execute();			
+			
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS image_features CASCADE");
 			pstmt.execute();			
 			
@@ -127,6 +130,9 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE INDEX trgm_idx_url ON documents USING gin (url gin_trgm_ops)");
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS features (id SERIAL, docid INT, term VARCHAR, term_frequency BIGINT, df BIGINT, tf_idf FLOAT, bm25 FLOAT, combined FLOAT, language VARCHAR)");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS collection_scores (collection_id INT, term VARCHAR, score FLOAT)");
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS image_features (id SERIAL, url VARCHAR, term VARCHAR, score FLOAT, docid INT)");

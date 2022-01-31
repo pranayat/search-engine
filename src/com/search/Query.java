@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,6 +21,9 @@ import java.util.stream.Stream;
 import com.indexer.StopwordRemover;
 import com.common.CharacterSanitizer;
 import com.common.ConnectionManager;
+import com.common.Request;
+import com.crawler.Crawler;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.indexer.Indexer;
 import com.indexer.Stemmer;
 
@@ -495,5 +499,27 @@ public class Query {
         
 
         return apiResult ;
+    }
+    
+    private ApiResult getResultsFrom(String url) throws Exception {
+    	
+		Map<String, String> params = new HashMap<>();
+		params.put("query", this.queryText);
+		params.put("k", Integer.toString(this.k));
+		params.put("score", Integer.toString(2));
+		
+		ObjectMapper mapper = new ObjectMapper();
+    	ApiResult result = mapper.readValue(Request.get(url, params), ApiResult.class);
+    	return result;
+    }
+
+    public ApiResult getResultsFromCollection(int collectionId) throws Exception {
+    	if (collectionId == 1) {
+    		return this.getResultsFrom("http://131.246.118.172:8080/is-project/json");    		
+    	} else if (collectionId == 2) {
+    		return this.getResultsFrom("http://131.246.118.235:8080/is-project/json");    		
+    	} else {
+    		return this.getResults();
+    	}
     }
 }

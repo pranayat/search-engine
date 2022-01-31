@@ -54,7 +54,7 @@ public class SearchApiServlet extends HttpServlet {
 				out.print("Rate limit exceeded for your IP, please try after sometime.");
 				out.flush();
 		    } else {
-		    	String searchMode = req.getParameter("mode");
+		    	String searchMode = req.getParameter("mode") != null ? req.getParameter("mode") : "web";
 		    	String queryText = req.getParameter("query");
 		    	int k = req.getParameter("k").length() > 0 ? Integer.parseInt(req.getParameter("k")) : 20;		    	
 		    	String scoreTypeOption = req.getParameter("score");
@@ -85,7 +85,7 @@ public class SearchApiServlet extends HttpServlet {
 		    	
 		    			    	
 	    		Query q = new Query(queryText, k, scoreType, queryLanguage, "web", true);
-				
+	    		
 	    		jsonString = objectMapper.writeValueAsString(q.getResults());
 	    		res.setContentType("application/json");
 	    		res.setCharacterEncoding("UTF-8");

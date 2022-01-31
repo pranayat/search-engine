@@ -10,24 +10,33 @@ import com.fasterxml.jackson.annotation.*;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResult {
 
+	@JsonProperty("resultList")
 	public List<Result> resultList;
+	@JsonProperty("query")
 	public Map<String, String> query;
-	public List<Stat> stats;
+	@JsonProperty("stat")
+	public List<Stat> stat;
+	@JsonProperty("cw")
 	public int cw;
+	@JsonProperty("suggestedQueries")
 	public String[] suggestedQueries;
 	
 	public ApiResult() {
 		this.resultList = new ArrayList<Result>();
 		this.query = new LinkedHashMap<String, String>();
-		this.stats = new ArrayList<Stat>();
+		this.stat = new ArrayList<Stat>();
 		this.cw = 0;
 	}
 
 	public ApiResult(List<Result> resultList, Map<String, String> query, List<Stat> stats, int cw, String[] suggestedQueries) {
 		this.resultList = resultList;
 		this.query = query;
-		this.stats = stats;
+		this.stat = stats;
 		this.cw = cw;
 		this.suggestedQueries = suggestedQueries;
+	}
+	
+	public void computeMetaScoresByCollection(Collection c) {
+		
 	}
 }
