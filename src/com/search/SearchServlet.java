@@ -77,7 +77,7 @@ public class SearchServlet extends HttpServlet {
 	    		String searchMode = req.getParameter("mode");
 	    		
 	    		if (searchMode.equals("image")) {
-	    			Query q = new Query(queryText, queryLanguage, "image");
+	    			Query q = new Query(queryText, queryLanguage, "image", false);
 	    			apiResultC3 = q.getResults();
 	    			req.setAttribute("results", apiResultC3.resultList);
 	    			req.setAttribute("suggestedQueries", apiResultC3.suggestedQueries);

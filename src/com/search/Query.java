@@ -165,10 +165,11 @@ public class Query {
 	private Set<String> termsNotFound;
 	private Boolean isApiSearch;
 
-	public Query(String queryText, String language, String searchMode) {
+	public Query(String queryText, String language, String searchMode, Boolean isApiSearch) {
 		this.queryText = queryText.toLowerCase();
 		this.searchMode = searchMode;
 		this.language = language;
+		this.isApiSearch = isApiSearch;
 	}
 	
 	public Query(String queryText, int k, String scoreTypeOption, String language, String searchMode, Boolean isApiSearch) {

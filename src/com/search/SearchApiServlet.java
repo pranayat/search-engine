@@ -71,7 +71,7 @@ public class SearchApiServlet extends HttpServlet {
 	    		}
 		    	
 		    	if (searchMode.equals("image")) {
-					Query q = new Query(queryText, queryLanguage, "image");
+					Query q = new Query(queryText, queryLanguage, "image", true);
 		    		jsonString = objectMapper.writeValueAsString(q.getResults());
 		    		res.setContentType("application/json");
 		    		res.setCharacterEncoding("UTF-8");
