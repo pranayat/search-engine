@@ -159,6 +159,7 @@ public class Query {
 	private String queryText;
 	private int k;
 	private String scoreType;
+	private String scoreTypeOption;
 	private String language;
 	private String searchMode;
 	private Set<String> termsNotFound;
@@ -170,13 +171,21 @@ public class Query {
 		this.language = language;
 	}
 	
-	public Query(String queryText, int k, String scoreType, String language, String searchMode, Boolean isApiSearch) {
+	public Query(String queryText, int k, String scoreTypeOption, String language, String searchMode, Boolean isApiSearch) {
 		this.queryText = queryText.toLowerCase();
 		this.k = k;
-		this.scoreType = scoreType;
+		this.scoreTypeOption = scoreTypeOption;
 		this.language = language;
 		this.searchMode = searchMode;
 		this.isApiSearch = isApiSearch;
+		
+    	if (scoreTypeOption.equals("1")) {
+    		this.scoreType = "tf_idf";
+    	} else if (scoreTypeOption.equals("2")) {
+    		this.scoreType = "bm25";
+    	} else if (scoreTypeOption.equals("3")) {
+    		this.scoreType = "combined";
+    	}
 	}
 	
 	public void setTermsNotFound(Set<String> termsNotFound) {
@@ -506,7 +515,7 @@ public class Query {
 		Map<String, String> params = new HashMap<>();
 		params.put("query", this.queryText);
 		params.put("k", Integer.toString(this.k));
-		params.put("score", Integer.toString(2));
+		params.put("score", this.scoreTypeOption);
 		
 		ObjectMapper mapper = new ObjectMapper();
     	ApiResult result = mapper.readValue(Request.get(url, params), ApiResult.class);

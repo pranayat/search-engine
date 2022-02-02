@@ -76,7 +76,6 @@ public class MetaSearchServlet extends HttpServlet {
 				out.flush();
 		    } else {			    	
 	    		String scoreTypeOption = req.getParameter("score");
-	    		String scoreType = "tf_idf";
 	    		String queryLanguage;
 	    		
 	    		if (req.getParameter("lang") != null && req.getParameter("lang").length() > 0) {
@@ -124,7 +123,7 @@ public class MetaSearchServlet extends HttpServlet {
 		    			knownTerms.add(term);
 		    		}
 		    	}
-		    	
+	    		
 		    	// route query to top 2 collections for known terms
 		    	if (knownTerms.size() > 0) {
 		    		String knownQueryText = this.getQueryTextFromTerms(knownTerms, queryLanguage, stemTermMap);
@@ -132,15 +131,16 @@ public class MetaSearchServlet extends HttpServlet {
 		    		List<ApiResult> knownApiResults = new ArrayList<ApiResult>();
 		    		// take max top 2
 		    		for(Collection c: sortedCollectionList.subList(0, 2)) {
-		    			Query q = new Query(knownQueryText, k, scoreType, queryLanguage, "web", false);
+		    			Query q = new Query(knownQueryText, k, scoreTypeOption, queryLanguage, "web", false);
 		    			ApiResult r = q.getResultsFromCollection(c.collectionId);
 		    			knownApiResults.add(r);
 		    			c.setKnownTermsApiResult(r);
 		    		}
 		    		
+		    		
 		    		Map<String, Integer> termCfMap = Collection.getTermCfMap(knownTerms, knownApiResults);
 		    		for(Collection c: sortedCollectionList.subList(0, 2)) {
-		    			c.updateCollectionTermScores(unknownTerms, c.knownTermsApiResult, termCfMap);
+		    			c.updateCollectionTermScores(knownTerms, c.knownTermsApiResult, termCfMap);
 		    		}
 		    	}
 		    	
@@ -150,7 +150,7 @@ public class MetaSearchServlet extends HttpServlet {
 
 		    		List<ApiResult> unknownApiResults = new ArrayList<ApiResult>();
 		    		for(Collection c: sortedCollectionList) {
-		    			Query q = new Query(unknownQueryText, k, scoreType, queryLanguage, "web", false);
+		    			Query q = new Query(unknownQueryText, k, scoreTypeOption, queryLanguage, "web", false);
 		    			ApiResult r = q.getResultsFromCollection(c.collectionId);
 		    			unknownApiResults.add(r);
 		    			c.setUnknownTermsApiResult(r);
@@ -158,7 +158,7 @@ public class MetaSearchServlet extends HttpServlet {
 		    		
 		    		Map<String, Integer> termCfMap = Collection.getTermCfMap(unknownTerms, unknownApiResults);
 		    		for(Collection c: sortedCollectionList) {
-		    			c.updateCollectionTermScores(unknownTerms, c.unknownTermsApiResult, termCfMap);
+		    			c.insertCollectionTermScores(unknownTerms, c.unknownTermsApiResult, termCfMap);
 		    		}
 		    	}
 		    	

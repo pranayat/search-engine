@@ -18,7 +18,7 @@ public class Collection implements Comparable<Collection>{
 	public double collectionScore;
 	public ApiResult knownTermsApiResult;
 	public ApiResult unknownTermsApiResult;
-	
+	public static double avgCw = updateAvgCw();
 	
 	public Collection(int collectionId, float collectionScore) {
 		this.collectionId = collectionId;
@@ -33,6 +33,22 @@ public class Collection implements Comparable<Collection>{
 		this.unknownTermsApiResult = unknownTermsApiResult;
 	}
 		
+	public static double updateAvgCw() {
+		int sumCw = 0;
+		for (int i = 1; i < 4; i++) {
+			Query q = new Query("foo", 1, "1", "eng", "web", false);
+			ApiResult r;
+			try {
+				r = q.getResultsFromCollection(i);
+				sumCw = sumCw + r.cw;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}	
+		}
+		 		
+		return sumCw/3;
+	}
+	
     public static Map<String, Float> findCollectionTermScores(int collectionId, List<String> queryTerms) throws SQLException {
     	
     	Connection conn = (new ConnectionManager()).getConnection();
@@ -116,23 +132,39 @@ public class Collection implements Comparable<Collection>{
     		score = (double) 0.4;
     	} else {
     		int df = getTermDfFromStat(result.stat, term);
-    		int avgCw = 1000; // TODO
     		int c = 3; // TODO
-    		score = 0.4 + (0.6) * (df / (df + 50 + 150 * (result.cw / 10000))) * (Math.log((c + 0.5) / cf) / Math.log(c + 1));
+    		score = 0.4 + (0.6) * (df / (df + 50 + 150 * (result.cw / avgCw))) * (Math.log((c + 0.5) / cf) / Math.log(c + 1));
     	}
     	
     	return score;
     }
-    
-    public void updateCollectionTermScores(List<String> terms, ApiResult apiResult, Map<String, Integer> termCfMap) throws SQLException {
+
+    public void insertCollectionTermScores(List<String> terms, ApiResult apiResult, Map<String, Integer> termCfMap) throws SQLException {
     	Connection conn = (new ConnectionManager()).getConnection();
     	for (String term: terms) {
-    		double score = this.computeCollectionScoreForTerm(term, apiResult, termCfMap.get(term));
+    		int cf = termCfMap.get(term);
+    		double score = this.computeCollectionScoreForTerm(term, apiResult, cf);
         	PreparedStatement pstmt = conn.prepareStatement("INSERT INTO collection_scores (collection_id, term, score, cf) VALUES (?,?,?,?)");
         	pstmt.setInt(1, this.collectionId);
         	pstmt.setString(2, term);
         	pstmt.setDouble(3, score);
-        	pstmt.setInt(4, termCfMap.get(term));
+        	pstmt.setInt(4, cf);
+        	pstmt.executeUpdate();
+    	}
+    	conn.commit();
+    	conn.close();
+    }
+
+    public void updateCollectionTermScores(List<String> terms, ApiResult apiResult, Map<String, Integer> termCfMap) throws SQLException {
+    	Connection conn = (new ConnectionManager()).getConnection();
+    	for (String term: terms) {
+    		int cf = termCfMap.get(term);
+    		double score = this.computeCollectionScoreForTerm(term, apiResult, cf);
+        	PreparedStatement pstmt = conn.prepareStatement("UPDATE collection_scores set score = ?, cf = ? WHERE collection_id = ? AND term = ? ");
+        	pstmt.setDouble(1, score);
+        	pstmt.setInt(2, cf);
+        	pstmt.setInt(3, this.collectionId);
+        	pstmt.setString(4, term);
         	pstmt.executeUpdate();
     	}
     	conn.commit();

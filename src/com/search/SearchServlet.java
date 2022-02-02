@@ -64,7 +64,6 @@ public class SearchServlet extends HttpServlet {
 		    } else {	
 		    	
 	    		String scoreTypeOption = req.getParameter("score");
-	    		String scoreType = "tf_idf";
 	    		String queryLanguage;
 	    		
 	    		if (req.getParameter("lang") != null && req.getParameter("lang").length() > 0) {
@@ -88,15 +87,7 @@ public class SearchServlet extends HttpServlet {
 	    			return;
 	    		}	
 	    		
-	    		if (scoreTypeOption.equals("1")) {
-	    			scoreType = "tf_idf";
-	    		} else if (scoreTypeOption.equals("2")) {
-	    			scoreType = "bm25";
-	    		} else if (scoreTypeOption.equals("3")) {
-	    			scoreType = "combined";
-	    		}
-	    		
-	    		Query q3 = new Query(queryText, k, scoreType, queryLanguage, "web", false);
+	    		Query q3 = new Query(queryText, k, scoreTypeOption, queryLanguage, "web", false);
 	    		apiResultC3 = q3.getResultsFromCollection(3);
 	    		
 	    		req.setAttribute("results", apiResultC3.resultList);

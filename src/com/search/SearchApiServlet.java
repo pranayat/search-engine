@@ -78,18 +78,9 @@ public class SearchApiServlet extends HttpServlet {
 		    		out.print(jsonString);
 		    		out.flush();
 					return;
-		    	}
-
-		    	if (scoreTypeOption.equals("1")) {
-		    		scoreType = "tf_idf";
-		    	} else if (scoreTypeOption.equals("2")) {
-		    		scoreType = "bm25";
-		    	} else if (scoreTypeOption.equals("3")) {
-		    		scoreType = "combined";
-		    	}
-		    	
+		    	}		    	
 		    			    	
-	    		Query q = new Query(queryText, k, scoreType, queryLanguage, "web", true);
+	    		Query q = new Query(queryText, k, scoreTypeOption, queryLanguage, "web", true);
 	    		
 	    		jsonString = objectMapper.writeValueAsString(q.getResults());
 	    		res.setContentType("application/json");
