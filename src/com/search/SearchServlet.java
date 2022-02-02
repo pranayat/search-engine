@@ -25,6 +25,8 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
 import io.github.bucket4j.Refill;
 
+import com.adplacement.*;
+
 public class SearchServlet extends HttpServlet {
 	
 	private static final long serialVersionUID = 1L;	
@@ -44,6 +46,7 @@ public class SearchServlet extends HttpServlet {
 		try {
 			String queryText = req.getParameter("query");		
 			int k = 20;
+			int k_ad = 4;
 			PrintWriter out = res.getWriter();
 			ApiResult apiResultC3 = null;
 	        
@@ -90,6 +93,10 @@ public class SearchServlet extends HttpServlet {
 	    		Query q3 = new Query(queryText, k, scoreTypeOption, queryLanguage, "web", false);
 	    		apiResultC3 = q3.getResultsFromCollection(3);
 	    		
+					AdQuery aq = new AdQuery(apiResultC3.allsearchterms, k_ad, queryLanguage);
+					List<AdResult> adresult = aq.getAdResults();
+
+					req.setAttribute("adresults", adresult);
 	    		req.setAttribute("results", apiResultC3.resultList);
 	    		req.setAttribute("suggestedQueries", apiResultC3.suggestedQueries);
 	    		req.setAttribute("queryLang", queryLanguage);

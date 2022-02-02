@@ -26,6 +26,7 @@ import com.scoring.ViewCreator;
 import com.search.Synonym;
 import com.scoring.CombinedScore;
 import com.neardup.Shingling;
+import com.adplacement.ExampleAds;
 
 public class Driver {
 
@@ -74,6 +75,15 @@ public class Driver {
 			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS german_synonyms CASCADE");
 			pstmt.execute();
 			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS ad");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS ad_customer");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP TABLE IF EXISTS ad_ngrams");
+			pstmt.execute();
+			
 			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS best_fit_eng");
 			pstmt.execute();
 
@@ -90,6 +100,9 @@ public class Driver {
 			pstmt.execute();
 			
 			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS jaccardapproximationN");
+			pstmt.execute();
+			
+			pstmt = conn.prepareStatement("DROP FUNCTION IF EXISTS updatengrams");
 			pstmt.execute();
 
 			pstmt = conn.prepareStatement("DROP EXTENSION IF EXISTS fuzzystrmatch");
@@ -152,6 +165,14 @@ public class Driver {
 			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS german_synonyms (term varchar, synonym varchar)");
 			pstmt.execute();
 			
+			
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad (adid SERIAL PRIMARY KEY, customerid int, url varchar, text varchar, image varchar, budget float, onclick float, language varchar)");
+			pstmt.execute();
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad_customer (customerid SERIAL PRIMARY KEY, lastname varchar, firstname varchar)");//optional birthdate, company...
+			pstmt.execute();
+			pstmt = conn.prepareStatement("CREATE TABLE IF NOT EXISTS ad_ngrams (adid int, ngram varchar, weighting float, score float)");
+			pstmt.execute();
+			
 			//indices for making it faster
 			pstmt = conn.prepareStatement("CREATE INDEX feat_id ON features USING hash (id)");
 			pstmt.execute();
@@ -183,7 +204,7 @@ public class Driver {
 		  		+ "					AS $$"
 		  		+ "		    		  BEGIN"
 		  		+ "		    		  return query select p.term from"
-		  		+ "				(select * from eng_term_prob natural join dbwords) p where levenshtein(p.term, word) > 0"
+		  		+ "				(select * from eng_term_prob natural join dbwords where dbwords.language='eng') p where levenshtein(p.term, word) > 0"
 		  		+ "				GROUP BY p.term,p.prob"
 		  		+ "		  				    		  ORDER BY levenshtein(p.term, word) ASC, p.prob DESC LIMIT 5;"
 		  		+ "		    		END;"
@@ -197,7 +218,7 @@ public class Driver {
 			  		+ "					AS $$"
 			  		+ "		    		  BEGIN"
 			  		+ "		    		  return query select p.term from "
-			  		+ "			    	(select * from eng_term_prob natural join dbwords) p where levenshtein(p.term, word) > 0"
+			  		+ "			    	(select * from ger_term_prob natural join dbwords where dbwords.language='ger') p where levenshtein(p.term, word) > 0"
 			  		+ "					GROUP BY p.term,p.prob"
 			  		+ "		  			ORDER BY levenshtein(p.term, word) ASC, p.prob DESC LIMIT 5;"
 			  		+ "		    		END;"
@@ -252,6 +273,18 @@ public class Driver {
 					+ "end; "
 					+ "$$ language plpgsql;";
 			stmt.execute(query);
+			//weight considering total number of ngrams given for the ad and how often a term occurs in the ngrams db
+			query = "CREATE FUNCTION updatengrams(curr_ngram varchar, curr_adid int, num_ngrams int) returns void as $$"
+					+ "	declare count_ngrams int;"
+					+ " declare curr_weighting float;"
+					+ "	BEGIN "
+					+ " curr_weighting = 0.5*exp(-0.5*num_ngrams);"
+					+ "	INSERT INTO ad_ngrams (adid, ngram, weighting, score) VALUES(curr_adid, curr_ngram, curr_weighting, 0);"
+					+ "	SELECT COUNT(*) into count_ngrams FROM ad_ngrams WHERE ngram = curr_ngram;"
+					+ "	UPDATE ad_ngrams SET score = weighting * 1::float/count_ngrams WHERE ngram = curr_ngram;"
+					+ "	END;"
+					+ "	$$ language plpgsql;";
+			stmt.execute(query);
 			conn.commit();
 			conn.close();//close here
 		} catch (Exception e) {
@@ -299,9 +332,9 @@ public class Driver {
 		System.out.println("jaccard calculated");
 		List<Integer> minhashparameters = new ArrayList<Integer>();
 		minhashparameters.add(1);
-		minhashparameters.add(4);
-		minhashparameters.add(16);
-		minhashparameters.add(32);
+//		minhashparameters.add(4);
+//		minhashparameters.add(16);
+//		minhashparameters.add(32);
 		Shingling shing = new Shingling(minhashparameters);
 		shing.calculateJaccard();
 		shing.calculateapproxJaccard();
@@ -472,7 +505,8 @@ public class Driver {
 			OkapiScoring();
 			combinedScoring();
 			creatingViews();
-			jaccard();
+			//jaccard();
+			ExampleAds.insertExampleAds();
 			
 			try {
 	            conn.close();
