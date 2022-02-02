@@ -24,7 +24,7 @@ public class SpellChecker {
 			if (selectedLang.length() > 0) {
 				lang = selectedLang;
 			} else {
-				LanguageClassifier langclass = new LanguageClassifier(conn);
+				LanguageClassifier langclass = new LanguageClassifier();
 				lang = langclass.classify(query);
 			}
 	    

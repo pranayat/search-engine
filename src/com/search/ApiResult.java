@@ -35,8 +35,4 @@ public class ApiResult {
 		this.cw = cw;
 		this.suggestedQueries = suggestedQueries;
 	}
-	
-	public void computeMetaScoresByCollection(Collection c) {
-		
-	}
 }

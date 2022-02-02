@@ -22,7 +22,7 @@ public class Indexer{
 	public Indexer(Connection conn) {
 		this.conn = conn;
 		this.sr = new StopwordRemover();
-		this.languageClassifier = new LanguageClassifier(conn);
+		this.languageClassifier = new LanguageClassifier();
 	}
     
     private Map<String, Integer> getCounts(List<String> text, Boolean stem) {

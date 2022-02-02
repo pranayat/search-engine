@@ -10,6 +10,10 @@
 		<servlet-name>searchApi</servlet-name>
 		<servlet-class>com.search.SearchApiServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>metaSearch</servlet-name>
+		<servlet-class>com.search.MetaSearchServlet</servlet-class>
+	</servlet>	
 
 	<servlet-mapping>
 		<servlet-name>search</servlet-name>
@@ -19,5 +23,8 @@
 		<servlet-name>searchApi</servlet-name>
 		<url-pattern>/json</url-pattern>
 	</servlet-mapping>
-
+	<servlet-mapping>
+		<servlet-name>metaSearch</servlet-name>
+		<url-pattern>/metasearch</url-pattern>
+	</servlet-mapping>
 </web-app>

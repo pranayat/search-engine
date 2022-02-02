@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,13 +15,24 @@ import com.common.ConnectionManager;
 
 public class Collection implements Comparable<Collection>{
 	public int collectionId;
-	public float collectionScore;
+	public double collectionScore;
+	public ApiResult knownTermsApiResult;
+	public ApiResult unknownTermsApiResult;
+	
 	
 	public Collection(int collectionId, float collectionScore) {
 		this.collectionId = collectionId;
 		this.collectionScore = collectionScore;
 	}
 	
+	public void setKnownTermsApiResult(ApiResult knownTermsApiResult) {
+		this.knownTermsApiResult = knownTermsApiResult;
+	}
+	
+	public void setUnknownTermsApiResult(ApiResult unknownTermsApiResult) {
+		this.unknownTermsApiResult = unknownTermsApiResult;
+	}
+		
     public static Map<String, Float> findCollectionTermScores(int collectionId, List<String> queryTerms) throws SQLException {
     	
     	Connection conn = (new ConnectionManager()).getConnection();
@@ -57,9 +70,134 @@ public class Collection implements Comparable<Collection>{
     	return sum;
     }
     
-    public void updateCollectionTermScores(ApiResult result) {
+    public static Map<String, Integer> getTermCfMap(List<String> terms, List<ApiResult> apiResults) {
+    	Map<String, Integer> termCfMap = new HashMap<String, Integer>();
+    	for (String term: terms) {
+    		int cf = 0;
+    		termCfMap.put(term, cf);
+    		for (ApiResult apiResult: apiResults) {
+    			if (isTermInCollection(term, apiResult.stat)) {
+        			cf = cf + 1;
+        		}
+    		}
+    		termCfMap.put(term, cf);
+    	}
     	
+    	return termCfMap;
     }
+
+    private static boolean isTermInCollection(String term, List<Stat> termStats) {
+    	boolean found = false;
+    	for (Stat termStat: termStats) {
+    		if (term.equals(termStat.term)) {
+    			found = true;
+    			break;
+    		}
+    	}
+    	
+    	return found;
+    }
+    
+    private static int getTermDfFromStat(List<Stat> stat, String term) {
+    	int df = 0;
+    	for(Stat termStat: stat) {
+    		if (termStat.term.equals(term)) {
+    			df = termStat.df;
+    			break;
+    		}
+    	}
+    	
+    	return df;
+    }
+    
+    private double computeCollectionScoreForTerm(String term, ApiResult result, Integer cf) {
+    	double score;
+    	if (!isTermInCollection(term, result.stat)) {
+    		score = (double) 0.4;
+    	} else {
+    		int df = getTermDfFromStat(result.stat, term);
+    		int avgCw = 1000; // TODO
+    		int c = 3; // TODO
+    		score = 0.4 + (0.6) * (df / (df + 50 + 150 * (result.cw / 10000))) * (Math.log((c + 0.5) / cf) / Math.log(c + 1));
+    	}
+    	
+    	return score;
+    }
+    
+    public void updateCollectionTermScores(List<String> terms, ApiResult apiResult, Map<String, Integer> termCfMap) throws SQLException {
+    	Connection conn = (new ConnectionManager()).getConnection();
+    	for (String term: terms) {
+    		double score = this.computeCollectionScoreForTerm(term, apiResult, termCfMap.get(term));
+        	PreparedStatement pstmt = conn.prepareStatement("INSERT INTO collection_scores (collection_id, term, score, cf) VALUES (?,?,?,?)");
+        	pstmt.setInt(1, this.collectionId);
+        	pstmt.setString(2, term);
+        	pstmt.setDouble(3, score);
+        	pstmt.setInt(4, termCfMap.get(term));
+        	pstmt.executeUpdate();
+    	}
+    	conn.commit();
+    	conn.close();
+    }
+    
+    private static double getAggregateCollectionScore(int collectionId) throws SQLException {
+    	Connection conn = (new ConnectionManager()).getConnection();
+    	PreparedStatement pstmt = conn.prepareStatement("SELECT sum(score) as agg_score from collection_scores WHERE collection_id = ?");
+    	pstmt.setInt(1, collectionId);
+    	ResultSet rs = pstmt.executeQuery();
+    	rs.next();
+    	conn.close();
+    	return rs.getDouble("agg_score");
+    }
+    
+    private static double getMinCollectionScore(int collectionId) throws SQLException {
+    	return 0.4;
+    }
+    
+    private static double getMaxCollectionScore(int collectionId) throws SQLException {
+    	int c = 3; // TODO
+    	Connection conn = (new ConnectionManager()).getConnection();
+    	PreparedStatement pstmt = conn.prepareStatement("SELECT cf from collection_scores WHERE collection_id = ?");
+    	pstmt.setInt(1, collectionId);
+    	ResultSet rs = pstmt.executeQuery();
+    	rs.next();
+    	conn.close();
+    	int cf = rs.getInt("cf");
+ 
+    	return 0.4 + (0.6) * Math.log((c + 0.5) / cf) / Math.log(c + 1);    	
+    }
+  
+	public static List<Result> mergeResults(List<Collection> collections) throws SQLException {
+		List<Result> mergedResults = new ArrayList<Result>();
+		for (Collection c: collections) {
+			double Rmin = getMinCollectionScore(c.collectionId);
+			double Rmax = getMaxCollectionScore(c.collectionId);
+			double collectionScore = getAggregateCollectionScore(c.collectionId);
+			
+			if (c.knownTermsApiResult != null) {
+				for (Result r: c.knownTermsApiResult.resultList) {
+					double score = (r.getScore() + 0.4 * r.getScore() * (collectionScore - Rmin) / (Rmax - Rmin)) / 1.4;
+					mergedResults.add(new Result(r.getUrl(), score, c.collectionId));
+				}
+			}
+			if (c.unknownTermsApiResult != null) {
+				for (Result r: c.unknownTermsApiResult.resultList) {
+					double score = (r.getScore() + 0.4 * r.getScore() * (collectionScore - Rmin) / (Rmax - Rmin)) / 1.4;
+					mergedResults.add(new Result(r.getUrl(), score, c.collectionId));
+				}
+			}
+			
+		}
+		
+		Collections.sort(mergedResults);
+		
+		int i = 1;
+		for (Result r: mergedResults) {
+			r.setRank(i);
+			i = i + 1;
+		}
+		
+		return mergedResults; 
+	}
 
 	@Override
 	public int compareTo(Collection c) {

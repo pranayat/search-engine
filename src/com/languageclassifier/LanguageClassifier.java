@@ -17,7 +17,6 @@ import com.common.ConnectionManager;
 
 public class LanguageClassifier {
 	
-	Connection conn;
 	private static final HashMap<String, Integer> languageTermCounts = new HashMap<String, Integer>();
 	
 	static {
@@ -25,9 +24,7 @@ public class LanguageClassifier {
 		languageTermCounts.put("ger", 46387276);		
 	}
 	
-	public LanguageClassifier (Connection conn) {
-		//this.conn = (new ConnectionManager()).getConnection();
-		this.conn = conn;
+	public LanguageClassifier () {
 	}
 	
 	public static void bootstrapClassifierForLanguage(String language) throws SQLException, NumberFormatException, IOException {
@@ -62,7 +59,8 @@ public class LanguageClassifier {
 			pstmt.setDouble(2, logProb);
 			pstmt.executeUpdate();
 			conn.commit();
-	    }		
+	    }
+	    conn.close();
 	}
 	
 	public String classify (String [] docTerms) throws SQLException {
@@ -83,7 +81,8 @@ public class LanguageClassifier {
 		}
 		termListClause = String.join(",", termListClauseArray);
 		
-		pstmt = this.conn.prepareStatement("SELECT SUM(prob) FROM eng_term_prob WHERE term IN (" + termListClause + ")");
+		Connection conn = (new ConnectionManager()).getConnection();
+		pstmt = conn.prepareStatement("SELECT SUM(prob) FROM eng_term_prob WHERE term IN (" + termListClause + ")");
 		for (int i = 0; i < testTermCount; i++) {
 			pstmt.setString(i+1, docTerms[i].toUpperCase());
 		}
@@ -92,7 +91,7 @@ public class LanguageClassifier {
 		engProb = rs.getDouble(1);
 		
 		// consider frequency as 1 for unseen terms
-		pstmt = this.conn.prepareStatement("SELECT COUNT(*) FROM eng_term_prob WHERE term IN (" + termListClause + ")");
+		pstmt = conn.prepareStatement("SELECT COUNT(*) FROM eng_term_prob WHERE term IN (" + termListClause + ")");
 		for (int i = 0; i < testTermCount; i++) {
 			pstmt.setString(i+1, docTerms[i].toUpperCase());
 		}
@@ -105,7 +104,7 @@ public class LanguageClassifier {
 			}
 		}				
 		
-		pstmt = this.conn.prepareStatement("SELECT SUM(prob) FROM ger_term_prob WHERE term IN (" + termListClause + ")");
+		pstmt = conn.prepareStatement("SELECT SUM(prob) FROM ger_term_prob WHERE term IN (" + termListClause + ")");
 		for (int i = 0; i < testTermCount; i++) {
 			pstmt.setString(i+1, docTerms[i].toUpperCase());
 		}
@@ -114,7 +113,7 @@ public class LanguageClassifier {
 		gerProb = rs.getDouble(1);
 		
 		// consider frequency as 1 for unseen terms
-		pstmt = this.conn.prepareStatement("SELECT COUNT(*) FROM ger_term_prob WHERE term IN (" + termListClause + ")");
+		pstmt = conn.prepareStatement("SELECT COUNT(*) FROM ger_term_prob WHERE term IN (" + termListClause + ")");
 		for (int i = 0; i < testTermCount; i++) {
 			pstmt.setString(i+1, docTerms[i].toUpperCase());
 		}
@@ -127,11 +126,12 @@ public class LanguageClassifier {
 			}
 		}
 		
+		conn.close();
+
 		if (gerProb <= engProb) {
 			return "eng";
 		}
 		
 		return "ger";
-				
 	}
 }

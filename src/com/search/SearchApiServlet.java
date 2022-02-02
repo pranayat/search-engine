@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.languageclassifier.LanguageClassifier;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
@@ -63,7 +64,11 @@ public class SearchApiServlet extends HttpServlet {
 		    	
 		    	if (req.getParameter("lang") != null && req.getParameter("lang").length() > 0) {
 		    		queryLanguage = req.getParameter("lang");
-		    	}
+		    	} else {
+	    			LanguageClassifier l = new LanguageClassifier();
+	    			String[] queryTerms = queryText.split("\\s+");
+	    			queryLanguage = l.classify(queryTerms);
+	    		}
 		    	
 		    	if (searchMode.equals("image")) {
 					Query q = new Query(queryText, queryLanguage, "image");
