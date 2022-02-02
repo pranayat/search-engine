@@ -99,17 +99,26 @@ public class MetaSearchServlet extends HttpServlet {
 		    		queryTerms = stemmedQueryTerms;
 		    	}
 		    	
-		    	Map<String, Float> c1TermScores = Collection.findCollectionTermScores(1, queryTerms);
-		    	Collection c1 = new Collection(1, Collection.getMapSum(c1TermScores));
-		    	Map<String, Float> c2TermScores = Collection.findCollectionTermScores(2, queryTerms);
-		    	Collection c2 = new Collection(2, Collection.getMapSum(c2TermScores));
-		    	Map<String, Float> c3TermScores = Collection.findCollectionTermScores(3, queryTerms);
-		    	Collection c3 = new Collection(3, Collection.getMapSum(c3TermScores));
-		    	
 		    	List<Collection> sortedCollectionList = new ArrayList<Collection>();
-	    		sortedCollectionList.add(c1);		    		
-	    		sortedCollectionList.add(c2);		    		
-	    		sortedCollectionList.add(c3);		    		
+		    	
+		    	Map<String, Float> c1TermScores = null;
+		    	Map<String, Float> c2TermScores = null;
+		    	Map<String, Float> c3TermScores = null;
+		    	if (req.getParameter("c1") != null) {
+		    		c1TermScores = Collection.findCollectionTermScores(1, queryTerms);
+		    		Collection c1 = new Collection(1, Collection.getMapSum(c1TermScores));
+		    		sortedCollectionList.add(c1);		    				    		
+		    	}
+		    	if (req.getParameter("c2") != null) {
+		    		c2TermScores = Collection.findCollectionTermScores(2, queryTerms);
+		    		Collection c2 = new Collection(2, Collection.getMapSum(c2TermScores));
+		    		sortedCollectionList.add(c2);		    				    		
+		    	}
+		    	if (req.getParameter("c3") != null) {
+		    		c3TermScores = Collection.findCollectionTermScores(3, queryTerms);
+		    		Collection c3 = new Collection(3, Collection.getMapSum(c3TermScores));
+		    		sortedCollectionList.add(c3);		    				    		
+		    	}		    	
 		    	
 		    	Collections.sort(sortedCollectionList);
 		    	
@@ -117,7 +126,9 @@ public class MetaSearchServlet extends HttpServlet {
 		    	List<String> knownTerms = new ArrayList<String>();
 		    	
 		    	for (String term: queryTerms) {
-		    		if (c1TermScores.get(term) == null && c2TermScores.get(term) == null && c3TermScores.get(term) == null) {
+		    		if ((c1TermScores == null || c1TermScores.get(term) == null) 
+		    				&& (c2TermScores == null || c2TermScores.get(term) == null)
+		    				&& (c3TermScores == null || c3TermScores.get(term) == null)) {
 		    			unknownTerms.add(term);
 		    		} else {
 		    			knownTerms.add(term);
@@ -130,7 +141,8 @@ public class MetaSearchServlet extends HttpServlet {
 
 		    		List<ApiResult> knownApiResults = new ArrayList<ApiResult>();
 		    		// take max top 2
-		    		for(Collection c: sortedCollectionList.subList(0, 2)) {
+		    		int topN = sortedCollectionList.size() >= 2 ? 2 : 1;
+		    		for(Collection c: sortedCollectionList.subList(0, topN)) {
 		    			Query q = new Query(knownQueryText, k, scoreTypeOption, queryLanguage, "web", false);
 		    			ApiResult r = q.getResultsFromCollection(c.collectionId);
 		    			knownApiResults.add(r);
@@ -139,7 +151,7 @@ public class MetaSearchServlet extends HttpServlet {
 		    		
 		    		
 		    		Map<String, Integer> termCfMap = Collection.getTermCfMap(knownTerms, knownApiResults);
-		    		for(Collection c: sortedCollectionList.subList(0, 2)) {
+		    		for(Collection c: sortedCollectionList.subList(0, topN)) {
 		    			c.updateCollectionTermScores(knownTerms, c.knownTermsApiResult, termCfMap);
 		    		}
 		    	}
