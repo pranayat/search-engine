@@ -43,6 +43,12 @@
 	    }    
 </style> 
 </head>
+<ul>
+  <li style="display:inline"><a href="index.html">Text Search</a></li>
+  <li style="display:inline"><a href="meta_search.html">Meta Search</a></li>
+  <li style="display:inline"><a href="AdForm.jsp">Advertising</a></li>
+</ul>
+<hr>
 <form action="search" style="display:flex; justify-content: center;">
 		<div style="display: flex; flex-direction: column; align-items: flex-start">
 			<div style="display: flex; flex-direction: row; margin: 5px">
@@ -57,7 +63,6 @@
 		    		<option value="eng">English</option>
 		    		<option value="ger">Deutsch</option>
 				</select>
-				<a href="index.html" style="color:black; margin-left: 4px">Text Search</a>
 			</div>
 		</div>		
 	</form>

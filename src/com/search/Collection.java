@@ -176,9 +176,13 @@ public class Collection implements Comparable<Collection>{
     	PreparedStatement pstmt = conn.prepareStatement("SELECT sum(score) as agg_score from collection_scores WHERE collection_id = ?");
     	pstmt.setInt(1, collectionId);
     	ResultSet rs = pstmt.executeQuery();
-    	rs.next();
+    	double score = 0;
+    	if(rs.next()) {
+    		score = rs.getDouble("agg_score");    		
+    	}
     	conn.close();
-    	return rs.getDouble("agg_score");
+    	
+    	return score;
     }
     
     private static double getMinCollectionScore(int collectionId) throws SQLException {
@@ -186,14 +190,16 @@ public class Collection implements Comparable<Collection>{
     }
     
     private static double getMaxCollectionScore(int collectionId) throws SQLException {
-    	int c = 3; // TODO
+    	int c = 3;
     	Connection conn = (new ConnectionManager()).getConnection();
     	PreparedStatement pstmt = conn.prepareStatement("SELECT cf from collection_scores WHERE collection_id = ?");
     	pstmt.setInt(1, collectionId);
     	ResultSet rs = pstmt.executeQuery();
-    	rs.next();
+    	int cf = 1;
+    	if(rs.next()) {
+    		cf = rs.getInt("cf");
+    	};
     	conn.close();
-    	int cf = rs.getInt("cf");
  
     	return 0.4 + (0.6) * Math.log((c + 0.5) / cf) / Math.log(c + 1);    	
     }

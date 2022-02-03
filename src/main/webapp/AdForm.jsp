@@ -7,10 +7,15 @@
 <title>Ad Form</title>
 </head>
 <body>
+<ul>
+  <li style="display:inline"><a href="index.html">Text Search</a></li>
+  <li style="display:inline"><a href="image_search.html">Image Search</a></li>
+  <li style="display:inline"><a href="meta_search.html">Meta Search</a></li>
+</ul>
+<hr>
 <h1 align="center">Ad-Placement</h1>
 <h3 align="center">- Enter all the important information here and nothing will stand in the way of YOUR AD -</h3>
 <br><br><br>
-I do not want to place an ad. Back to <a href="index.html">home page...</a><br>
 <br><br><br>
       <form action="placeAd">
       Please register to place your ad <br>
