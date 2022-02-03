@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -138,17 +139,32 @@ public class MetaSearchServlet extends HttpServlet {
 		    	// route query to top 2 collections for known terms
 		    	if (knownTerms.size() > 0) {
 		    		String knownQueryText = this.getQueryTextFromTerms(knownTerms, queryLanguage, stemTermMap);
-
 		    		List<ApiResult> knownApiResults = new ArrayList<ApiResult>();
+		    		List<CompletableFuture<ApiResult>> futures = new ArrayList<CompletableFuture<ApiResult>>();
+		    		
 		    		// take max top 2
 		    		int topN = sortedCollectionList.size() >= 2 ? 2 : 1;
 		    		for(Collection c: sortedCollectionList.subList(0, topN)) {
 		    			Query q = new Query(knownQueryText, k, scoreTypeOption, queryLanguage, "web", false);
-		    			ApiResult r = q.getResultsFromCollection(c.collectionId);
+		    			
+		    			CompletableFuture<ApiResult> completableFuture
+		    		      = CompletableFuture.supplyAsync(() -> {
+							try {
+								return q.getResultsFromCollection(c.collectionId);
+							} catch (Exception e) {
+								return null;
+							}
+						});
+		    			
+		    			futures.add(completableFuture);
+		    		}
+
+		    		int i = 0;
+		    		for(Collection c: sortedCollectionList.subList(0, topN)) {
+		    			ApiResult r = futures.get(i).get();
 		    			knownApiResults.add(r);
 		    			c.setKnownTermsApiResult(r);
-		    		}
-		    		
+		    		}		    		
 		    		
 		    		Map<String, Integer> termCfMap = Collection.getTermCfMap(knownTerms, knownApiResults);
 		    		for(Collection c: sortedCollectionList.subList(0, topN)) {
@@ -159,11 +175,27 @@ public class MetaSearchServlet extends HttpServlet {
 		    	// search all collections for unknown terms
 		    	if (unknownTerms.size() > 0) {
 		    		String unknownQueryText = this.getQueryTextFromTerms(unknownTerms, queryLanguage, stemTermMap);
-
 		    		List<ApiResult> unknownApiResults = new ArrayList<ApiResult>();
+		    		List<CompletableFuture<ApiResult>> futures = new ArrayList<CompletableFuture<ApiResult>>();
+
 		    		for(Collection c: sortedCollectionList) {
 		    			Query q = new Query(unknownQueryText, k, scoreTypeOption, queryLanguage, "web", false);
-		    			ApiResult r = q.getResultsFromCollection(c.collectionId);
+		    			
+		    			CompletableFuture<ApiResult> completableFuture
+		    		      = CompletableFuture.supplyAsync(() -> {
+							try {
+								return q.getResultsFromCollection(c.collectionId);
+							} catch (Exception e) {
+								return null;
+							}
+						});
+		    			
+		    			futures.add(completableFuture);
+		    		}
+
+		    		int i = 0;
+		    		for(Collection c: sortedCollectionList) {
+		    			ApiResult r = futures.get(i).get();
 		    			unknownApiResults.add(r);
 		    			c.setUnknownTermsApiResult(r);
 		    		}
