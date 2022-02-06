@@ -114,6 +114,7 @@ class Segment implements Comparable<Segment>{
 	
 	public static List<Segment> getBestSegments(List<Segment> segments, Set<String> queryTerms, Query q,String[] queryTextTerms) {
 		Set<String> queryTextTermsSet = new HashSet<String>(Arrays.asList(queryTextTerms)); 
+		
 		Collections.sort(segments);
 		List<Segment> diverseSegments = new ArrayList<Segment>();
 		for (Segment s: segments) {
