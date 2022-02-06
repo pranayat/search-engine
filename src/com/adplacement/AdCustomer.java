@@ -22,15 +22,24 @@ public class AdCustomer {
 		int customerid = -1;
 		
 		try {
-			   PreparedStatement pstmtc = conn.prepareStatement("INSERT INTO ad_customer (lastname, firstname)"
-			   		+ " VALUES(?,?) RETURNING customerid");
-	    	   pstmtc.setString(1, this.lastname);
-	    	   pstmtc.setString(2, this.firstname);
-        	   
-        	   ResultSet rsc =  pstmtc.executeQuery();
-        	   if (rsc.next()) {
-        	       customerid = rsc.getInt("customerid");
-        	   }
+			   PreparedStatement pstmtin = conn.prepareStatement("SELECT customerid FROM ad_customer WHERE lastname = ? AND firstname = ?");
+	    	   pstmtin.setString(1, this.lastname);
+	    	   pstmtin.setString(2, this.firstname);
+	    	   ResultSet rsin = pstmtin.executeQuery();
+	    	   if (!rsin.next()){
+				   PreparedStatement pstmtc = conn.prepareStatement("INSERT INTO ad_customer (lastname, firstname)"
+				   		+ " VALUES(?,?) RETURNING customerid");
+		    	   pstmtc.setString(1, this.lastname);
+		    	   pstmtc.setString(2, this.firstname);
+	        	   
+	        	   ResultSet rsc =  pstmtc.executeQuery();
+	        	   if (rsc.next()) {
+	        	       customerid = rsc.getInt("customerid");
+	        	   }
+	    	   }
+	    	   else {
+	    		   customerid = rsin.getInt("customerid");
+	    	   }
         	   
         	   conn.commit();
         	   conn.close();

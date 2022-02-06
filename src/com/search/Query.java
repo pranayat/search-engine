@@ -112,7 +112,8 @@ class Segment implements Comparable<Segment>{
 		}
 	}
 	
-	public static List<Segment> getBestSegments(List<Segment> segments, Set<String> queryTerms, Query q) {
+	public static List<Segment> getBestSegments(List<Segment> segments, Set<String> queryTerms, Query q,String[] queryTextTerms) {
+		Set<String> queryTextTermsSet = new HashSet<String>(Arrays.asList(queryTextTerms)); 
 		Collections.sort(segments);
 		List<Segment> diverseSegments = new ArrayList<Segment>();
 		for (Segment s: segments) {
@@ -147,6 +148,12 @@ class Segment implements Comparable<Segment>{
 				finalSegments.add(segments.stream().filter(seg -> seg.getSerial() == s.getSerial() + 1).findAny().orElse(null));				
 			} else {
 				break;
+			}
+		}
+		
+		for (Segment s: finalSegments) {
+			for (String term: queryTextTermsSet) {
+				Collections.replaceAll(s.terms,term,"<b>" + term + "</b>");
 			}
 		}
 
@@ -207,7 +214,7 @@ public class Query {
 	//			3. Sort segments by 1. coverage 2. term frequency of query terms descending
 	//			4. Iterate over sorted list, skipping segments that don't bring up S. We want to make sure all terms are covered in the first few segments. Remaining segments just fill up the max 32 word limit.
 	//			5. Stitch together contiguous segments into a single segment
-	private String generateSnippet(String docText, Set<String> queryTerms) {
+	private String generateSnippet(String docText, Set<String> queryTerms, String[] queryTextTerms) {
 		List<String> docTerms = new ArrayList<String>();
 		List<Segment> segments = new ArrayList<Segment>();
 		List<Segment> finalSegments = new ArrayList<Segment>();
@@ -226,7 +233,7 @@ public class Query {
 		}
 		
 		
-		finalSegments = Segment.getBestSegments(segments, queryTerms, this);
+		finalSegments = Segment.getBestSegments(segments, queryTerms, this,queryTextTerms);
 		
 	    Collections.sort(finalSegments, (s1, s2) -> ((Segment) s1).getSerial() - ((Segment) s2).getSerial());
 		
@@ -463,7 +470,7 @@ public class Query {
     				
     			resultList.add(new Result(
     					rs.getString("url").trim(),
-    					!this.isApiSearch ? this.generateSnippet(rs.getString("doc_text"), allTerms.stream().collect(Collectors.toSet())) : null,
+    					!this.isApiSearch ? this.generateSnippet(rs.getString("doc_text"), allTerms.stream().collect(Collectors.toSet()),queryTextTerms) : null,
     					Double.parseDouble(rs.getString("agg_score").trim()),
     					i));
     			}
