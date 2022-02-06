@@ -151,7 +151,7 @@ class Segment implements Comparable<Segment>{
 				break;
 			}
 		}
-		
+		//making bold
 		for (Segment s: finalSegments) {
 			for (String term: queryTextTermsSet) {
 				Collections.replaceAll(s.terms,term,"<b>" + term + "</b>");
