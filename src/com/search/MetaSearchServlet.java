@@ -59,7 +59,6 @@ public class MetaSearchServlet extends HttpServlet {
 			String queryText = req.getParameter("query");		
 			int k = 20;
 			PrintWriter out = res.getWriter();
-			ApiResult apiResultC3 = null;
 	        
 			Bucket ipBucket = this.getBucketByIp(req.getRemoteAddr());
 			Bucket globalBucket = Bucket4j.builder()
@@ -77,6 +76,7 @@ public class MetaSearchServlet extends HttpServlet {
 				out.flush();
 		    } else {			    	
 	    		String scoreTypeOption = req.getParameter("score");
+	    		
 	    		String queryLanguage;
 	    		
 	    		if (req.getParameter("lang") != null && req.getParameter("lang").length() > 0) {
@@ -102,34 +102,32 @@ public class MetaSearchServlet extends HttpServlet {
 		    	
 		    	List<Collection> sortedCollectionList = new ArrayList<Collection>();
 		    	
-		    	Map<String, Float> c1TermScores = null;
-		    	Map<String, Float> c2TermScores = null;
-		    	Map<String, Float> c3TermScores = null;
-		    	if (req.getParameter("c1") != null) {
-		    		c1TermScores = Collection.findCollectionTermScores(1, queryTerms);
-		    		Collection c1 = new Collection(1, Collection.getMapSum(c1TermScores));
-		    		sortedCollectionList.add(c1);		    				    		
-		    	}
-		    	if (req.getParameter("c2") != null) {
-		    		c2TermScores = Collection.findCollectionTermScores(2, queryTerms);
-		    		Collection c2 = new Collection(2, Collection.getMapSum(c2TermScores));
-		    		sortedCollectionList.add(c2);		    				    		
-		    	}
-		    	if (req.getParameter("c3") != null) {
-		    		c3TermScores = Collection.findCollectionTermScores(3, queryTerms);
-		    		Collection c3 = new Collection(3, Collection.getMapSum(c3TermScores));
-		    		sortedCollectionList.add(c3);		    				    		
-		    	}		    	
+		    	List<Map<String, Float>> cTermScoresList = new ArrayList<Map<String, Float>>();
 		    	
+		    	List<Engine> engines = MetaConf.getActiveEngines();
+
+		    	for (Engine activeEngine: engines) {
+		    		Map<String, Float> cTermScores = Collection.findCollectionTermScores(activeEngine.url, queryTerms);
+		    		cTermScoresList.add(cTermScores);
+		    		Collection c = new Collection(activeEngine.url, Collection.getMapSum(cTermScores));
+		    		sortedCollectionList.add(c);
+		    	}
+		    			    	
 		    	Collections.sort(sortedCollectionList);
 		    	
 		    	List<String> unknownTerms = new ArrayList<String>();
 		    	List<String> knownTerms = new ArrayList<String>();
 		    	
 		    	for (String term: queryTerms) {
-		    		if ((c1TermScores == null || c1TermScores.get(term) == null) 
-		    				&& (c2TermScores == null || c2TermScores.get(term) == null)
-		    				&& (c3TermScores == null || c3TermScores.get(term) == null)) {
+		    		boolean found = false;
+		    		for (Map<String, Float> cTermScores: cTermScoresList) {
+		    			if (cTermScores.get(term) != null) {
+		    				found = true;
+		    				break;
+		    			}
+		    		}
+
+		    		if (!found) {
 		    			unknownTerms.add(term);
 		    		} else {
 		    			knownTerms.add(term);
@@ -142,15 +140,22 @@ public class MetaSearchServlet extends HttpServlet {
 		    		List<ApiResult> knownApiResults = new ArrayList<ApiResult>();
 		    		List<CompletableFuture<ApiResult>> futures = new ArrayList<CompletableFuture<ApiResult>>();
 		    		
-		    		// take max top 2
-		    		int topN = sortedCollectionList.size() >= 2 ? 2 : 1;
+		    		// take max top N
+		    		int topN = sortedCollectionList.size();
+		    		if (req.getParameter("topn") != null) {
+		    			topN = Integer.parseInt(req.getParameter("topn"));
+		    			if (sortedCollectionList.size() < topN) {
+		    				topN = 1;
+		    			}
+		    		}
+
 		    		for(Collection c: sortedCollectionList.subList(0, topN)) {
 		    			Query q = new Query(knownQueryText, k, scoreTypeOption, queryLanguage, "web", false);
 		    			
 		    			CompletableFuture<ApiResult> completableFuture
 		    		      = CompletableFuture.supplyAsync(() -> {
 							try {
-								return q.getResultsFromCollection(c.collectionId);
+								return q.getResultsFromCollection(c.collectionUrl);
 							} catch (Exception e) {
 								return null;
 							}
@@ -184,7 +189,7 @@ public class MetaSearchServlet extends HttpServlet {
 		    			CompletableFuture<ApiResult> completableFuture
 		    		      = CompletableFuture.supplyAsync(() -> {
 							try {
-								return q.getResultsFromCollection(c.collectionId);
+								return q.getResultsFromCollection(c.collectionUrl);
 							} catch (Exception e) {
 								return null;
 							}

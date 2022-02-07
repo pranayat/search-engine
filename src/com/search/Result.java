@@ -12,13 +12,13 @@ public class Result implements Comparable<Result> {
 	private double score;
 	@JsonProperty("rank")
 	private int rank;
-	private int sourceCollection;
+	private String sourceCollection;
 	
 	public Result() {
 		super();
 	}
 	
-	public Result (String url, double score, int sourceCollection) {
+	public Result (String url, double score, String sourceCollection) {
 		this.url = url;
 		this.score = score;
 		this.sourceCollection = sourceCollection;
@@ -47,7 +47,7 @@ public class Result implements Comparable<Result> {
 		return this.snippet;
 	}
 	
-	public int getSourceCollection() {
+	public String getSourceCollection() {
 		return this.sourceCollection;
 	}	
 	

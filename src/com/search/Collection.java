@@ -14,14 +14,16 @@ import java.util.stream.Collectors;
 import com.common.ConnectionManager;
 
 public class Collection implements Comparable<Collection>{
-	public int collectionId;
+	public String collectionUrl;
 	public double collectionScore;
 	public ApiResult knownTermsApiResult;
 	public ApiResult unknownTermsApiResult;
-	public static double avgCw = updateAvgCw();
+	public static List<Engine> activeEngines;
+	public static double avgCw = 1;
+	public static int c = 1;
 	
-	public Collection(int collectionId, float collectionScore) {
-		this.collectionId = collectionId;
+	public Collection(String collectionUrl, float collectionScore) {
+		this.collectionUrl = collectionUrl;
 		this.collectionScore = collectionScore;
 	}
 	
@@ -33,33 +35,46 @@ public class Collection implements Comparable<Collection>{
 		this.unknownTermsApiResult = unknownTermsApiResult;
 	}
 		
-	public static double updateAvgCw() {
+	public static void updateAvgCw() {
 		int sumCw = 0;
-		for (int i = 1; i < 4; i++) {
+		for (Engine engine: Collection.activeEngines) {
 			Query q = new Query("foo", 1, "1", "eng", "web", false);
 			ApiResult r;
 			try {
-				r = q.getResultsFromCollection(i);
+				r = q.getResultsFromCollection(engine.url);
 				sumCw = sumCw + r.cw;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}	
 		}
-		 		
-		return sumCw/3;
+		
+		Collection.avgCw = sumCw/Collection.c;
 	}
 	
-    public static Map<String, Float> findCollectionTermScores(int collectionId, List<String> queryTerms) throws SQLException {
+	public static void updateCollectionCount() throws SQLException {
+		Connection conn = (new ConnectionManager()).getConnection();
+		PreparedStatement pstmt = conn.prepareStatement("SELECT COUNT(*) as c FROM meta_conf");
+		ResultSet rs = pstmt.executeQuery();
+		rs.next();
+		Collection.c = rs.getInt("c");
+		conn.close();
+	}
+	
+	public static void setActiveEngines(List<Engine> activeEngines) {
+		Collection.activeEngines = activeEngines;
+	}
+	
+    public static Map<String, Float> findCollectionTermScores(String collectionUrl, List<String> queryTerms) throws SQLException {
     	
     	Connection conn = (new ConnectionManager()).getConnection();
     	PreparedStatement pstmt;
 		ResultSet rs;
-		String stmt = String.format("SELECT term, score from collection_scores WHERE collection_id = ? AND term in (%s)",
+		String stmt = String.format("SELECT term, score from collection_scores WHERE collection_url = ? AND term in (%s)",
                 queryTerms.stream()
                 .map(v -> "?")
                 .collect(Collectors.joining(", ")));
     	pstmt = conn.prepareStatement(stmt);
-    	pstmt.setInt(1, collectionId);
+    	pstmt.setString(1, collectionUrl);
     	int i = 2;
     	for (String queryTerm: queryTerms) {
     		pstmt.setString(i, queryTerm);
@@ -132,8 +147,7 @@ public class Collection implements Comparable<Collection>{
     		score = (double) 0.4;
     	} else {
     		int df = getTermDfFromStat(result.stat, term);
-    		int c = 3; // TODO
-    		score = 0.4 + (0.6) * (df / (df + 50 + 150 * (result.cw / avgCw))) * (Math.log((c + 0.5) / cf) / Math.log(c + 1));
+    		score = 0.4 + (0.6) * (df / (df + 50 + 150 * (result.cw / Collection.avgCw))) * (Math.log((Collection.c + 0.5) / cf) / Math.log(c + 1));
     	}
     	
     	return score;
@@ -144,8 +158,8 @@ public class Collection implements Comparable<Collection>{
     	for (String term: terms) {
     		int cf = termCfMap.get(term);
     		double score = this.computeCollectionScoreForTerm(term, apiResult, cf);
-        	PreparedStatement pstmt = conn.prepareStatement("INSERT INTO collection_scores (collection_id, term, score, cf) VALUES (?,?,?,?)");
-        	pstmt.setInt(1, this.collectionId);
+        	PreparedStatement pstmt = conn.prepareStatement("INSERT INTO collection_scores (collection_url, term, score, cf) VALUES (?,?,?,?)");
+        	pstmt.setString(1, this.collectionUrl);
         	pstmt.setString(2, term);
         	pstmt.setDouble(3, score);
         	pstmt.setInt(4, cf);
@@ -160,10 +174,10 @@ public class Collection implements Comparable<Collection>{
     	for (String term: terms) {
     		int cf = termCfMap.get(term);
     		double score = this.computeCollectionScoreForTerm(term, apiResult, cf);
-        	PreparedStatement pstmt = conn.prepareStatement("UPDATE collection_scores set score = ?, cf = ? WHERE collection_id = ? AND term = ? ");
+        	PreparedStatement pstmt = conn.prepareStatement("UPDATE collection_scores set score = ?, cf = ? WHERE collection_url = ? AND term = ? ");
         	pstmt.setDouble(1, score);
         	pstmt.setInt(2, cf);
-        	pstmt.setInt(3, this.collectionId);
+        	pstmt.setString(3, this.collectionUrl);
         	pstmt.setString(4, term);
         	pstmt.executeUpdate();
     	}
@@ -171,10 +185,10 @@ public class Collection implements Comparable<Collection>{
     	conn.close();
     }
     
-    private static double getAggregateCollectionScore(int collectionId) throws SQLException {
+    private static double getAggregateCollectionScore(String collectionUrl) throws SQLException {
     	Connection conn = (new ConnectionManager()).getConnection();
-    	PreparedStatement pstmt = conn.prepareStatement("SELECT sum(score) as agg_score from collection_scores WHERE collection_id = ?");
-    	pstmt.setInt(1, collectionId);
+    	PreparedStatement pstmt = conn.prepareStatement("SELECT sum(score) as agg_score from collection_scores WHERE collection_url = ?");
+    	pstmt.setString(1, collectionUrl);
     	ResultSet rs = pstmt.executeQuery();
     	double score = 0;
     	if(rs.next()) {
@@ -185,15 +199,15 @@ public class Collection implements Comparable<Collection>{
     	return score;
     }
     
-    private static double getMinCollectionScore(int collectionId) throws SQLException {
+    private static double getMinCollectionScore(String collectionUrl) throws SQLException {
     	return 0.4;
     }
     
-    private static double getMaxCollectionScore(int collectionId) throws SQLException {
+    private static double getMaxCollectionScore(String collectionUrl) throws SQLException {
     	int c = 3;
     	Connection conn = (new ConnectionManager()).getConnection();
-    	PreparedStatement pstmt = conn.prepareStatement("SELECT cf from collection_scores WHERE collection_id = ?");
-    	pstmt.setInt(1, collectionId);
+    	PreparedStatement pstmt = conn.prepareStatement("SELECT cf from collection_scores WHERE collection_url = ?");
+    	pstmt.setString(1, collectionUrl);
     	ResultSet rs = pstmt.executeQuery();
     	int cf = 1;
     	if(rs.next()) {
@@ -207,20 +221,20 @@ public class Collection implements Comparable<Collection>{
 	public static List<Result> mergeResults(List<Collection> collections) throws SQLException {
 		List<Result> mergedResults = new ArrayList<Result>();
 		for (Collection c: collections) {
-			double Rmin = getMinCollectionScore(c.collectionId);
-			double Rmax = getMaxCollectionScore(c.collectionId);
-			double collectionScore = getAggregateCollectionScore(c.collectionId);
+			double Rmin = getMinCollectionScore(c.collectionUrl);
+			double Rmax = getMaxCollectionScore(c.collectionUrl);
+			double collectionScore = getAggregateCollectionScore(c.collectionUrl);
 			
 			if (c.knownTermsApiResult != null) {
 				for (Result r: c.knownTermsApiResult.resultList) {
 					double score = (r.getScore() + 0.4 * r.getScore() * (collectionScore - Rmin) / (Rmax - Rmin)) / 1.4;
-					mergedResults.add(new Result(r.getUrl(), score, c.collectionId));
+					mergedResults.add(new Result(r.getUrl(), score, c.collectionUrl));
 				}
 			}
 			if (c.unknownTermsApiResult != null) {
 				for (Result r: c.unknownTermsApiResult.resultList) {
 					double score = (r.getScore() + 0.4 * r.getScore() * (collectionScore - Rmin) / (Rmax - Rmin)) / 1.4;
-					mergedResults.add(new Result(r.getUrl(), score, c.collectionId));
+					mergedResults.add(new Result(r.getUrl(), score, c.collectionUrl));
 				}
 			}
 			

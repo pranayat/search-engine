@@ -524,13 +524,7 @@ public class Query {
     	return result;
     }
 
-    public ApiResult getResultsFromCollection(int collectionId) throws Exception {
-    	if (collectionId == 1) {
-    		return this.getResultsFrom("http://131.246.118.172:8080/is-project/json");    		
-    	} else if (collectionId == 2) {
-    		return this.getResultsFrom("http://131.246.118.235:8080/is-project/json");    		
-    	} else {
-    		return this.getResults();
-    	}
+    public ApiResult getResultsFromCollection(String collectionUrl) throws Exception {
+    	return this.getResultsFrom(collectionUrl);    		
     }
 }

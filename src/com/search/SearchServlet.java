@@ -91,7 +91,7 @@ public class SearchServlet extends HttpServlet {
 	    		}	
 	    		
 	    		Query q3 = new Query(queryText, k, scoreTypeOption, queryLanguage, "web", false);
-	    		apiResultC3 = q3.getResultsFromCollection(3);
+	    		apiResultC3 = q3.getResults();
 	    		
 					AdQuery aq = new AdQuery(apiResultC3.allsearchterms, k_ad, queryLanguage);
 					List<AdResult> adresult = aq.getAdResults();

@@ -36,14 +36,6 @@
 		    		<option value="web"></option>
 				</select>				
 			</div>
-			<div style="display: flex; flex-direction: row; margin: 5px">
-				<input type="checkbox" id="c1" name="c1" value="true">
-				<label for="c1"> Group 1</label><br>
-				<input type="checkbox" id="c2" name="c2" value="true">
-				<label for="c2"> Group 2</label><br>
-				<input type="checkbox" id="c3" name="c3" value="true">
-				<label for="c3"> Group 3</label><br>
-			</div>
 		</div>		
 	</form>
 	<hr>

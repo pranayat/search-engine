@@ -22,6 +22,10 @@
 		<servlet-name>AdClick</servlet-name>
 		<servlet-class>com.adplacement.AdClickServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>MetaConfig</servlet-name>
+		<servlet-class>com.search.MetaConfigServlet</servlet-class>
+	</servlet>	
 
 	<servlet-mapping>
 		<servlet-name>search</servlet-name>
@@ -43,5 +47,9 @@
 		<servlet-name>AdClick</servlet-name>
 		<url-pattern>/AdClick</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MetaConfig</servlet-name>
+		<url-pattern>/metaconfig</url-pattern>
+	</servlet-mapping>	
 
 </web-app>
