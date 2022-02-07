@@ -48,7 +48,7 @@ public class Collection implements Comparable<Collection>{
 			}	
 		}
 		
-		Collection.avgCw = sumCw/Collection.c;
+		Collection.avgCw = Collection.c != 0 ? sumCw/Collection.c : 1;
 	}
 	
 	public static void updateCollectionCount() throws SQLException {
